@@ -7,11 +7,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 DEBUG = True
 TAG = "[FrameworkPatcherV2]"
 
-
 class Helper:
     def __init__(self, base_dir):
         """Initialize with the base directory containing framework_decompile/."""
-        self.base_dir = base_dir  # e.g., "framework_decompile"
+        self.base_dir = base_dir
         self.class_dirs = [os.path.join(base_dir, f"classes{i}" if i > 1 else "classes") for i in range(1, 6)]
         for dir_path in self.class_dirs:
             if not os.path.exists(dir_path):
@@ -46,7 +45,8 @@ class Helper:
                 break
             if os.path.exists(full_path):
                 if DEBUG:
-                    logging.debug(f"Found class '{class_name}' at '{full_path}'")
+                    abs_path = os.path.abspath(full_path)
+                    logging.debug(f"Found class '{class_name}' at '{abs_path}'")
                 return full_path
 
         logging.error(f"Class '{class_name}' not found in '{self.base_dir}'")
@@ -54,10 +54,7 @@ class Helper:
 
     def find_and_modify_method(self, class_name: str, method_name: str,
                                callback: Callable[[List[str], int, int], List[str]], *parameter_types) -> bool:
-        """
-        Find a specific method in a class and apply a modification callback.
-        Callback takes (lines, start_line, end_line) and returns modified lines.
-        """
+        """Find a specific method in a class and apply a modification callback."""
         smali_file = self.find_class(class_name)
         if not smali_file:
             return False
@@ -104,10 +101,7 @@ class Helper:
 
     def find_all_and_modify_methods(self, class_name: str, method_name: str,
                                     callback: Callable[[List[str], int, int], List[str]]) -> int:
-        """
-        Find and modify all methods with a given name in a class.
-        Returns the number of methods modified.
-        """
+        """Find and modify all methods with a given name in a class."""
         smali_file = self.find_class(class_name)
         if not smali_file:
             return 0
@@ -145,6 +139,86 @@ class Helper:
                 logging.error(f"{TAG}: Error modifying methods '{method_name}' in '{class_name}': {str(e)}")
             return 0
 
+def pre_patch(base_dir: str):
+    """Pre-patch all .smali files under base_dir containing 'invoke-custom' more efficiently."""
+    if not os.path.exists(base_dir):
+        logging.error(f"Base directory '{base_dir}' does not exist")
+        return
+
+    method_patterns = {
+        "equals": re.compile(r'\.method.*equals\(Ljava/lang/Object;\)Z'),
+        "hashCode": re.compile(r'\.method.*hashCode\(\)I'),
+        "toString": re.compile(r'\.method.*toString\(\)Ljava/lang/String;')
+    }
+
+    for root, _, files in os.walk(base_dir):
+        for file in files:
+            if not file.endswith('.smali'):
+                continue
+            filepath = os.path.join(root, file)
+
+            with open(filepath, 'r', encoding='utf-8') as f:
+                if 'invoke-custom' not in f.read():
+                    continue
+
+            with open(filepath, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+
+            modified_lines = []
+            in_method = False
+            method_type = None
+            method_start_line = None
+
+            for i, line in enumerate(lines):
+                if in_method:
+                    if line.strip() == '.end method':
+                        if method_type in method_patterns:
+                            logging.info(f"Patching '{method_type}' in '{filepath}' to return zero")
+                            modified_lines.extend(return_zero_callback(
+                                lines[method_start_line:i + 1], 0, 0))
+                        in_method = False
+                        method_type = None
+                        method_start_line = None
+                        continue
+                    continue
+
+                for key, pattern in method_patterns.items():
+                    if pattern.search(line):
+                        logging.info(f"Found method '{key}' in '{filepath}' with invoke-custom")
+                        in_method = True
+                        method_type = key
+                        method_start_line = i
+                        break
+
+                if not in_method:
+                    modified_lines.append(line)
+
+            if modified_lines != lines:
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.writelines(modified_lines)
+                logging.info(f"Completed pre-patch for '{filepath}'")
+
+def return_zero_callback(lines: List[str], start: int, end: int) -> List[str]:
+    """Modify a method to return zero (or false) while preserving the .registers directive."""
+    modified_lines = [lines[0]]
+
+    registers_line = None
+    for line in lines[1:]:
+        if line.strip().startswith('.registers'):
+            registers_line = line
+            break
+
+    if registers_line:
+        modified_lines.append(registers_line)
+
+    return_type = 'return v0' if '()I' in lines[0] or '()Z' in lines[0] else 'return-object v0'
+    modified_lines.extend([
+        "    const/4 v0, 0x0\n",
+        f"    {return_type}\n",
+        ".end method\n"
+    ])
+
+    return modified_lines
 
 def return_true_callback(lines: List[str], start: int, end: int) -> List[str]:
     """Modify a method to return true while preserving the .registers directive."""
