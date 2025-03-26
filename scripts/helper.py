@@ -139,61 +139,20 @@ class Helper:
                 logging.error(f"{TAG}: Error modifying methods '{method_name}' in '{class_name}': {str(e)}")
             return 0
 
-    def modify_method_by_adding_a_line_before_line(self, class_name: str, method_name: str, unique_line: str,
-                                                   new_line: str) -> bool:
+    def modify_method_by_adding_a_line_before_line(self, class_name: str, method_name: str,
+                                                 unique_line: str, new_line: str) -> bool:
         """
         Find a method in a class and insert a new line before a specific existing line.
-
-        Args:
-            class_name: The name of the class containing the method
-            method_name: The name of the method to modify
-            unique_line: A unique line in the method that identifies where to insert
-            new_line: The new line to insert before the unique_line
-
-        Returns:
-            bool: True if modification was successful, False otherwise
         """
-
-        def callback(lines: List[str], start: int, end: int) -> List[str]:
-            modified_lines = []
-            found = False
-            for line in lines:
-                if unique_line in line and not found:
-                    modified_lines.append(new_line + '\n')
-                    found = True
-                modified_lines.append(line)
-            if not found:
-                logging.warning(f"Unique line '{unique_line.strip()}' not found in method '{method_name}'")
-            return modified_lines
-
+        callback = add_line_before_callback(unique_line, new_line, method_name)
         return self.find_and_modify_method(class_name, method_name, callback)
 
-    def modify_all_method_by_adding_a_line_before_line(self, class_name: str, target_line: str, new_line: str) -> int:
+    def modify_all_method_by_adding_a_line_before_line(self, class_name: str,
+                                                       target_line: str, new_line: str) -> int:
         """
         Modify ALL methods in a class by adding a new line before a specific target line.
-        This will affect every method that contains the target line, including constructors.
-
-        Args:
-            class_name: The name of the class to modify
-            target_line: The line to find in each method (will add before this line)
-            new_line: The new line to insert before the target line
-
-        Returns:
-            int: Number of methods that were modified
         """
-
-        def callback(lines: List[str], start: int, end: int) -> List[str]:
-            modified_lines = []
-            found = False
-            for line in lines:
-                if target_line in line and not found:
-                    modified_lines.append(new_line + '\n')
-                    found = True
-                modified_lines.append(line)
-            return modified_lines
-
-        # We'll use find_all_and_modify_methods with a pattern that matches all methods
-        # by passing an empty string as method_name and using a more flexible pattern
+        callback = add_line_before_callback(target_line, new_line)
         smali_file = self.find_class(class_name)
         if not smali_file:
             return 0
@@ -210,10 +169,7 @@ class Helper:
                     for j in range(i + 1, len(lines)):
                         if lines[j].strip().startswith('.end method'):
                             end_line = j
-                            # Check if this method contains our target line
-                            method_contains_target = any(target_line in line for line in lines[start_line:end_line + 1])
-                            if method_contains_target:
-                                # Apply our modification
+                            if any(target_line in line for line in lines[start_line:end_line + 1]):
                                 modified_lines = callback(lines[start_line:end_line + 1], start_line, end_line)
                                 lines[start_line:end_line + 1] = modified_lines
                                 modified_count += 1
@@ -226,8 +182,7 @@ class Helper:
             if modified_count > 0:
                 with open(smali_file, 'w', encoding='utf-8') as f:
                     f.writelines(lines)
-                logging.info(
-                    f"Modified {modified_count} methods in '{class_name}' by adding line before '{target_line.strip()}'")
+                logging.info(f"Modified {modified_count} methods in '{class_name}'")
 
             return modified_count
 
@@ -236,37 +191,16 @@ class Helper:
                 logging.error(f"{TAG}: Error modifying methods in '{class_name}': {str(e)}")
             return 0
 
-    def modify_method_by_adding_a_line_after_line(self, class_name: str, method_name: str, unique_line: str,
-                                                  new_line: str) -> bool:
+    def modify_method_by_adding_a_line_after_line(self, class_name: str, method_name: str,
+                                                unique_line: str, new_line: str) -> bool:
         """
         Find a method in a class and insert a new line after a specific existing line.
-
-        Args:
-            class_name: The name of the class containing the method
-            method_name: The name of the method to modify
-            unique_line: A unique line in the method that identifies where to insert
-            new_line: The new line to insert after the unique_line
-
-        Returns:
-            bool: True if modification was successful, False otherwise
         """
-
-        def callback(lines: List[str], start: int, end: int) -> List[str]:
-            modified_lines = []
-            found = False
-            for line in lines:
-                modified_lines.append(line)
-                if unique_line in line and not found:
-                    modified_lines.append(new_line + '\n')
-                    found = True
-            if not found:
-                logging.warning(f"Unique line '{unique_line.strip()}' not found in method '{method_name}'")
-            return modified_lines
-
+        callback = add_line_after_callback(unique_line, new_line, method_name)
         return self.find_and_modify_method(class_name, method_name, callback)
 
 
-def return_zero_callback(lines: List[str], start: int, end: int) -> List[str]:
+def return_false_callback(lines: List[str], start: int, end: int) -> List[str]:
     """Modify a method to return zero (or false) while preserving the .registers directive."""
     modified_lines = [lines[0]]
 
@@ -342,7 +276,7 @@ def pre_patch(base_dir: str):
                     if line.strip() == '.end method':
                         if method_type in method_patterns:
                             logging.info(f"Patching '{method_type}' in '{filepath}' to return zero")
-                            modified_lines.extend(return_zero_callback(
+                            modified_lines.extend(return_false_callback(
                                 lines[method_start_line:i + 1], 0, 0))
                         in_method = False
                         method_type = None
@@ -365,3 +299,33 @@ def pre_patch(base_dir: str):
                 with open(filepath, 'w', encoding='utf-8') as f:
                     f.writelines(modified_lines)
                 logging.info(f"Completed pre-patch for '{filepath}'")
+
+def add_line_before_callback(unique_line: str, new_line: str, method_name: str = "") -> Callable[[List[str], int, int], List[str]]:
+    """callback that adds a line before specific line"""
+    def callback(lines: List[str], start: int, end: int) -> List[str]:
+        modified_lines = []
+        found = False
+        for line in lines:
+            if unique_line in line and not found:
+                modified_lines.append(new_line + '\n')
+                found = True
+            modified_lines.append(line)
+        if not found and method_name:
+            logging.warning(f"Unique line '{unique_line.strip()}' not found in method '{method_name}'")
+        return modified_lines
+    return callback
+
+def add_line_after_callback(unique_line: str, new_line: str, method_name: str = "") -> Callable[[List[str], int, int], List[str]]:
+    """callback that adds a line after specific line"""
+    def callback(lines: List[str], start: int, end: int) -> List[str]:
+        modified_lines = []
+        found = False
+        for line in lines:
+            modified_lines.append(line)
+            if unique_line in line and not found:
+                modified_lines.append(new_line + '\n')
+                found = True
+        if not found and method_name:
+            logging.warning(f"Unique line '{unique_line.strip()}' not found in method '{method_name}'")
+        return modified_lines
+    return callback
