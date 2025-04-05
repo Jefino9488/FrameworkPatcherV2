@@ -83,20 +83,25 @@ jobs:
           download_file() {
             url=$1
             output=$2
+            echo "Downloading $url to $output"
             if echo "$url" | grep -q "drive.google.com"; then
-              gdown --fuzzy -O "$output" "$url"
+              gdown --fuzzy -O "$output" "$url" || { echo "gdown failed"; exit 1; }
             else
-              curl -L -C - -o "$output" "$url"
+              curl -L -C - -o "$output" "$url" || { echo "curl failed with exit code $?"; exit 1; }
             fi
             if [ -f "$output" ]; then
-              file_size=$(stat -c%s "$output")
-              if [ $file_size -lt 1500000 ]; then
-                echo "Error: $output is too small. Download might have failed." >&2
+              file_size=$(stat -c%s "$output" 2>/dev/null) || { echo "stat failed"; exit 1; }
+              echo "File size of $output: $file_size bytes"
+              if [ -n "$file_size" ] && [ "$file_size" -lt 1500000 ]; then
+                echo "Error: $output is too small ($file_size bytes < 1.5MB). Download might have failed." >&2
                 exit 1
               fi
+            else
+              echo "Error: $output was not created" >&2
+              exit 1
             fi
           }
-          
+
           [ -n "${{ env.framework_jar_url }}" ] && download_file "${{ env.framework_jar_url }}" framework.jar
           [ -n "${{ env.services_jar_url }}" ] && download_file "${{ env.services_jar_url }}" services.jar
           [ -n "${{ env.miui_services_jar_url }}" ] && download_file "${{ env.miui_services_jar_url }}" miui-services.jar
