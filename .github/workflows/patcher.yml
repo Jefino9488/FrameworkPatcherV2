@@ -111,16 +111,16 @@ jobs:
           # Track if any download succeeds
           any_success=false
           if [ -n "${{ env.framework_jar_url }}" ]; then
-            download_file "${{ env.framework_jar_url }}" framework.jar && any_success=true
+            download_file "${{ env.framework_jar_url }}" framework.jar && any_success=true || echo "Skipping framework.jar due to download failure"
           fi
           if [ -n "${{ env.services_jar_url }}" ]; then
-            download_file "${{ env.services_jar_url }}" services.jar && any_success=true
+            download_file "${{ env.services_jar_url }}" services.jar && any_success=true || echo "Skipping services.jar due to download failure"
           fi
           if [ -n "${{ env.miui_services_jar_url }}" ]; then
-            download_file "${{ env.miui_services_jar_url }}" miui-services.jar && any_success=true
+            download_file "${{ env.miui_services_jar_url }}" miui-services.jar && any_success=true || echo "Skipping miui-services.jar due to download failure"
           fi
           if [ -n "${{ env.miui_framework_jar_url }}" ]; then
-            download_file "${{ env.miui_framework_jar_url }}" miui-framework.jar && any_success=true
+            download_file "${{ env.miui_framework_jar_url }}" miui-framework.jar && any_success=true || echo "Skipping miui-framework.jar due to download failure"
           fi
 
           # Fail if no downloads succeeded
@@ -132,17 +132,33 @@ jobs:
 
       - name: Extract JAR files
         run: |
-          [ -f framework.jar ] && 7z x framework.jar -oframework
-          [ -f services.jar ] && 7z x services.jar -oservices
-          [ -f miui-services.jar ] && 7z x miui-services.jar -omiui_services
-          [ -f miui-framework.jar ] && 7z x miui-framework.jar -omiui_framework
+          if [ -f framework.jar ]; then
+            7z x framework.jar -oframework || echo "Failed to extract framework.jar, but continuing"
+          fi
+          if [ -f services.jar ]; then
+            7z x services.jar -oservices || echo "Failed to extract services.jar, but continuing"
+          fi
+          if [ -f miui-services.jar ]; then
+            7z x miui-services.jar -omiui_services || echo "Failed to extract miui-services.jar, but continuing"
+          fi
+          if [ -f miui-framework.jar ]; then
+            7z x miui-framework.jar -omiui_framework || echo "Failed to extract miui-framework.jar, but continuing"
+          fi
 
       - name: Decompile dex files
         run: |
-          [ -d framework ] && ./decompile.sh framework ${{ github.event.inputs.android_api_level }}
-          [ -d services ] && ./decompile.sh services ${{ github.event.inputs.android_api_level }}
-          [ -d miui_services ] && ./decompile.sh miui_services ${{ github.event.inputs.android_api_level }}
-          [ -d miui_framework ] && ./decompile.sh miui_framework ${{ github.event.inputs.android_api_level }}
+          if [ -d framework ]; then
+            ./decompile.sh framework ${{ github.event.inputs.android_api_level }} || echo "Failed to decompile framework, but continuing"
+          fi
+          if [ -d services ]; then
+            ./decompile.sh services ${{ github.event.inputs.android_api_level }} || echo "Failed to decompile services, but continuing"
+          fi
+          if [ -d miui_services ]; then
+            ./decompile.sh miui_services ${{ github.event.inputs.android_api_level }} || echo "Failed to decompile miui_services, but continuing"
+          fi
+          if [ -d miui_framework ]; then
+            ./decompile.sh miui_framework ${{ github.event.inputs.android_api_level }} || echo "Failed to decompile miui_framework, but continuing"
+          fi
 
       - name: Backup smali files
         run: |
@@ -154,47 +170,81 @@ jobs:
       - name: Modify framework smali
         if: env.framework_jar_url != ''
         run: |
-          python3 framework_patch.py "${{ env.dsv }}" "${{ env.isa15 }}"
+          if [ -d framework ]; then
+            python3 framework_patch.py "${{ env.dsv }}" "${{ env.isa15 }}" || echo "Failed to patch framework smali, but continuing"
+          fi
 
       - name: Modify services smali
         if: env.services_jar_url != ''
         run: |
-          python3 services_patch.py "${{ env.dsv }}"
+          if [ -d services ]; then
+            python3 services_patch.py "${{ env.dsv }}" || echo "Failed to patch services smali, but continuing"
+          fi
 
       - name: Modify miui-services smali files
         if: env.miui_services_jar_url != ''
         run: |
-          python3 miui-service_Patch.py "${{ env.isCN }}" "${{ env.fixNotification }}"
+          if [ -d miui_services ]; then
+            python3 miui-service_Patch.py "${{ env.isCN }}" "${{ env.fixNotification }}" || echo "Failed to patch miui-services smali, but continuing"
+          fi
 
       - name: Recompile dex files
         run: |
-          [ -d framework ] && ./recompile.sh framework ${{ github.event.inputs.android_api_level }}
-          [ -d services ] && ./recompile.sh services ${{ github.event.inputs.android_api_level }}
-          [ -d miui_services ] && ./recompile.sh miui_services ${{ github.event.inputs.android_api_level }}
-          [ -d miui_framework ] && ./recompile.sh miui_framework ${{ github.event.inputs.android_api_level }}
+          if [ -d framework ]; then
+            ./recompile.sh framework ${{ github.event.inputs.android_api_level }} || echo "Failed to recompile framework, but continuing"
+          fi
+          if [ -d services ]; then
+            ./recompile.sh services ${{ github.event.inputs.android_api_level }} || echo "Failed to recompile services, but continuing"
+          fi
+          if [ -d miui_services ]; then
+            ./recompile.sh miui_services ${{ github.event.inputs.android_api_level }} || echo "Failed to recompile miui_services, but continuing"
+          fi
+          if [ -d miui_framework ]; then
+            ./recompile.sh miui_framework ${{ github.event.inputs.android_api_level }} || echo "Failed to recompile miui_framework, but continuing"
+          fi
 
       - name: Recompile JAR files
         run: |
-          [ -d framework ] && cd framework && 7z a -tzip ../framework_new.zip * && cd ..
-          [ -d services ] && cd services && 7z a -tzip ../services_new.zip * && cd ..
-          [ -d miui_services ] && cd miui_services && 7z a -tzip ../miui_services_new.zip * && cd ..
-          [ -d miui_framework ] && cd miui_framework && 7z a -tzip ../miui_framework_new.zip * && cd ..
+          if [ -d framework ]; then
+            cd framework && 7z a -tzip ../framework_new.zip * || echo "Failed to recompile framework.jar, but continuing"
+            cd ..
+          fi
+          if [ -d services ]; then
+            cd services && 7z a -tzip ../services_new.zip * || echo "Failed to recompile services.jar, but continuing"
+            cd ..
+          fi
+          if [ -d miui_services ]; then
+            cd miui_services && 7z a -tzip ../miui_services_new.zip * || echo "Failed to recompile miui_services.jar, but continuing"
+            cd ..
+          fi
+          if [ -d miui_framework ]; then
+            cd miui_framework && 7z a -tzip ../miui_framework_new.zip * || echo "Failed to recompile miui_framework.jar, but continuing"
+            cd ..
+          fi
 
       - name: Align the zips
         run: |
-          [ -f framework_new.zip ] && zipalign -f -p -v -z 4 framework_new.zip aligned_framework.jar
-          [ -f services_new.zip ] && zipalign -f -p -v -z 4 services_new.zip aligned_services.jar
-          [ -f miui_services_new.zip ] && zipalign -f -p -v -z 4 miui_services_new.zip aligned_miui_services.jar
-          [ -f miui_framework_new.zip ] && zipalign -f -p -v -z 4 miui_framework_new.zip aligned_miui_framework.jar
+          if [ -f framework_new.zip ]; then
+            zipalign -f -p -v -z 4 framework_new.zip aligned_framework.jar || echo "Failed to align framework_new.zip, but continuing"
+          fi
+          if [ -f services_new.zip ]; then
+            zipalign -f -p -v -z 4 services_new.zip aligned_services.jar || echo "Failed to align services_new.zip, but continuing"
+          fi
+          if [ -f miui_services_new.zip ]; then
+            zipalign -f -p -v -z 4 miui_services_new.zip aligned_miui_services.jar || echo "Failed to align miui_services_new.zip, but continuing"
+          fi
+          if [ -f miui_framework_new.zip ]; then
+            zipalign -f -p -v -z 4 miui_framework_new.zip aligned_miui_framework.jar || echo "Failed to align miui_framework_new.zip, but continuing"
+          fi
 
       - name: Copy aligned jars to Magisk module
         run: |
           mkdir -p magisk_module/system/framework
           mkdir -p magisk_module/system/system_ext/framework
-          [ -f aligned_framework.jar ] && cp aligned_framework.jar magisk_module/system/framework/framework.jar
-          [ -f aligned_services.jar ] && cp aligned_services.jar magisk_module/system/framework/services.jar
-          [ -f aligned_miui_services.jar ] && cp aligned_miui_services.jar magisk_module/system/system_ext/framework/miui-services.jar
-          [ -f aligned_miui_framework.jar ] && cp aligned_miui_framework.jar magisk_module/system/system_ext/framework/miui-framework.jar
+          [ -f aligned_framework.jar ] && cp aligned_framework.jar magisk_module/system/framework/framework.jar || echo "No aligned_framework.jar to copy"
+          [ -f aligned_services.jar ] && cp aligned_services.jar magisk_module/system/framework/services.jar || echo "No aligned_services.jar to copy"
+          [ -f aligned_miui_services.jar ] && cp aligned_miui_services.jar magisk_module/system/system_ext/framework/miui-services.jar || echo "No aligned_miui_services.jar to copy"
+          [ -f aligned_miui_framework.jar ] && cp aligned_miui_framework.jar magisk_module/system/system_ext/framework/miui-framework.jar || echo "No aligned_miui_framework.jar to copy"
 
       - name: Create Version From Link
         run: |
@@ -217,11 +267,11 @@ jobs:
         run: |
           cd magisk_module
           UNIQUE_NAME="moded_framework_services_${{ env.device_name }}_${{ env.version }}_$(date +%Y%m%d%H%M%S).zip"
-          zip -r ../$UNIQUE_NAME *
+          zip -r ../$UNIQUE_NAME * || echo "Failed to zip Magisk module, but continuing"
           cd ..
           mkdir -p out
-          chmod +w $UNIQUE_NAME
-          mv $UNIQUE_NAME out/
+          chmod +w $UNIQUE_NAME || echo "No zip file to chmod"
+          mv $UNIQUE_NAME out/ || echo "No zip file to move"
           echo "UNIQUE_NAME=$UNIQUE_NAME" >> $GITHUB_ENV
 
       - name: Create Release Notes
