@@ -8,25 +8,28 @@ fi
 directory=$1
 api_level=$2
 
-if [ -d "classes" ]; then
-    java -jar smali.jar a -a "$api_level" classes -o "$directory/classes.dex"
-    echo "Recompiled classes/ to $directory/classes.dex"
+# Define the decompiled directory consistent with decompile.sh
+directory_decompile="${directory}_decompile"
+
+if [ -d "$directory_decompile/classes" ]; then
+    java -jar tools/smali.jar a -a "$api_level" "$directory_decompile/classes" -o "$directory/classes.dex"
+    echo "Recompiled $directory_decompile/classes/ to $directory/classes.dex"
 else
-    echo "classes directory not found, skipping recompilation."
+    echo "$directory_decompile/classes directory not found, skipping recompilation."
 fi
 
 for i in {2..5}; do
-    if [ -d "classes$i" ]; then
-        java -jar smali.jar a -a "$api_level" "classes$i" -o "$directory/classes$i.dex"
-        echo "Recompiled classes$i/ to $directory/classes$i.dex"
+    if [ -d "$directory_decompile/classes$i" ]; then
+        java -jar tools/smali.jar a -a "$api_level" "$directory_decompile/classes$i" -o "$directory/classes$i.dex"
+        echo "Recompiled $directory_decompile/classes$i/ to $directory/classes$i.dex"
     else
-        echo "classes$i directory not found, skipping recompilation."
+        echo "$directory_decompile/classes$i directory not found, skipping recompilation."
     fi
 done
 
 if [ -d "$directory" ]; then
     cd "$directory" || exit 1
-    7z a -tzip "../${directory}_new.zip" *
+    7z a -tzip "../${directory}_new.zip" * || echo "Failed to create ${directory}_new.zip, but continuing"
     cd .. || exit 1
     echo "Created ${directory}_new.zip"
 else

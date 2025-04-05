@@ -167,16 +167,16 @@ jobs:
 
       - name: Backup smali files
         run: |
-          [ -d classes ] && cp -r classes classes_backup || echo "classes directory not found, skipping backup."
-          [ -d services_classes ] && cp -r services_classes services_classes_backup || echo "services_classes directory not found, skipping backup."
-          [ -d miui_services_classes ] && cp -r miui_services_classes miui_services_classes_backup || echo "miui_services_classes directory not found, skipping backup."
-          [ -d miui_framework_classes ] && cp -r miui_framework_classes miui_framework_classes_backup || echo "miui_framework_classes directory not found, skipping backup."
+          [ -d framework_decompile/classes ] && cp -r framework_decompile/classes framework_decompile/classes_backup || echo "framework_decompile/classes directory not found, skipping backup."
+          [ -d services_decompile/classes ] && cp -r services_decompile/classes services_decompile/classes_backup || echo "services_decompile/classes directory not found, skipping backup."
+          [ -d miui_services_decompile/classes ] && cp -r miui_services_decompile/classes miui_services_decompile/classes_backup || echo "miui_services_decompile/classes directory not found, skipping backup."
+          [ -d miui_framework_decompile/classes ] && cp -r miui_framework_decompile/classes miui_framework_decompile/classes_backup || echo "miui_framework_decompile/classes directory not found, skipping backup."
 
       - name: Modify framework smali
         if: env.framework_jar_url != ''
         run: |
           if [ -d framework ]; then
-            python3 framework_patch.py "${{ env.dsv }}" "${{ env.isa15 }}" || echo "Failed to patch framework smali, but continuing"
+            python3 framework_patch.py || echo "Failed to patch framework smali, but continuing"
           fi
 
       - name: Modify services smali
@@ -281,17 +281,20 @@ jobs:
 
       - name: Create Release Notes
         run: |
-          echo "## Release Notes" > release_notes.txt
-          echo "- Built modified jars from commit ${{ github.sha }}" >> release_notes.txt
-          echo "- Version: ${{ env.version }}" >> release_notes.txt
-          echo "- Device: ${{ env.device_name }}" >> release_notes.txt
-          echo "- Disable Signature Verification: ${{ env.dsv }}" >> release_notes.txt
-          echo "- Fix Notification: ${{ env.fixNotification }}" >> release_notes.txt
-          echo "- Modified JARs:" >> release_notes.txt
-          [ -n "${{ env.framework_jar_url }}" ] && echo "  - framework.jar" >> release_notes.txt
-          [ -n "${{ env.services_jar_url }}" ] && echo "  - services.jar" >> release_notes.txt
-          [ -n "${{ env.miui_services_jar_url }}" ] && echo "  - miui-services.jar" >> release_notes.txt
-          [ -n "${{ env.miui_framework_jar_url }}" ] && echo "  - miui-framework.jar" >> release_notes.txt
+          set +e  # Disable exit-on-error for this step
+          echo "## Release Notes" > release_notes.txt || echo "Failed to write header to release_notes.txt"
+          echo "- Built modified jars from commit ${{ github.sha }}" >> release_notes.txt || echo "Failed to write commit info"
+          echo "- Version: ${{ env.version }}" >> release_notes.txt || echo "Failed to write version"
+          echo "- Device: ${{ env.device_name }}" >> release_notes.txt || echo "Failed to write device name"
+          echo "- Disable Signature Verification: ${{ env.dsv }}" >> release_notes.txt || echo "Failed to write DSV"
+          echo "- Fix Notification: ${{ env.fixNotification }}" >> release_notes.txt || echo "Failed to write fix notification"
+          echo "- Modified JARs:" >> release_notes.txt || echo "Failed to write JARs header"
+          [ -n "${{ env.framework_jar_url }}" ] && echo "  - framework.jar" >> release_notes.txt || echo "Failed to write framework.jar entry"
+          [ -n "${{ env.services_jar_url }}" ] && echo "  - services.jar" >> release_notes.txt || echo "No services.jar URL, skipping"
+          [ -n "${{ env.miui_services_jar_url }}" ] && echo "  - miui-services.jar" >> release_notes.txt || echo "No miui-services.jar URL, skipping"
+          [ -n "${{ env.miui_framework_jar_url }}" ] && echo "  - miui-framework.jar" >> release_notes.txt || echo "No miui-framework.jar URL, skipping"
+          set -e  # Re-enable exit-on-error
+          cat release_notes.txt  # Debug: Show the contents of the file
 
       - name: Create Release
         uses: ncipollo/release-action@v1
@@ -306,11 +309,13 @@ jobs:
 
       - name: Notify via Telegram
         run: |
+          set +e
           MODIFIED_JARS=""
           [ -n "${{ env.framework_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS framework.jar"
           [ -n "${{ env.services_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS services.jar"
           [ -n "${{ env.miui_services_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS miui-services.jar"
           [ -n "${{ env.miui_framework_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS miui-framework.jar"
+          set -e
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
           -d chat_id=@codes9488 \
           -d message_thread_id=3 \
