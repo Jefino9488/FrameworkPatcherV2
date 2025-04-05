@@ -1,0 +1,235 @@
+name: Modify Frameworks
+
+on:
+  workflow_dispatch:
+    inputs:
+      jar_urls:
+        description: 'JSON object containing URLs to download the JAR files (all optional)'
+        required: true
+        default: '{"framework_jar_url": "", "services_jar_url": "", "miui_services_jar_url": "", "miui_framework_jar_url": ""}'
+      android_api_level:
+        description: 'Android API level'
+        required: true
+        default: '34'
+      features:
+        description: 'JSON object containing feature flags'
+        required: true
+        default: '{"isCN": "true", "dsv": "true", "fixNotification": "true"}'
+      custom_device_name:
+        description: 'Device Name'
+        required: true
+      custom_version:
+        description: 'Version'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      actions: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Install dependencies
+        run: |
+          sudo apt install -y default-jdk zipalign p7zip-full python3 aria2 jq
+          pip install gdown
+
+      - name: Write inputs to files
+        run: |
+          echo '${{ github.event.inputs.jar_urls }}' > jar_urls.json
+          echo '${{ github.event.inputs.features }}' > features.json
+
+      - name: Parse JSON inputs & Set environment variables
+        run: |
+          framework_jar_url=$(jq -r '.framework_jar_url // ""' jar_urls.json)
+          services_jar_url=$(jq -r '.services_jar_url // ""' jar_urls.json)
+          miui_services_jar_url=$(jq -r '.miui_services_jar_url // ""' jar_urls.json)
+          miui_framework_jar_url=$(jq -r '.miui_framework_jar_url // ""' jar_urls.json)
+          android_api_level=${{ github.event.inputs.android_api_level }}
+          
+          isCN=$(jq -r .isCN features.json)
+          dsv=$(jq -r .dsv features.json)
+          fixNotification=$(jq -r .fixNotification features.json)
+          
+          if [ $android_api_level -gt 34 ]; then
+            isa15=true
+          else
+            isa15=false
+          fi
+          
+          echo "framework_jar_url=$framework_jar_url" >> $GITHUB_ENV
+          echo "services_jar_url=$services_jar_url" >> $GITHUB_ENV
+          echo "miui_services_jar_url=$miui_services_jar_url" >> $GITHUB_ENV
+          echo "miui_framework_jar_url=$miui_framework_jar_url" >> $GITHUB_ENV
+          
+          echo "isCN=$isCN" >> $GITHUB_ENV
+          echo "dsv=$dsv" >> $GITHUB_ENV
+          echo "fixNotification=$fixNotification" >> $GITHUB_ENV
+          echo "isa15=$isa15" >> $GITHUB_ENV
+
+      - name: Download and validate JARs
+        run: |
+          download_file() {
+            url=$1
+            output=$2
+            if echo "$url" | grep -q "drive.google.com"; then
+              gdown --fuzzy -O "$output" "$url"
+            else
+              curl -L -C - -o "$output" "$url"
+            fi
+            if [ -f "$output" ]; then
+              file_size=$(stat -c%s "$output")
+              if [ $file_size -lt 1500000 ]; then
+                echo "Error: $output is too small. Download might have failed." >&2
+                exit 1
+              fi
+            fi
+          }
+          
+          [ -n "${{ env.framework_jar_url }}" ] && download_file "${{ env.framework_jar_url }}" framework.jar
+          [ -n "${{ env.services_jar_url }}" ] && download_file "${{ env.services_jar_url }}" services.jar
+          [ -n "${{ env.miui_services_jar_url }}" ] && download_file "${{ env.miui_services_jar_url }}" miui-services.jar
+          [ -n "${{ env.miui_framework_jar_url }}" ] && download_file "${{ env.miui_framework_jar_url }}" miui-framework.jar
+
+      - name: Extract JAR files
+        run: |
+          [ -f framework.jar ] && 7z x framework.jar -oframework
+          [ -f services.jar ] && 7z x services.jar -oservices
+          [ -f miui-services.jar ] && 7z x miui-services.jar -omiui_services
+          [ -f miui-framework.jar ] && 7z x miui-framework.jar -omiui_framework
+
+      - name: Decompile dex files
+        run: |
+          [ -d framework ] && ./decompile.sh framework ${{ github.event.inputs.android_api_level }}
+          [ -d services ] && ./decompile.sh services ${{ github.event.inputs.android_api_level }}
+          [ -d miui_services ] && ./decompile.sh miui_services ${{ github.event.inputs.android_api_level }}
+          [ -d miui_framework ] && ./decompile.sh miui_framework ${{ github.event.inputs.android_api_level }}
+
+      - name: Backup smali files
+        run: |
+          [ -d classes ] && cp -r classes classes_backup || echo "classes directory not found, skipping backup."
+          [ -d services_classes ] && cp -r services_classes services_classes_backup || echo "services_classes directory not found, skipping backup."
+          [ -d miui_services_classes ] && cp -r miui_services_classes miui_services_classes_backup || echo "miui_services_classes directory not found, skipping backup."
+          [ -d miui_framework_classes ] && cp -r miui_framework_classes miui_framework_classes_backup || echo "miui_framework_classes directory not found, skipping backup."
+
+      - name: Modify framework smali
+        if: env.framework_jar_url != ''
+        run: |
+          python3 framework_patch.py "${{ env.dsv }}" "${{ env.isa15 }}"
+
+      - name: Modify services smali
+        if: env.services_jar_url != ''
+        run: |
+          python3 services_patch.py "${{ env.dsv }}"
+
+      - name: Modify miui-services smali files
+        if: env.miui_services_jar_url != ''
+        run: |
+          python3 miui-service_Patch.py "${{ env.isCN }}" "${{ env.fixNotification }}"
+
+      - name: Recompile dex files
+        run: |
+          [ -d framework ] && ./recompile.sh framework ${{ github.event.inputs.android_api_level }}
+          [ -d services ] && ./recompile.sh services ${{ github.event.inputs.android_api_level }}
+          [ -d miui_services ] && ./recompile.sh miui_services ${{ github.event.inputs.android_api_level }}
+          [ -d miui_framework ] && ./recompile.sh miui_framework ${{ github.event.inputs.android_api_level }}
+
+      - name: Recompile JAR files
+        run: |
+          [ -d framework ] && cd framework && 7z a -tzip ../framework_new.zip * && cd ..
+          [ -d services ] && cd services && 7z a -tzip ../services_new.zip * && cd ..
+          [ -d miui_services ] && cd miui_services && 7z a -tzip ../miui_services_new.zip * && cd ..
+          [ -d miui_framework ] && cd miui_framework && 7z a -tzip ../miui_framework_new.zip * && cd ..
+
+      - name: Align the zips
+        run: |
+          [ -f framework_new.zip ] && zipalign -f -p -v -z 4 framework_new.zip aligned_framework.jar
+          [ -f services_new.zip ] && zipalign -f -p -v -z 4 services_new.zip aligned_services.jar
+          [ -f miui_services_new.zip ] && zipalign -f -p -v -z 4 miui_services_new.zip aligned_miui_services.jar
+          [ -f miui_framework_new.zip ] && zipalign -f -p -v -z 4 miui_framework_new.zip aligned_miui_framework.jar
+
+      - name: Copy aligned jars to Magisk module
+        run: |
+          mkdir -p magisk_module/system/framework
+          mkdir -p magisk_module/system/system_ext/framework
+          [ -f aligned_framework.jar ] && cp aligned_framework.jar magisk_module/system/framework/framework.jar
+          [ -f aligned_services.jar ] && cp aligned_services.jar magisk_module/system/framework/services.jar
+          [ -f aligned_miui_services.jar ] && cp aligned_miui_services.jar magisk_module/system/system_ext/framework/miui-services.jar
+          [ -f aligned_miui_framework.jar ] && cp aligned_miui_framework.jar magisk_module/system/system_ext/framework/miui-framework.jar
+
+      - name: Create Version From Link
+        run: |
+          if [ -z "${{ github.event.inputs.custom_version }}" ] && [ -n "${{ env.framework_jar_url }}" ]; then
+            framework_url="${{ env.framework_jar_url }}"
+            version=$(echo $framework_url | grep -oP '(?<=V)[^/]*(?=/system)')
+            echo "version=${version}" >> $GITHUB_ENV
+          else
+            echo "version=${{ github.event.inputs.custom_version }}" >> $GITHUB_ENV
+          fi
+          if [ -z "${{ github.event.inputs.custom_device_name }}" ] && [ -n "${{ env.framework_jar_url }}" ]; then
+            framework_url="${{ env.framework_jar_url }}"
+            device_name=$(echo $framework_url | grep -oP '(?<=redmi/)[^/]*(?=/-)')
+            echo "device_name=${device_name}" >> $GITHUB_ENV
+          else
+            echo "device_name=${{ github.event.inputs.custom_device_name }}" >> $GITHUB_ENV
+          fi
+
+      - name: Zip Magisk module
+        run: |
+          cd magisk_module
+          UNIQUE_NAME="moded_framework_services_${{ env.device_name }}_${{ env.version }}_$(date +%Y%m%d%H%M%S).zip"
+          zip -r ../$UNIQUE_NAME *
+          cd ..
+          mkdir -p out
+          chmod +w $UNIQUE_NAME
+          mv $UNIQUE_NAME out/
+          echo "UNIQUE_NAME=$UNIQUE_NAME" >> $GITHUB_ENV
+
+      - name: Create Release Notes
+        run: |
+          echo "## Release Notes" > release_notes.txt
+          echo "- Built modified jars from commit ${{ github.sha }}" >> release_notes.txt
+          echo "- Version: ${{ env.version }}" >> release_notes.txt
+          echo "- Device: ${{ env.device_name }}" >> release_notes.txt
+          echo "- Disable Signature Verification: ${{ env.dsv }}" >> release_notes.txt
+          echo "- Fix Notification: ${{ env.fixNotification }}" >> release_notes.txt
+          echo "- Modified JARs:" >> release_notes.txt
+          [ -n "${{ env.framework_jar_url }}" ] && echo "  - framework.jar" >> release_notes.txt
+          [ -n "${{ env.services_jar_url }}" ] && echo "  - services.jar" >> release_notes.txt
+          [ -n "${{ env.miui_services_jar_url }}" ] && echo "  - miui-services.jar" >> release_notes.txt
+          [ -n "${{ env.miui_framework_jar_url }}" ] && echo "  - miui-framework.jar" >> release_notes.txt
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: out/*
+          tag: ${{ env.version }}
+          name: moded_${{ env.device_name }}_${{ env.version }}
+          allowUpdates: true
+          makeLatest: true
+          bodyFile: release_notes.txt
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify via Telegram
+        run: |
+          MODIFIED_JARS=""
+          [ -n "${{ env.framework_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS framework.jar"
+          [ -n "${{ env.services_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS services.jar"
+          [ -n "${{ env.miui_services_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS miui-services.jar"
+          [ -n "${{ env.miui_framework_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS miui-framework.jar"
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+          -d chat_id=@codes9488 \
+          -d message_thread_id=3 \
+          -d parse_mode="MarkdownV2" \
+          -d text="*FrameworkPatcherV2 Release *%0A%0A🔧 *Device:* \`${{ env.device_name }}\`%0A🔢 *Version:* \`${{ env.version }}\`%0A🌐 *Build ID:* \`${{ github.sha }}\`%0A📝 *DSV:* \`${{ env.dsv }}\`%0A🔧 *Fix Notification:* \`${{ env.fixNotification }}\`%0A📦 *Modified JARs:* \`${MODIFIED_JARS}\`%0A%0A🔗 [Download](https://github.com/${{ github.repository }}/releases/tag/${{ env.version }})%0A%0A \\#Release  \\#${{ env.device_name }}"
