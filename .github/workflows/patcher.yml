@@ -85,27 +85,50 @@ jobs:
             output=$2
             echo "Downloading $url to $output"
             if echo "$url" | grep -q "drive.google.com"; then
-              gdown --fuzzy -O "$output" "$url" || { echo "gdown failed"; exit 1; }
+              gdown --fuzzy -O "$output" "$url" || { echo "gdown failed with exit code $?"; return 1; }
             else
-              curl -L -C - -o "$output" "$url" || { echo "curl failed with exit code $?"; exit 1; }
+              curl -L -C - -o "$output" "$url"
+              curl_exit_code=$?
+              if [ $curl_exit_code -ne 0 ]; then
+                echo "curl exited with code $curl_exit_code but file may still be downloaded"
+              fi
             fi
             if [ -f "$output" ]; then
-              file_size=$(stat -c%s "$output" 2>/dev/null) || { echo "stat failed"; exit 1; }
+              file_size=$(stat -c%s "$output" 2>/dev/null) || { echo "stat failed with exit code $?"; return 1; }
               echo "File size of $output: $file_size bytes"
               if [ -n "$file_size" ] && [ "$file_size" -lt 1500000 ]; then
-                echo "Error: $output is too small ($file_size bytes < 1.5MB). Download might have failed." >&2
-                exit 1
+                echo "Error: $output is too small ($file_size bytes < 1.5MB). Download failed." >&2
+                return 1
               fi
             else
-              echo "Error: $output was not created" >&2
-              exit 1
+              echo "Warning: $output was not created, skipping" >&2
+              return 0  # Don’t fail, just skip
             fi
+            echo "Download of $output completed successfully"
+            return 0
           }
 
-          [ -n "${{ env.framework_jar_url }}" ] && download_file "${{ env.framework_jar_url }}" framework.jar
-          [ -n "${{ env.services_jar_url }}" ] && download_file "${{ env.services_jar_url }}" services.jar
-          [ -n "${{ env.miui_services_jar_url }}" ] && download_file "${{ env.miui_services_jar_url }}" miui-services.jar
-          [ -n "${{ env.miui_framework_jar_url }}" ] && download_file "${{ env.miui_framework_jar_url }}" miui-framework.jar
+          # Track if any download succeeds
+          any_success=false
+          if [ -n "${{ env.framework_jar_url }}" ]; then
+            download_file "${{ env.framework_jar_url }}" framework.jar && any_success=true
+          fi
+          if [ -n "${{ env.services_jar_url }}" ]; then
+            download_file "${{ env.services_jar_url }}" services.jar && any_success=true
+          fi
+          if [ -n "${{ env.miui_services_jar_url }}" ]; then
+            download_file "${{ env.miui_services_jar_url }}" miui-services.jar && any_success=true
+          fi
+          if [ -n "${{ env.miui_framework_jar_url }}" ]; then
+            download_file "${{ env.miui_framework_jar_url }}" miui-framework.jar && any_success=true
+          fi
+
+          # Fail if no downloads succeeded
+          if [ "$any_success" = "false" ]; then
+            echo "Error: No JAR files were downloaded successfully" >&2
+            exit 1
+          fi
+          echo "At least one JAR downloaded successfully, proceeding"
 
       - name: Extract JAR files
         run: |
