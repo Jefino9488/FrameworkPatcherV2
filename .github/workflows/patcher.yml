@@ -45,6 +45,11 @@ jobs:
           sudo apt install -y default-jdk zipalign p7zip-full python3 aria2 jq
           pip install gdown
 
+      - name: Make scripts executable
+        run: |
+          chmod +x decompile.sh || echo "decompile.sh not found, skipping"
+          chmod +x recompile.sh || echo "recompile.sh not found, skipping"
+
       - name: Write inputs to files
         run: |
           echo '${{ github.event.inputs.jar_urls }}' > jar_urls.json

@@ -1,4 +1,4 @@
-# framework_patcher.py
+# framework_patch.py
 import os
 import sys
 
@@ -83,7 +83,7 @@ def main(dsv, isa15):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python framework_patcher.py <dsv> <isa15>")
+        print("Usage: python framework_patch.py <dsv> <isa15>")
         sys.exit(1)
 
     # Convert string arguments to boolean
