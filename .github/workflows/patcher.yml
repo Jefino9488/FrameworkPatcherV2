@@ -271,7 +271,7 @@ jobs:
       - name: Zip Magisk module
         run: |
           cd magisk_module
-          UNIQUE_NAME="moded_framework_services_${{ env.device_name }}_${{ env.version }}_$(date +%Y%m%d%H%M%S).zip"
+          UNIQUE_NAME="moded_frameworks_${{ env.device_name }}_${{ env.version }}_$(date +%Y%m%d%H%M%S).zip"
           zip -r ../$UNIQUE_NAME * || echo "Failed to zip Magisk module, but continuing"
           cd ..
           mkdir -p out
