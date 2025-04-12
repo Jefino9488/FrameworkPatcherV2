@@ -81,8 +81,9 @@ class Helper:
                     logging.error(f"Method '{method_name}' in '{class_name}' has no .end method")
                     return False
 
-                modified = callback(lines[start_line:end_line + 1], start_line, end_line)
-                lines[start_line:end_line + 1] = modified
+                method_lines = lines[start_line:end_line + 1]
+                modified_method = callback(method_lines, start_line, end_line)
+                lines[start_line:end_line + 1] = modified_method
 
                 f.seek(0)
                 f.writelines(lines)
@@ -337,23 +338,24 @@ def add_line_after_callback(unique_line: str, new_line: str, method_name: str = 
 def add_line_before_if_with_string_callback(unique_string: str, new_line: str, if_pattern: str) -> Callable[
     [List[str], int, int], List[str]]:
     def callback(lines: List[str], start: int, end: int) -> List[str]:
-        modified_lines = []
-        i = 0
-        while i < len(lines):
-            line = lines[i]
-            if unique_string in line:
-                # Look backward for the if instruction
-                for j in range(i - 1, start - 1, -1):
-                    if re.match(rf"^\s*{if_pattern}\s+v\d+, :cond_\w+", lines[j].strip()):
-                        modified_lines.extend(lines[start:j])
-                        modified_lines.append(f"{new_line}\n")
-                        modified_lines.extend(lines[j:end + 1])
-                        return modified_lines
-            modified_lines.append(line)
-            i += 1
-        logging.warning(f"String '{unique_string}' or '{if_pattern}' not found in method")
+        modified_lines = lines[:]
+        string_found_index = None
+        logging.debug(f"Method lines:\n{''.join(lines)}")  # Print method content
+        for i in range(len(modified_lines)):
+            if unique_string in modified_lines[i]:
+                string_found_index = i
+                logging.debug(f"Found string at line {i}: {modified_lines[i].strip()}")
+                break
+        if string_found_index is None:
+            logging.warning(f"String '{unique_string}' not found in method")
+            return lines
+        for i in range(string_found_index - 1, -1, -1):
+            if re.match(rf"^\s*{if_pattern}\s+v\d+, :cond_\w+", modified_lines[i].strip()):
+                logging.debug(f"Inserting '{new_line}' before line {i}: {modified_lines[i].strip()}")
+                modified_lines.insert(i, new_line + "\n")
+                return modified_lines
+        logging.warning(f"Pattern '{if_pattern}' not found before string '{unique_string}' in method")
         return lines
-
     return callback
 
 
