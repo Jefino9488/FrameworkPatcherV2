@@ -398,38 +398,31 @@ def remove_if_and_label_after_invoke_callback(invoke_line: str, if_pattern: str)
     [List[str], int, int], List[str]]:
     def callback(lines: List[str], start: int, end: int) -> List[str]:
         modified_lines = []
+        labels_to_remove = set()
         i = 0
         while i < len(lines):
             line = lines[i]
-            if invoke_line in line.strip():
+            stripped = line.strip()
+            if invoke_line in stripped:
                 modified_lines.append(line)
                 i += 1
-                # Look for if instruction after invoke, possibly after move-result
                 while i < len(lines):
                     next_line = lines[i].strip()
-                    if re.match(rf"^\s*{if_pattern}\s+v\d+, :cond_\w+", next_line):
-                        label = next_line.split(":")[-1].strip()
-                        i += 1  # Skip if-eqz
-                        # Add lines until we reach the label
-                        while i < len(lines):
-                            current_line = lines[i]
-                            if f":{label}" in current_line.strip():
-                                i += 1  # Skip label
-                                break
-                            modified_lines.append(current_line)
-                            i += 1
-                        break
-                    elif next_line and not next_line.startswith("#"):
-                        modified_lines.append(lines[i])
+                    match = re.match(rf"^\s*{if_pattern}\s+\S+,\s*:cond_(\w+)", next_line)
+                    if match:
+                        label_name = match.group(1)
+                        full_label = f":cond_{label_name}"
+                        labels_to_remove.add(full_label)
                         i += 1
+                        break
                     else:
                         modified_lines.append(lines[i])
                         i += 1
                 continue
+            if stripped in labels_to_remove:
+                i += 1
+                continue
             modified_lines.append(line)
             i += 1
-        if len(modified_lines) == len(lines):
-            logging.warning(f"Invoke '{invoke_line}' or '{if_pattern}' not found")
         return modified_lines
-
     return callback
