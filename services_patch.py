@@ -18,27 +18,27 @@ def main():
 
     # Patch methods
     helper.find_and_modify_method(
-        "com.android.server.pm.PackageManagerService",
+        "com.android.server.pm.PackageManagerServiceUtils",
         "checkDowngrade",
         return_void_callback
     )
     helper.find_and_modify_method(
-        "com.android.server.pm.PackageManagerService",
+        "com.android.server.pm.KeySetManagerService",
         "shouldCheckUpgradeKeySetLocked",
         return_false_callback
     )
     helper.find_and_modify_method(
-        "com.android.server.pm.PackageManagerService",
+        "com.android.server.pm.PackageManagerServiceUtils",
         "verifySignatures",
         return_false_callback
     )
     helper.find_and_modify_method(
-        "com.android.server.pm.PackageManagerService",
+        "com.android.server.pm.PackageManagerServiceUtils",
         "compareSignatures",
         return_false_callback
     )
     helper.find_and_modify_method(
-        "com.android.server.pm.PackageManagerService",
+        "com.android.server.pm.PackageManagerServiceUtils",
         "matchSignaturesCompat",
         return_true_callback
     )
@@ -46,7 +46,7 @@ def main():
     # Add line before if-statement in installPackageAsUser
     helper.find_and_modify_method(
         "com.android.server.pm.InstallPackageHelper",
-        "installPackageAsUser",
+        "preparePackageLI",
         add_line_before_if_with_string_callback(
             unique_string="invoke-interface {v7}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z",
             new_line="const/4 v12, 0x1",

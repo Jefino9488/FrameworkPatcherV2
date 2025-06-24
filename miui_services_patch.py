@@ -7,12 +7,12 @@ def main():
 
     # Patch miui-services.jar based on 4. miui-services.text
     helper.find_all_and_modify_methods(
-        "com.android.server.pm.MiuiPackageManagerService",
+        "com.android.server.pm.PackageManagerServiceImpl",
         "verifyIsolationViolation",
         return_void_callback
     )
     helper.find_all_and_modify_methods(
-        "com.android.server.pm.MiuiDefaultPermissionGrantPolicy",
+        "com.android.server.pm.PackageManagerServiceImpl",
         "canBeUpdate",
         return_void_callback
     )
