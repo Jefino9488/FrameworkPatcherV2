@@ -114,10 +114,13 @@ def create_patched_jar(jar_name):
     patched_jar = f"{jar_name}_patched.jar"
 
     try:
-        # Create new zip
+        # Create new zip from within the directory to avoid parent folder in zip
+        current_dir = os.getcwd()
+        os.chdir(base_dir)
         subprocess.run([
-            "7z", "a", "-tzip", new_zip, f"{base_dir}/*"
+            "7z", "a", "-tzip", f"../{new_zip}", "*"
         ], check=True)
+        os.chdir(current_dir)
 
         # Try to use zipalign if available
         try:
@@ -135,7 +138,12 @@ def create_patched_jar(jar_name):
         return patched_jar
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to create patched JAR {patched_jar}: {e}")
+        if os.path.exists(new_zip):
+            os.remove(new_zip)
         return None
+    finally:
+        if 'current_dir' in locals():
+            os.chdir(current_dir)
 
 
 def create_magisk_module(api_level, patched_files):
@@ -178,15 +186,22 @@ def create_magisk_module(api_level, patched_files):
             else:
                 f.write(line)
 
-    # Create module zip
+    # Create module zip from within the directory to avoid parent folder
     zip_name = f"Framework-Patcher-{api_level}-{version}.zip"
-    subprocess.run([
-        "7z", "a", "-tzip", zip_name,
-        f"{build_dir}/*"
-    ], check=True)
-
-    logging.info(f"Created Magisk module: {zip_name}")
-    return zip_name
+    current_dir = os.getcwd()
+    try:
+        os.chdir(build_dir)
+        subprocess.run([
+            "7z", "a", "-tzip", f"../{zip_name}", "*"
+        ], check=True)
+        os.chdir(current_dir)
+        logging.info(f"Created Magisk module: {zip_name}")
+        return zip_name
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to create module zip: {e}")
+        return None
+    finally:
+        os.chdir(current_dir)
 
 
 def patch_jar(jar_name, patch_script, api_level):
@@ -211,7 +226,7 @@ def patch_jar(jar_name, patch_script, api_level):
 
     # Apply patches
     try:
-        subprocess.run(["python", patch_script, f"{jar_name}_decompile"], check=True)
+        subprocess.run(["python3", patch_script, f"{jar_name}_decompile"], check=True)
         logging.info(f"Successfully applied patches using {patch_script}")
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to apply patches: {e}")

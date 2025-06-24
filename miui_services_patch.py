@@ -2,10 +2,10 @@ from scripts.helper import *
 
 
 def main():
-    miui_services_dir = "miui_services_decompile"
+    miui_services_dir = "miui-services_decompile"
+    pre_patch(miui_services_dir)
     helper = Helper(miui_services_dir)
 
-    # Patch miui-services.jar based on 4. miui-services.text
     helper.find_all_and_modify_methods(
         "com.android.server.pm.PackageManagerServiceImpl",
         "verifyIsolationViolation",
