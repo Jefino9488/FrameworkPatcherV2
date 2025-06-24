@@ -3,25 +3,42 @@ name: Framework Patcher
 on:
   workflow_dispatch:
     inputs:
-      framework_url:
-        description: 'URL to framework.jar'
-        required: true
-      services_url:
-        description: 'URL to services.jar'
-        required: true
-      miui_services_url:
-        description: 'URL to miui-services.jar'
-        required: true
       api_level:
         description: 'Android API level'
         required: true
-        default: '34'
+        default: '35'
+        type: string
+      framework_url:
+        description: 'URL to framework.jar'
+        required: true
+        default: 'https://dumps.tadiphone.dev/dumps/redmi/rothko/-/raw/missi-user-15-AP3A.240617.008-OS2.0.200.33.VNNCNXM-release-keys/system/system/framework/framework.jar'
+        type: string
+      services_url:
+        description: 'URL to services.jar'
+        required: true
+        default: 'https://dumps.tadiphone.dev/dumps/redmi/rothko/-/raw/missi-user-15-AP3A.240617.008-OS2.0.200.33.VNNCNXM-release-keys/system/system/framework/services.jar'
+        type: string
+      miui_services_url:
+        description: 'URL to miui-services.jar'
+        required: true
+        default: 'https://dumps.tadiphone.dev/dumps/redmi/rothko/-/raw/missi-user-15-AP3A.240617.008-OS2.0.200.33.VNNCNXM-release-keys/system_ext/framework/miui-services.jar'
+        type: string
 
 jobs:
   patch:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup environment
+        run: |
+          mkdir -p {framework,services,miui_services,tools}_decompile
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y p7zip-full
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -41,59 +58,50 @@ jobs:
           wget -O tools/smali.jar https://github.com/baksmali/smali/releases/download/3.0.9/smali-3.0.9-fat.jar
           chmod +x tools/*.jar
 
-      - name: Download JARs
+      - name: Download framework JARs
         run: |
-          if [ -n "${{ github.event.inputs.framework_url }}" ]; then
-            wget -O framework.jar ${{ github.event.inputs.framework_url }}
-          fi
-          if [ -n "${{ github.event.inputs.services_url }}" ]; then
-            wget -O services.jar ${{ github.event.inputs.services_url }}
-          fi
-          if [ -n "${{ github.event.inputs.miui_services_url }}" ]; then
-            wget -O miui-services.jar ${{ github.event.inputs.miui_services_url }}
-          fi
-
-      - name: Install 7-Zip
-        run: sudo apt-get update && sudo apt-get install -y p7zip-full
+          wget -O framework.jar "${{ github.event.inputs.framework_url }}"
+          wget -O services.jar "${{ github.event.inputs.services_url }}"
+          wget -O miui-services.jar "${{ github.event.inputs.miui_services_url }}"
 
       - name: Patch JARs
         run: |
           python3 patch.py --api_level ${{ github.event.inputs.api_level }} \
-            ${{ github.event.inputs.framework_url && '--framework' }} \
-            ${{ github.event.inputs.services_url && '--services' }} \
-            ${{ github.event.inputs.miui_services_url && '--miui-services' }}
+            --framework --services --miui-services
 
       - name: Prepare Magisk Module
         run: |
           cp -r magisk_module/. build_module/
-          
           mkdir -p build_module/system/framework
           [ -f "framework_patched.jar" ] && mv framework_patched.jar build_module/system/framework/framework.jar
           [ -f "services_patched.jar" ] && mv services_patched.jar build_module/system/framework/services.jar
           [ -f "miui-services_patched.jar" ] && mv miui-services_patched.jar build_module/system/framework/miui-services.jar
           
-          CURRENT_DATE=$(date +%Y%m%d)
-          sed -i "s/version=.*/version=$CURRENT_DATE/" build_module/module.prop
-          sed -i "s/versionCode=.*/versionCode=$CURRENT_DATE/" build_module/module.prop
-          
+          # Update version info
+          VERSION=$(date +%Y%m%d)
+          sed -i "s/version=.*/version=${VERSION}/" build_module/module.prop
+          sed -i "s/versionCode=.*/versionCode=${VERSION}/" build_module/module.prop
+
+      - name: Create Module ZIP
+        run: |
           cd build_module
-          zip -r9 ../patched_module.zip .
+          zip -r9 ../Framework-Patcher-${{ github.event.inputs.api_level }}-$(date +%Y%m%d).zip .
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: patched_module.zip
-          tag_name: ${{ format('v{0}-{1}', github.run_number, github.sha) }}
-          name: "Framework Patch ${{ github.run_number }}"
+          tag_name: v${{ github.event.inputs.api_level }}-$(date +%Y%m%d)
+          name: "Framework Patcher ${{ github.event.inputs.api_level }} ($(date +%Y-%m-%d))"
+          files: Framework-Patcher-${{ github.event.inputs.api_level }}-*.zip
           body: |
-            Framework Patcher build from:
+            Framework Patcher build for Android ${{ github.event.inputs.api_level }}
+            
+            Sources:
             - Framework: ${{ github.event.inputs.framework_url }}
             - Services: ${{ github.event.inputs.services_url }}
             - MIUI Services: ${{ github.event.inputs.miui_services_url }}
-            - API Level: ${{ github.event.inputs.api_level }}
             
+            Build date: $(date +%Y-%m-%d)
             SHA: ${{ github.sha }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
