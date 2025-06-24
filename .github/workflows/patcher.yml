@@ -34,12 +34,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Create directories
-        run: |
-          mkdir -p framework tools
-
       - name: Download tools
         run: |
+          mkdir -p tools
           wget -O tools/baksmali.jar https://github.com/baksmali/smali/releases/download/3.0.9/baksmali-3.0.9-fat.jar
           wget -O tools/smali.jar https://github.com/baksmali/smali/releases/download/3.0.9/smali-3.0.9-fat.jar
           chmod +x tools/*.jar
@@ -58,32 +55,6 @@ jobs:
 
       - name: Install 7-Zip
         run: sudo apt-get update && sudo apt-get install -y p7zip-full
-
-      - name: Extract JARs
-        run: |
-          if [ -f "framework.jar" ]; then
-            7z x -y framework.jar -oframework
-          fi
-          
-          if [ -f "services.jar" ]; then
-            7z x -y services.jar -oservices
-          fi
-          
-          if [ -f "miui-services.jar" ]; then
-            7z x -y miui-services.jar -omiui_services
-          fi
-
-      - name: Decompile JARs using script
-        run: |
-          if [ -f "framework.jar" ]; then
-            python3 decompile.py --jar framework.jar --api_level ${{ github.event.inputs.api_level }}
-          fi
-          if [ -f "services.jar" ]; then
-            python3 decompile.py --jar services.jar --api_level ${{ github.event.inputs.api_level }}
-          fi
-          if [ -f "miui-services.jar" ]; then
-            python3 decompile.py --jar miui-services.jar --api_level ${{ github.event.inputs.api_level }}
-          fi
 
       - name: Patch JARs
         run: |
