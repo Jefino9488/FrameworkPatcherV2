@@ -82,19 +82,23 @@ jobs:
           sed -i "s/version=.*/version=${VERSION}/" build_module/module.prop
           sed -i "s/versionCode=.*/versionCode=${VERSION}/" build_module/module.prop
 
+      - name: Set Release Date
+        id: date
+        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
       - name: Create Module ZIP
         run: |
           cd build_module
-          zip -r9 ../Framework-Patcher-${{ github.event.inputs.api_level }}-$(date +%Y%m%d).zip .
+          zip -r9 ../Framework-Patcher-${{ github.event.inputs.api_level }}-${{ steps.date.outputs.date }}.zip .
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ github.event.inputs.api_level }}-$(date +%Y%m%d)
-          name: "Framework Patcher ${{ github.event.inputs.api_level }} ($(date +%Y-%m-%d))"
-          files: Framework-Patcher-${{ github.event.inputs.api_level }}-*.zip
+          tag_name: v${{ github.event.inputs.api_level }}-${{ steps.date.outputs.date }}
+          name: "Framework Patcher ${{ github.event.inputs.api_level }} (${{ steps.date.outputs.date }})"
+          files: Framework-Patcher-${{ github.event.inputs.api_level }}-${{ steps.date.outputs.date }}.zip
           body: |
             Framework Patcher build for Android ${{ github.event.inputs.api_level }}
             
@@ -103,5 +107,5 @@ jobs:
             - Services: ${{ github.event.inputs.services_url }}
             - MIUI Services: ${{ github.event.inputs.miui_services_url }}
             
-            Build date: $(date +%Y-%m-%d)
+            Build date: ${{ steps.date.outputs.date }}
             SHA: ${{ github.sha }}
