@@ -1,24 +1,24 @@
-name: Patcher
+name: Framework Patcher
 
 on:
   workflow_dispatch:
     inputs:
       framework_url:
-        description: 'Framework.jar URL'
+        description: 'URL to framework.jar'
         required: true
       services_url:
-        description: 'Services.jar URL'
-        required: false
-      miui_services_url:
-        description: 'Miui-services.jar URL'
-        required: false
-      api_level:
-        description: 'API Level'
+        description: 'URL to services.jar'
         required: true
-        default: '33'
+      miui_services_url:
+        description: 'URL to miui-services.jar'
+        required: true
+      api_level:
+        description: 'Android API level'
+        required: true
+        default: '34'
 
 jobs:
-  build:
+  patch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -26,11 +26,29 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.10'
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Create directories
+        run: |
+          mkdir -p framework tools
+
+      - name: Download tools
+        run: |
+          wget -O tools/baksmali.jar https://bitbucket.org/JesusFreke/smali/downloads/baksmali-2.5.2.jar
+          wget -O tools/smali.jar https://bitbucket.org/JesusFreke/smali/downloads/smali-2.5.2.jar
+          chmod +x tools/*.jar
 
       - name: Download JARs
         run: |
-          wget -O framework.jar ${{ github.event.inputs.framework_url }}
+          if [ -n "${{ github.event.inputs.framework_url }}" ]; then
+            wget -O framework.jar ${{ github.event.inputs.framework_url }}
+          fi
           if [ -n "${{ github.event.inputs.services_url }}" ]; then
             wget -O services.jar ${{ github.event.inputs.services_url }}
           fi
@@ -40,27 +58,44 @@ jobs:
 
       - name: Patch JARs
         run: |
-          python3 patch.py --framework --services --miui-services
+          # Run patch.py with API level from input
+          python3 patch.py --api_level ${{ github.event.inputs.api_level }} \
+            ${{ github.event.inputs.framework_url && '--framework' }} \
+            ${{ github.event.inputs.services_url && '--services' }} \
+            ${{ github.event.inputs.miui_services_url && '--miui-services' }}
 
       - name: Prepare Magisk Module
         run: |
-          mkdir -p magisk_module/system/framework
-          if [ -f "framework_patched.jar" ]; then
-            mv framework_patched.jar magisk_module/system/framework/framework.jar
-          fi
-          if [ -f "services_patched.jar" ]; then
-            mv services_patched.jar magisk_module/system/framework/services.jar
-          fi
-          if [ -f "miui-services_patched.jar" ]; then
-            mv miui-services_patched.jar magisk_module/system/framework/miui-services.jar
-          fi
-          cd magisk_module
+          # Copy module template files
+          cp -r magisk_module/. build_module/
+          
+          # Move patched JARs to the module
+          mkdir -p build_module/system/framework
+          [ -f "framework_patched.jar" ] && mv framework_patched.jar build_module/system/framework/framework.jar
+          [ -f "services_patched.jar" ] && mv services_patched.jar build_module/system/framework/services.jar
+          [ -f "miui-services_patched.jar" ] && mv miui-services_patched.jar build_module/system/framework/miui-services.jar
+          
+          # Update module.prop
+          sed -i "s/version=.*/version=$(date +%Y%m%d)/" build_module/module.prop
+          sed -i "s/versionCode=.*/versionCode=$(date +%Y%m%d)/" build_module/module.prop
+          
+          # Create zip
+          cd build_module
           zip -r9 ../patched_module.zip .
 
-      - name: Release
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: patched_module.zip
-          tag_name: ${{ github.run_id }}
+          tag_name: v$(date +%Y%m%d)-${{ github.run_id }}
+          name: "Framework Patch $(date +%Y-%m-%d)"
+          body: |
+            Framework Patcher build from:
+            - Framework: ${{ github.event.inputs.framework_url }}
+            - Services: ${{ github.event.inputs.services_url }}
+            - MIUI Services: ${{ github.event.inputs.miui_services_url }}
+            - API Level: ${{ github.event.inputs.api_level }}
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
