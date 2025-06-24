@@ -56,31 +56,37 @@ jobs:
             wget -O miui-services.jar ${{ github.event.inputs.miui_services_url }}
           fi
 
-      - name: Extract JARs
+      - name: Extract and Process JARs
         run: |
-          # Extract framework.jar
-          if [ -f "framework.jar" ]; then
-            mkdir -p framework
-            cd framework
-            unzip -o ../framework.jar 'classes*.dex'
-            cd ..
-          fi
+          process_jar() {
+            local jar_name=$1
+            if [ -f "${jar_name}.jar" ]; then
+              echo "Processing ${jar_name}.jar..."
+              mkdir -p ${jar_name}
+              cd ${jar_name}
+              unzip -o ../${jar_name}.jar 'classes*.dex' || true
           
-          # Extract services.jar
-          if [ -f "services.jar" ]; then
-            mkdir -p services
-            cd services
-            unzip -o ../services.jar 'classes*.dex'
-            cd ..
-          fi
-          
-          # Extract miui-services.jar
-          if [ -f "miui-services.jar" ]; then
-            mkdir -p miui-services
-            cd miui-services
-            unzip -o ../miui-services.jar 'classes*.dex'
-            cd ..
-          fi
+              # Process each dex file with baksmali
+              for dex in classes*.dex; do
+                if [ -f "$dex" ]; then
+                  echo "Disassembling $dex..."
+                  mkdir -p ${dex%.dex}
+                  java -Xmx4g -jar ../tools/baksmali.jar d \
+                    --api ${{ github.event.inputs.api_level }} \
+                    --no-hidden-api-checks \
+                    --allow-odex-instructions \
+                    --jobs 4 \
+                    $dex -o ${dex%.dex}
+                fi
+              done
+              cd ..
+            fi
+          }
+
+          # Process each JAR
+          process_jar "framework"
+          process_jar "services"
+          process_jar "miui-services"
 
       - name: Patch JARs
         run: |
