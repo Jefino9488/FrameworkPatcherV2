@@ -56,6 +56,32 @@ jobs:
             wget -O miui-services.jar ${{ github.event.inputs.miui_services_url }}
           fi
 
+      - name: Extract JARs
+        run: |
+          # Extract framework.jar
+          if [ -f "framework.jar" ]; then
+            mkdir -p framework
+            cd framework
+            unzip -o ../framework.jar 'classes*.dex'
+            cd ..
+          fi
+          
+          # Extract services.jar
+          if [ -f "services.jar" ]; then
+            mkdir -p services
+            cd services
+            unzip -o ../services.jar 'classes*.dex'
+            cd ..
+          fi
+          
+          # Extract miui-services.jar
+          if [ -f "miui-services.jar" ]; then
+            mkdir -p miui-services
+            cd miui-services
+            unzip -o ../miui-services.jar 'classes*.dex'
+            cd ..
+          fi
+
       - name: Patch JARs
         run: |
           # Run patch.py with API level from input
@@ -75,9 +101,10 @@ jobs:
           [ -f "services_patched.jar" ] && mv services_patched.jar build_module/system/framework/services.jar
           [ -f "miui-services_patched.jar" ] && mv miui-services_patched.jar build_module/system/framework/miui-services.jar
           
-          # Update module.prop
-          sed -i "s/version=.*/version=$(date +%Y%m%d)/" build_module/module.prop
-          sed -i "s/versionCode=.*/versionCode=$(date +%Y%m%d)/" build_module/module.prop
+          # Update module.prop with hardcoded date format
+          CURRENT_DATE=$(date +%Y%m%d)
+          sed -i "s/version=.*/version=$CURRENT_DATE/" build_module/module.prop
+          sed -i "s/versionCode=.*/versionCode=$CURRENT_DATE/" build_module/module.prop
           
           # Create zip
           cd build_module
@@ -87,14 +114,16 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: patched_module.zip
-          tag_name: v$(date +%Y%m%d)-${{ github.run_id }}
-          name: "Framework Patch $(date +%Y-%m-%d)"
+          tag_name: ${{ format('v{0}-{1}', github.run_number, github.sha) }}
+          name: "Framework Patch ${{ github.run_number }}"
           body: |
             Framework Patcher build from:
             - Framework: ${{ github.event.inputs.framework_url }}
             - Services: ${{ github.event.inputs.services_url }}
             - MIUI Services: ${{ github.event.inputs.miui_services_url }}
             - API Level: ${{ github.event.inputs.api_level }}
+            
+            SHA: ${{ github.sha }}
           draft: false
           prerelease: false
         env:
