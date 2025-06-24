@@ -108,10 +108,10 @@ def recompile_dex(jar_name, api_level):
 
 
 def create_patched_jar(jar_name):
-    """Create patched JAR using 7z and zipalign."""
+    """Create patched JAR using 7z and optionally zipalign."""
     base_dir = jar_name.replace('.jar', '')
     new_zip = f"{base_dir}_new.zip"
-    aligned_jar = f"aligned_{jar_name}"
+    patched_jar = f"{jar_name}_patched.jar"
 
     try:
         # Create new zip
@@ -119,15 +119,22 @@ def create_patched_jar(jar_name):
             "7z", "a", "-tzip", new_zip, f"{base_dir}/*"
         ], check=True)
 
-        # Align the zip
-        subprocess.run([
-            "zipalign", "-f", "-p", "-v", "4",
-            new_zip, aligned_jar
-        ], check=True)
+        # Try to use zipalign if available
+        try:
+            subprocess.run(["zipalign", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # zipalign exists, use it
+            subprocess.run([
+                "zipalign", "-f", "-p", "-v", "4",
+                new_zip, patched_jar
+            ], check=True)
+            os.remove(new_zip)  # Clean up intermediate zip
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            logging.warning("zipalign not found, using direct zip output")
+            os.rename(new_zip, patched_jar)
 
-        return aligned_jar
+        return patched_jar
     except subprocess.CalledProcessError as e:
-        logging.error(f"Failed to create aligned JAR {aligned_jar}: {e}")
+        logging.error(f"Failed to create patched JAR {patched_jar}: {e}")
         return None
 
 
@@ -214,14 +221,11 @@ def patch_jar(jar_name, patch_script, api_level):
     if not recompile_dex(jar_name, api_level):
         return None
 
-    # Create aligned jar
-    aligned_jar = create_patched_jar(jar_name)
-    if not aligned_jar:
+    # Create final jar
+    patched_jar = create_patched_jar(jar_name)
+    if not patched_jar:
         return None
 
-    # Move to final location
-    patched_jar = f"{jar_name}_patched.jar"
-    shutil.move(aligned_jar, patched_jar)
     logging.info(f"Created patched JAR: {patched_jar}")
 
     return patched_jar
