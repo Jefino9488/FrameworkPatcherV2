@@ -40,8 +40,8 @@ jobs:
 
       - name: Download tools
         run: |
-          wget -O tools/baksmali.jar https://bitbucket.org/JesusFreke/smali/downloads/baksmali-2.5.2.jar
-          wget -O tools/smali.jar https://bitbucket.org/JesusFreke/smali/downloads/smali-2.5.2.jar
+          wget -O tools/baksmali.jar https://github.com/baksmali/smali/releases/download/v3.0.9/baksmali-3.0.9.jar
+          wget -O tools/smali.jar https://github.com/baksmali/smali/releases/download/v3.0.9/smali-3.0.9.jar
           chmod +x tools/*.jar
 
       - name: Download JARs
@@ -61,17 +61,14 @@ jobs:
 
       - name: Extract JARs
         run: |
-          # Extract framework.jar
           if [ -f "framework.jar" ]; then
             7z x framework.jar -oframework
           fi
           
-          # Extract services.jar
           if [ -f "services.jar" ]; then
             7z x services.jar -oservices
           fi
           
-          # Extract miui-services.jar
           if [ -f "miui-services.jar" ]; then
             7z x miui-services.jar -omiui_services
           fi
@@ -132,7 +129,6 @@ jobs:
 
       - name: Patch JARs
         run: |
-          # Run patch.py with API level from input
           python3 patch.py --api_level ${{ github.event.inputs.api_level }} \
             ${{ github.event.inputs.framework_url && '--framework' }} \
             ${{ github.event.inputs.services_url && '--services' }} \
@@ -140,21 +136,17 @@ jobs:
 
       - name: Prepare Magisk Module
         run: |
-          # Copy module template files
           cp -r magisk_module/. build_module/
           
-          # Move patched JARs to the module
           mkdir -p build_module/system/framework
           [ -f "framework_patched.jar" ] && mv framework_patched.jar build_module/system/framework/framework.jar
           [ -f "services_patched.jar" ] && mv services_patched.jar build_module/system/framework/services.jar
           [ -f "miui-services_patched.jar" ] && mv miui-services_patched.jar build_module/system/framework/miui-services.jar
           
-          # Update module.prop with hardcoded date format
           CURRENT_DATE=$(date +%Y%m%d)
           sed -i "s/version=.*/version=$CURRENT_DATE/" build_module/module.prop
           sed -i "s/versionCode=.*/versionCode=$CURRENT_DATE/" build_module/module.prop
           
-          # Create zip
           cd build_module
           zip -r9 ../patched_module.zip .
 
