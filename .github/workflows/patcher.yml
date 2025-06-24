@@ -41,7 +41,7 @@ jobs:
       - name: Download tools
         run: |
           wget -O tools/baksmali.jar https://github.com/baksmali/smali/releases/download/3.0.9/baksmali-3.0.9-fat.jar
-          wget -O tools/smali.jar https://github.com/baksmali/smali/releases/download/3.0.9/smali-3.0.9.jar
+          wget -O tools/smali.jar https://github.com/baksmali/smali/releases/download/3.0.9/smali-3.0.9-fat.jar
           chmod +x tools/*.jar
 
       - name: Download JARs
@@ -62,70 +62,28 @@ jobs:
       - name: Extract JARs
         run: |
           if [ -f "framework.jar" ]; then
-            7z x framework.jar -oframework
+            7z x -y framework.jar -oframework
           fi
           
           if [ -f "services.jar" ]; then
-            7z x services.jar -oservices
+            7z x -y services.jar -oservices
           fi
           
           if [ -f "miui-services.jar" ]; then
-            7z x miui-services.jar -omiui_services
+            7z x -y miui-services.jar -omiui_services
           fi
 
-      - name: Decompile framework dex files
-        if: hashFiles('framework/classes*.dex') != ''
+      - name: Decompile JARs using script
         run: |
-          if [ -f "framework/classes.dex" ]; then
-            java -jar tools/baksmali.jar d \
-              -a ${{ github.event.inputs.api_level }} \
-              framework/classes.dex \
-              -o framework_decompile/classes
+          if [ -f "framework.jar" ]; then
+            python3 decompile.py --jar framework.jar --api_level ${{ github.event.inputs.api_level }}
           fi
-          for i in {2..5}; do
-            if [ -f "framework/classes${i}.dex" ]; then
-              java -jar tools/baksmali.jar d \
-                -a ${{ github.event.inputs.api_level }} \
-                "framework/classes${i}.dex" \
-                -o "framework_decompile/classes${i}"
-            fi
-          done
-
-      - name: Decompile services dex files
-        if: hashFiles('services/classes*.dex') != ''
-        run: |
-          if [ -f "services/classes.dex" ]; then
-            java -jar tools/baksmali.jar d \
-              -a ${{ github.event.inputs.api_level }} \
-              services/classes.dex \
-              -o services_decompile/classes
+          if [ -f "services.jar" ]; then
+            python3 decompile.py --jar services.jar --api_level ${{ github.event.inputs.api_level }}
           fi
-          for i in {2..5}; do
-            if [ -f "services/classes${i}.dex" ]; then
-              java -jar tools/baksmali.jar d \
-                -a ${{ github.event.inputs.api_level }} \
-                "services/classes${i}.dex" \
-                -o "services_decompile/classes${i}"
-            fi
-          done
-
-      - name: Decompile miui-services dex files
-        if: hashFiles('miui_services/classes*.dex') != ''
-        run: |
-          if [ -f "miui_services/classes.dex" ]; then
-            java -jar tools/baksmali.jar d \
-              -a ${{ github.event.inputs.api_level }} \
-              miui_services/classes.dex \
-              -o miui_services_decompile/classes
+          if [ -f "miui-services.jar" ]; then
+            python3 decompile.py --jar miui-services.jar --api_level ${{ github.event.inputs.api_level }}
           fi
-          for i in {2..5}; do
-            if [ -f "miui_services/classes${i}.dex" ]; then
-              java -jar tools/baksmali.jar d \
-                -a ${{ github.event.inputs.api_level }} \
-                "miui_services/classes${i}.dex" \
-                -o "miui_services_decompile/classes${i}"
-            fi
-          done
 
       - name: Patch JARs
         run: |
