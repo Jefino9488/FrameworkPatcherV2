@@ -53,7 +53,7 @@ def patch_jar(jar_name, patch_script, api_level):
     # Recompile dex files
     if os.path.exists(os.path.join(decompile_dir, "classes")):
         subprocess.run([
-            "java", "-cp", "tools/smali.jar", "org.jf.smali.Main",
+            "java", "-jar", "tools/smali.jar",
             "a",
             "-a", str(api_level),
             os.path.join(decompile_dir, "classes"),
@@ -65,7 +65,7 @@ def patch_jar(jar_name, patch_script, api_level):
         class_dir = os.path.join(decompile_dir, f"classes{i}")
         if os.path.exists(class_dir):
             subprocess.run([
-                "java", "-cp", "tools/smali.jar", "org.jf.smali.Main",
+                "java", "-jar", "tools/smali.jar",
                 "a",
                 "-a", str(api_level),
                 class_dir,
