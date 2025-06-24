@@ -11,7 +11,7 @@ api_level=$2
 directory_decompile="${directory}_decompile"
 
 if [ -d "$directory_decompile/classes" ]; then
-    java -cp tools/smali.jar org.jf.smali.Main a -a "$api_level" "$directory_decompile/classes" -o "$directory/classes.dex"
+    java -jar tools/smali.jar a -a "$api_level" "$directory_decompile/classes" -o "$directory/classes.dex"
     echo "Recompiled $directory_decompile/classes/ to $directory/classes.dex"
 else
     echo "$directory_decompile/classes directory not found, skipping recompilation."
@@ -19,10 +19,10 @@ fi
 
 for i in {2..5}; do
     if [ -d "$directory_decompile/classes$i" ]; then
-        java -cp tools/smali.jar org.jf.smali.Main a -a "$api_level" "$directory_decompile/classes$i" -o "$directory/classes$i.dex"
+        java -jar tools/smali.jar a -a "$api_level" "$directory_decompile/classes$i" -o "$directory/classes$i.dex"
         echo "Recompiled $directory_decompile/classes$i/ to $directory/classes$i.dex"
     else
-        echo "$directory_decompile/classes$i directory not found, skipping recompilation."
+        echo "$directory_decompile/classes$i directory not. found, skipping recompilation."
     fi
 done
 
