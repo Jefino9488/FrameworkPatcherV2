@@ -40,8 +40,8 @@ jobs:
 
       - name: Download tools
         run: |
-          wget -O tools/baksmali.jar https://github.com/baksmali/smali/releases/download/v3.0.9/baksmali-3.0.9.jar
-          wget -O tools/smali.jar https://github.com/baksmali/smali/releases/download/v3.0.9/smali-3.0.9.jar
+          wget -O tools/baksmali.jar https://github.com/baksmali/smali/releases/download/3.0.9/baksmali-3.0.9-fat.jar
+          wget -O tools/smali.jar https://github.com/baksmali/smali/releases/download/3.0.9/smali-3.0.9.jar
           chmod +x tools/*.jar
 
       - name: Download JARs
