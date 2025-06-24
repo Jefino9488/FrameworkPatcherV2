@@ -226,6 +226,22 @@ def return_true_callback(lines: List[str], start: int, end: int) -> List[str]:
     ])
     return modified_lines
 
+
+def return_void_callback(lines: List[str], start: int, end: int) -> List[str]:
+    modified_lines = [lines[0]]
+    registers_line = None
+    for line in lines[1:]:
+        if line.strip().startswith('.registers'):
+            registers_line = line
+            break
+    if registers_line:
+        modified_lines.append(registers_line)
+    modified_lines.extend([
+        "    return-void\n",
+        ".end method\n"
+    ])
+    return modified_lines
+
 def pre_patch(base_dir: str):
     if not os.path.exists(base_dir):
         logging.error(f"Base directory '{base_dir}' does not exist")
