@@ -17,15 +17,13 @@ def patch_jar(jar_name, patch_script, api_level):
     logging.info(f"Patching {jar_name}...")
     decompile_dir = f"{jar_name}_decompile"
 
-    # Clean previous decompile directory if it exists
     if os.path.exists(decompile_dir):
         shutil.rmtree(decompile_dir)
     os.makedirs(decompile_dir, exist_ok=True)
 
-    # Extract the jar
-    subprocess.run(["7z", "x", jar_file, f"-o{jar_name}"], check=True)
+    # Extract the jar, automatically overwriting existing files
+    subprocess.run(["7z", "x", "-y", jar_file, f"-o{jar_name}"], check=True)
 
-    # Decompile dex files
     if os.path.exists(os.path.join(jar_name, "classes.dex")):
         subprocess.run([
             "java", "-jar", "tools/baksmali.jar",
@@ -35,7 +33,6 @@ def patch_jar(jar_name, patch_script, api_level):
             "-o", os.path.join(decompile_dir, "classes")
         ], check=True)
 
-    # Handle additional dex files (classes2-5.dex)
     for i in range(2, 6):
         dex_file = os.path.join(jar_name, f"classes{i}.dex")
         if os.path.exists(dex_file):
@@ -47,7 +44,6 @@ def patch_jar(jar_name, patch_script, api_level):
                 "-o", os.path.join(decompile_dir, f"classes{i}")
             ], check=True)
 
-    # Apply patches
     try:
         subprocess.run(["python", patch_script, decompile_dir], check=True)
         logging.info(f"Successfully applied patches using {patch_script}")
@@ -55,7 +51,6 @@ def patch_jar(jar_name, patch_script, api_level):
         logging.error(f"Failed to apply patches: {e}")
         return False
 
-    # Recompile dex files
     if os.path.exists(os.path.join(decompile_dir, "classes")):
         subprocess.run([
             "java", "-jar", "tools/smali.jar",
@@ -65,7 +60,6 @@ def patch_jar(jar_name, patch_script, api_level):
             "-o", os.path.join(jar_name, "classes.dex")
         ], check=True)
 
-    # Handle additional dex files recompilation
     for i in range(2, 6):
         class_dir = os.path.join(decompile_dir, f"classes{i}")
         if os.path.exists(class_dir):
@@ -77,14 +71,12 @@ def patch_jar(jar_name, patch_script, api_level):
                 "-o", os.path.join(jar_name, f"classes{i}.dex")
             ], check=True)
 
-    # Create patched jar
     patched_jar = f"{jar_name}_patched.jar"
-    # Copy original jar to preserve other files
     shutil.copy2(jar_file, patched_jar)
 
-    # Update jar with patched dex files
+    # Update jar with patched dex files, assuming yes to any prompts
     subprocess.run([
-        "7z", "u", patched_jar, os.path.join(jar_name, "classes*.dex")
+        "7z", "u", "-y", patched_jar, os.path.join(jar_name, "classes*.dex")
     ], check=True)
 
     logging.info(f"Created patched JAR: {patched_jar}")
@@ -99,7 +91,6 @@ def main():
     parser.add_argument("--miui-services", action="store_true", help="Patch miui-services.jar")
     args = parser.parse_args()
 
-    # Patch requested JARs
     if args.framework:
         patch_jar("framework", "framework_patch.py", args.api_level)
     if args.services:
