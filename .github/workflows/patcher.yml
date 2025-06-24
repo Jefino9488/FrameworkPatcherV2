@@ -1,323 +1,66 @@
-name: Modify Frameworks
+name: Patcher
 
 on:
   workflow_dispatch:
     inputs:
-      jar_urls:
-        description: 'JSON object containing URLs to download the JAR files (all optional)'
+      framework_url:
+        description: 'Framework.jar URL'
         required: true
-        default: '{"framework_jar_url": "", "services_jar_url": "", "miui_services_jar_url": "", "miui_framework_jar_url": ""}'
-      android_api_level:
-        description: 'Android API level'
+      services_url:
+        description: 'Services.jar URL'
+        required: false
+      miui_services_url:
+        description: 'Miui-services.jar URL'
+        required: false
+      api_level:
+        description: 'API Level'
         required: true
-        default: '34'
-      features:
-        description: 'JSON object containing feature flags'
-        required: true
-        default: '{"isCN": "true", "dsv": "true", "fixNotification": "true"}'
-      custom_device_name:
-        description: 'Device Name'
-        required: true
-      custom_version:
-        description: 'Version'
-        required: true
+        default: '33'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-      actions: write
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          distribution: 'temurin'
-          java-version: '11'
+          python-version: '3.x'
 
-      - name: Install dependencies
+      - name: Download JARs
         run: |
-          sudo apt install -y default-jdk zipalign p7zip-full python3 aria2 jq
-          pip install gdown
+          wget -O framework.jar ${{ github.event.inputs.framework_url }}
+          if [ -n "${{ github.event.inputs.services_url }}" ]; then
+            wget -O services.jar ${{ github.event.inputs.services_url }}
+          fi
+          if [ -n "${{ github.event.inputs.miui_services_url }}" ]; then
+            wget -O miui-services.jar ${{ github.event.inputs.miui_services_url }}
+          fi
 
-      - name: Make scripts executable
+      - name: Patch JARs
         run: |
-          chmod +x decompile.sh || echo "decompile.sh not found, skipping"
-          chmod +x recompile.sh || echo "recompile.sh not found, skipping"
+          python3 patch.py --framework --services --miui-services
 
-      - name: Write inputs to files
-        run: |
-          echo '${{ github.event.inputs.jar_urls }}' > jar_urls.json
-          echo '${{ github.event.inputs.features }}' > features.json
-
-      - name: Parse JSON inputs & Set environment variables
-        run: |
-          framework_jar_url=$(jq -r '.framework_jar_url // ""' jar_urls.json)
-          services_jar_url=$(jq -r '.services_jar_url // ""' jar_urls.json)
-          miui_services_jar_url=$(jq -r '.miui_services_jar_url // ""' jar_urls.json)
-          miui_framework_jar_url=$(jq -r '.miui_framework_jar_url // ""' jar_urls.json)
-          android_api_level=${{ github.event.inputs.android_api_level }}
-          
-          isCN=$(jq -r .isCN features.json)
-          dsv=$(jq -r .dsv features.json)
-          fixNotification=$(jq -r .fixNotification features.json)
-          
-          if [ $android_api_level -gt 34 ]; then
-            isa15=true
-          else
-            isa15=false
-          fi
-          
-          echo "framework_jar_url=$framework_jar_url" >> $GITHUB_ENV
-          echo "services_jar_url=$services_jar_url" >> $GITHUB_ENV
-          echo "miui_services_jar_url=$miui_services_jar_url" >> $GITHUB_ENV
-          echo "miui_framework_jar_url=$miui_framework_jar_url" >> $GITHUB_ENV
-          
-          echo "isCN=$isCN" >> $GITHUB_ENV
-          echo "dsv=$dsv" >> $GITHUB_ENV
-          echo "fixNotification=$fixNotification" >> $GITHUB_ENV
-          echo "isa15=$isa15" >> $GITHUB_ENV
-
-      - name: Download and validate JARs
-        run: |
-          download_file() {
-            url=$1
-            output=$2
-            echo "Downloading $url to $output"
-            if echo "$url" | grep -q "drive.google.com"; then
-              gdown --fuzzy -O "$output" "$url" || { echo "gdown failed with exit code $?"; return 1; }
-            else
-              curl -L -C - -o "$output" "$url"
-              curl_exit_code=$?
-              if [ $curl_exit_code -ne 0 ]; then
-                echo "curl exited with code $curl_exit_code but file may still be downloaded"
-              fi
-            fi
-            if [ -f "$output" ]; then
-              file_size=$(stat -c%s "$output" 2>/dev/null) || { echo "stat failed with exit code $?"; return 1; }
-              echo "File size of $output: $file_size bytes"
-              if [ -n "$file_size" ] && [ "$file_size" -lt 1500000 ]; then
-                echo "Error: $output is too small ($file_size bytes < 1.5MB). Download failed." >&2
-                return 1
-              fi
-            else
-              echo "Warning: $output was not created, skipping" >&2
-              return 0  # Don’t fail, just skip
-            fi
-            echo "Download of $output completed successfully"
-            return 0
-          }
-
-          # Track if any download succeeds
-          any_success=false
-          if [ -n "${{ env.framework_jar_url }}" ]; then
-            download_file "${{ env.framework_jar_url }}" framework.jar && any_success=true || echo "Skipping framework.jar due to download failure"
-          fi
-          if [ -n "${{ env.services_jar_url }}" ]; then
-            download_file "${{ env.services_jar_url }}" services.jar && any_success=true || echo "Skipping services.jar due to download failure"
-          fi
-          if [ -n "${{ env.miui_services_jar_url }}" ]; then
-            download_file "${{ env.miui_services_jar_url }}" miui-services.jar && any_success=true || echo "Skipping miui-services.jar due to download failure"
-          fi
-          if [ -n "${{ env.miui_framework_jar_url }}" ]; then
-            download_file "${{ env.miui_framework_jar_url }}" miui-framework.jar && any_success=true || echo "Skipping miui-framework.jar due to download failure"
-          fi
-
-          # Fail if no downloads succeeded
-          if [ "$any_success" = "false" ]; then
-            echo "Error: No JAR files were downloaded successfully" >&2
-            exit 1
-          fi
-          echo "At least one JAR downloaded successfully, proceeding"
-
-      - name: Extract JAR files
-        run: |
-          if [ -f framework.jar ]; then
-            7z x framework.jar -oframework || echo "Failed to extract framework.jar, but continuing"
-          fi
-          if [ -f services.jar ]; then
-            7z x services.jar -oservices || echo "Failed to extract services.jar, but continuing"
-          fi
-          if [ -f miui-services.jar ]; then
-            7z x miui-services.jar -omiui_services || echo "Failed to extract miui-services.jar, but continuing"
-          fi
-          if [ -f miui-framework.jar ]; then
-            7z x miui-framework.jar -omiui_framework || echo "Failed to extract miui-framework.jar, but continuing"
-          fi
-
-      - name: Decompile dex files
-        run: |
-          if [ -d framework ]; then
-            ./decompile.sh framework ${{ github.event.inputs.android_api_level }} || echo "Failed to decompile framework, but continuing"
-          fi
-          if [ -d services ]; then
-            ./decompile.sh services ${{ github.event.inputs.android_api_level }} || echo "Failed to decompile services, but continuing"
-          fi
-          if [ -d miui_services ]; then
-            ./decompile.sh miui_services ${{ github.event.inputs.android_api_level }} || echo "Failed to decompile miui_services, but continuing"
-          fi
-          if [ -d miui_framework ]; then
-            ./decompile.sh miui_framework ${{ github.event.inputs.android_api_level }} || echo "Failed to decompile miui_framework, but continuing"
-          fi
-
-      - name: Backup smali files
-        run: |
-          [ -d framework_decompile/classes ] && cp -r framework_decompile/classes framework_decompile/classes_backup || echo "framework_decompile/classes directory not found, skipping backup."
-          [ -d services_decompile/classes ] && cp -r services_decompile/classes services_decompile/classes_backup || echo "services_decompile/classes directory not found, skipping backup."
-          [ -d miui_services_decompile/classes ] && cp -r miui_services_decompile/classes miui_services_decompile/classes_backup || echo "miui_services_decompile/classes directory not found, skipping backup."
-          [ -d miui_framework_decompile/classes ] && cp -r miui_framework_decompile/classes miui_framework_decompile/classes_backup || echo "miui_framework_decompile/classes directory not found, skipping backup."
-
-      - name: Modify framework smali
-        if: env.framework_jar_url != ''
-        run: |
-          if [ -d framework ]; then
-            python3 framework_patch.py || echo "Failed to patch framework smali, but continuing"
-          fi
-
-      - name: Modify services smali
-        if: env.services_jar_url != ''
-        run: |
-          if [ -d services ]; then
-            python3 services_patch.py "${{ env.dsv }}" || echo "Failed to patch services smali, but continuing"
-          fi
-
-      - name: Modify miui-services smali files
-        if: env.miui_services_jar_url != ''
-        run: |
-          if [ -d miui_services ]; then
-            python3 miui-service_Patch.py "${{ env.isCN }}" "${{ env.fixNotification }}" || echo "Failed to patch miui-services smali, but continuing"
-          fi
-
-      - name: Recompile dex files
-        run: |
-          if [ -d framework ]; then
-            ./recompile.sh framework ${{ github.event.inputs.android_api_level }} || echo "Failed to recompile framework, but continuing"
-          fi
-          if [ -d services ]; then
-            ./recompile.sh services ${{ github.event.inputs.android_api_level }} || echo "Failed to recompile services, but continuing"
-          fi
-          if [ -d miui_services ]; then
-            ./recompile.sh miui_services ${{ github.event.inputs.android_api_level }} || echo "Failed to recompile miui_services, but continuing"
-          fi
-          if [ -d miui_framework ]; then
-            ./recompile.sh miui_framework ${{ github.event.inputs.android_api_level }} || echo "Failed to recompile miui_framework, but continuing"
-          fi
-
-      - name: Recompile JAR files
-        run: |
-          if [ -d framework ]; then
-            cd framework && 7z a -tzip ../framework_new.zip * || echo "Failed to recompile framework.jar, but continuing"
-            cd ..
-          fi
-          if [ -d services ]; then
-            cd services && 7z a -tzip ../services_new.zip * || echo "Failed to recompile services.jar, but continuing"
-            cd ..
-          fi
-          if [ -d miui_services ]; then
-            cd miui_services && 7z a -tzip ../miui_services_new.zip * || echo "Failed to recompile miui_services.jar, but continuing"
-            cd ..
-          fi
-          if [ -d miui_framework ]; then
-            cd miui_framework && 7z a -tzip ../miui_framework_new.zip * || echo "Failed to recompile miui_framework.jar, but continuing"
-            cd ..
-          fi
-
-      - name: Align the zips
-        run: |
-          if [ -f framework_new.zip ]; then
-            zipalign -f -p -v -z 4 framework_new.zip aligned_framework.jar || echo "Failed to align framework_new.zip, but continuing"
-          fi
-          if [ -f services_new.zip ]; then
-            zipalign -f -p -v -z 4 services_new.zip aligned_services.jar || echo "Failed to align services_new.zip, but continuing"
-          fi
-          if [ -f miui_services_new.zip ]; then
-            zipalign -f -p -v -z 4 miui_services_new.zip aligned_miui_services.jar || echo "Failed to align miui_services_new.zip, but continuing"
-          fi
-          if [ -f miui_framework_new.zip ]; then
-            zipalign -f -p -v -z 4 miui_framework_new.zip aligned_miui_framework.jar || echo "Failed to align miui_framework_new.zip, but continuing"
-          fi
-
-      - name: Copy aligned jars to Magisk module
+      - name: Prepare Magisk Module
         run: |
           mkdir -p magisk_module/system/framework
-          mkdir -p magisk_module/system/system_ext/framework
-          [ -f aligned_framework.jar ] && cp aligned_framework.jar magisk_module/system/framework/framework.jar || echo "No aligned_framework.jar to copy"
-          [ -f aligned_services.jar ] && cp aligned_services.jar magisk_module/system/framework/services.jar || echo "No aligned_services.jar to copy"
-          [ -f aligned_miui_services.jar ] && cp aligned_miui_services.jar magisk_module/system/system_ext/framework/miui-services.jar || echo "No aligned_miui_services.jar to copy"
-          [ -f aligned_miui_framework.jar ] && cp aligned_miui_framework.jar magisk_module/system/system_ext/framework/miui-framework.jar || echo "No aligned_miui_framework.jar to copy"
-
-      - name: Create Version From Link
-        run: |
-          if [ -z "${{ github.event.inputs.custom_version }}" ] && [ -n "${{ env.framework_jar_url }}" ]; then
-            framework_url="${{ env.framework_jar_url }}"
-            version=$(echo $framework_url | grep -oP '(?<=V)[^/]*(?=/system)')
-            echo "version=${version}" >> $GITHUB_ENV
-          else
-            echo "version=${{ github.event.inputs.custom_version }}" >> $GITHUB_ENV
+          if [ -f "framework_patched.jar" ]; then
+            mv framework_patched.jar magisk_module/system/framework/framework.jar
           fi
-          if [ -z "${{ github.event.inputs.custom_device_name }}" ] && [ -n "${{ env.framework_jar_url }}" ]; then
-            framework_url="${{ env.framework_jar_url }}"
-            device_name=$(echo $framework_url | grep -oP '(?<=redmi/)[^/]*(?=/-)')
-            echo "device_name=${device_name}" >> $GITHUB_ENV
-          else
-            echo "device_name=${{ github.event.inputs.custom_device_name }}" >> $GITHUB_ENV
+          if [ -f "services_patched.jar" ]; then
+            mv services_patched.jar magisk_module/system/framework/services.jar
           fi
-
-      - name: Zip Magisk module
-        run: |
+          if [ -f "miui-services_patched.jar" ]; then
+            mv miui-services_patched.jar magisk_module/system/framework/miui-services.jar
+          fi
           cd magisk_module
-          UNIQUE_NAME="moded_frameworks_${{ env.device_name }}_${{ env.version }}_$(date +%Y%m%d%H%M%S).zip"
-          zip -r ../$UNIQUE_NAME * || echo "Failed to zip Magisk module, but continuing"
-          cd ..
-          mkdir -p out
-          chmod +w $UNIQUE_NAME || echo "No zip file to chmod"
-          mv $UNIQUE_NAME out/ || echo "No zip file to move"
-          echo "UNIQUE_NAME=$UNIQUE_NAME" >> $GITHUB_ENV
+          zip -r9 ../patched_module.zip .
 
-      - name: Create Release Notes
-        run: |
-          set +e  # Disable exit-on-error for this step
-          echo "## Release Notes" > release_notes.txt || echo "Failed to write header to release_notes.txt"
-          echo "- Built modified jars from commit ${{ github.sha }}" >> release_notes.txt || echo "Failed to write commit info"
-          echo "- Version: ${{ env.version }}" >> release_notes.txt || echo "Failed to write version"
-          echo "- Device: ${{ env.device_name }}" >> release_notes.txt || echo "Failed to write device name"
-          echo "- Disable Signature Verification: ${{ env.dsv }}" >> release_notes.txt || echo "Failed to write DSV"
-          echo "- Fix Notification: ${{ env.fixNotification }}" >> release_notes.txt || echo "Failed to write fix notification"
-          echo "- Modified JARs:" >> release_notes.txt || echo "Failed to write JARs header"
-          [ -n "${{ env.framework_jar_url }}" ] && echo "  - framework.jar" >> release_notes.txt || echo "Failed to write framework.jar entry"
-          [ -n "${{ env.services_jar_url }}" ] && echo "  - services.jar" >> release_notes.txt || echo "No services.jar URL, skipping"
-          [ -n "${{ env.miui_services_jar_url }}" ] && echo "  - miui-services.jar" >> release_notes.txt || echo "No miui-services.jar URL, skipping"
-          [ -n "${{ env.miui_framework_jar_url }}" ] && echo "  - miui-framework.jar" >> release_notes.txt || echo "No miui-framework.jar URL, skipping"
-          set -e  # Re-enable exit-on-error
-          cat release_notes.txt  # Debug: Show the contents of the file
-
-      - name: Create Release
-        uses: ncipollo/release-action@v1
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          artifacts: out/*
-          tag: ${{ env.version }}
-          name: moded_${{ env.device_name }}_${{ env.version }}
-          allowUpdates: true
-          makeLatest: true
-          bodyFile: release_notes.txt
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Notify via Telegram
-        run: |
-          set +e
-          MODIFIED_JARS=""
-          [ -n "${{ env.framework_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS framework.jar"
-          [ -n "${{ env.services_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS services.jar"
-          [ -n "${{ env.miui_services_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS miui-services.jar"
-          [ -n "${{ env.miui_framework_jar_url }}" ] && MODIFIED_JARS="$MODIFIED_JARS miui-framework.jar"
-          set -e
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
-          -d chat_id=@codes9488 \
-          -d message_thread_id=3 \
-          -d parse_mode="MarkdownV2" \
-          -d text="*FrameworkPatcherV2 Release *%0A%0A🔧 *Device:* \`${{ env.device_name }}\`%0A🔢 *Version:* \`${{ env.version }}\`%0A🌐 *Build ID:* \`${{ github.sha }}\`%0A📝 *DSV:* \`${{ env.dsv }}\`%0A🔧 *Fix Notification:* \`${{ env.fixNotification }}\`%0A📦 *Modified JARs:* \`${MODIFIED_JARS}\`%0A%0A🔗 [Download](https://github.com/${{ github.repository }}/releases/tag/${{ env.version }})%0A%0A \\#Release  \\#${{ env.device_name }}"
+          files: patched_module.zip
+          tag_name: ${{ github.run_id }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
