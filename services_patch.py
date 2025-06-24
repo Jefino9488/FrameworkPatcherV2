@@ -1,49 +1,67 @@
-from scripts.helper import *
+import logging
+import sys
+
+from scripts.helper import Helper, return_void_callback, return_false_callback, return_true_callback, \
+    add_line_before_if_with_string_callback, pre_patch
 
 
 def main():
-    services_dir = "services_decompile"
+    if len(sys.argv) < 2:
+        print("Usage: python services_patch.py <decompile_dir>")
+        sys.exit(1)
+
+    services_dir = sys.argv[1]
     helper = Helper(services_dir)
 
-    # Patch services.jar based on 3. services.text
-    helper.find_all_and_modify_methods(
+    # Pre-patch: disables invoke-custom in equals/hashCode/toString
+    pre_patch(services_dir)
+
+    # Patch methods
+    helper.find_and_modify_method(
         "com.android.server.pm.PackageManagerService",
         "checkDowngrade",
         return_void_callback
     )
-    helper.find_all_and_modify_methods(
+    helper.find_and_modify_method(
         "com.android.server.pm.PackageManagerService",
         "shouldCheckUpgradeKeySetLocked",
         return_false_callback
     )
-    helper.find_all_and_modify_methods(
+    helper.find_and_modify_method(
         "com.android.server.pm.PackageManagerService",
         "verifySignatures",
         return_false_callback
     )
-    helper.find_all_and_modify_methods(
+    helper.find_and_modify_method(
         "com.android.server.pm.PackageManagerService",
         "compareSignatures",
         return_false_callback
     )
-    helper.find_all_and_modify_methods(
+    helper.find_and_modify_method(
         "com.android.server.pm.PackageManagerService",
         "matchSignaturesCompat",
         return_true_callback
     )
 
-    helper.modify_method_by_adding_a_line_before_line(
+    # Add line before if-statement in installPackageAsUser
+    helper.find_and_modify_method(
         "com.android.server.pm.InstallPackageHelper",
         "installPackageAsUser",
-        "invoke-interface {v7}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z",
-        "    const/4 v12, 0x1"
+        add_line_before_if_with_string_callback(
+            unique_string="invoke-interface {v7}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z",
+            new_line="const/4 v12, 0x1",
+            if_pattern="if-eqz"
+        )
     )
 
-    helper.find_and_modify_method(
-        "com.android.server.pm.ReconcilePackageUtils",
-        "<clinit>",
-        replace_line_callback("const/4 v0, 0x0", "    const/4 v0, 0x1")
-    )
+    # Example for replace_line_callback usage (add your own logic as needed)
+    # helper.find_and_modify_method(
+    #     "com.android.server.pm.SomeClass",
+    #     "someMethod",
+    #     replace_line_callback("line_to_find", "line_to_replace")
+    # )
+
+    logging.info("services patching complete.")
 
 
 if __name__ == "__main__":

@@ -1,171 +1,464 @@
+import logging
 import os
+import re
+from typing import Optional, List, Callable
 
-
-def clear_method_callback(method_lines):
-    """A callback that clears the body of a method."""
-    return [method_lines[0], "    return-void\n", ".end method\n"]
-
-
-def return_true_callback(method_lines):
-    """A callback that makes a method return true."""
-    return [
-        method_lines[0],
-        "    const/4 v0, 0x1\n",
-        "    return v0\n",
-        ".end method\n",
-    ]
-
-
-def return_false_callback(method_lines):
-    """A callback that makes a method return false."""
-    return [
-        method_lines[0],
-        "    const/4 v0, 0x0\n",
-        "    return v0\n",
-        ".end method\n",
-    ]
-
-
-def return_void_callback(method_lines):
-    """A callback that makes a method return void."""
-    return [
-        method_lines[0],
-        "    return-void\n",
-        ".end method\n",
-    ]
-
-
-def add_line_before_callback(line_to_add, line_to_find):
-    """A callback that adds a line before a specific line."""
-
-    def callback(method_lines):
-        new_lines = []
-        for line in method_lines:
-            if line.strip() == line_to_find:
-                new_lines.append(f"    {line_to_add}\n")
-            new_lines.append(line)
-        return new_lines
-
-    return callback
-
-
-def add_line_after_callback(line_to_add, line_to_find):
-    """A callback that adds a line after a specific line."""
-
-    def callback(method_lines):
-        new_lines = []
-        for line in method_lines:
-            new_lines.append(line)
-            if line.strip() == line_to_find:
-                new_lines.append(f"    {line_to_add}\n")
-        return new_lines
-
-    return callback
-
-
-def replace_line_callback(line_to_find, line_to_replace):
-    """A callback that replaces a line with another line."""
-
-    def callback(method_lines):
-        new_lines = []
-        for line in method_lines:
-            if line.strip() == line_to_find:
-                new_lines.append(f"    {line_to_replace}\n")
-            else:
-                new_lines.append(line)
-        return new_lines
-
-    return callback
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+DEBUG = True
+TAG = "[FrameworkPatcherV2]"
 
 
 class Helper:
+    METHOD_REGEX = re.compile(r'\.method .* (\w+)\(')
+
     def __init__(self, base_dir):
         self.base_dir = base_dir
-        self.smali_files = self._find_smali_files()
+        self.class_dirs = [os.path.join(base_dir, f"classes{i}" if i > 1 else "classes") for i in range(1, 6)]
+        self.class_cache = {}
 
-    def _find_smali_files(self):
-        smali_map = {}
-        for root, _, files in os.walk(self.base_dir):
-            for file in files:
-                if file.endswith(".smali"):
-                    class_name = os.path.join(root, file) \
-                        .replace(self.base_dir + os.path.sep, "") \
-                        .replace(os.path.sep, ".") \
-                        .replace(".smali", "")
-                    smali_map[class_name] = os.path.join(root, file)
-        return smali_map
+        for dir_path in self.class_dirs:
+            if os.path.exists(dir_path):
+                for root, _, files in os.walk(dir_path):
+                    for file in files:
+                        if file.endswith('.smali'):
+                            class_name = file[:-6].replace(os.sep, '.')
+                            self.class_cache[class_name] = os.path.join(root, file)
 
-    def find_class(self, class_name):
-        return self.smali_files.get(class_name)
+        logging.info(f"Initialized with base directory: {self.base_dir}")
 
-    def find_and_modify_method(self, class_name, method_name, callback, *parameter_types):
-        file_path = self.find_class(class_name)
-        if not file_path:
-            return
+    def find_class(self, class_name: str) -> Optional[str]:
+        normalized = class_name.replace('.', '/').replace('.smali', '')
 
-        with open(file_path, "r") as f:
-            lines = f.readlines()
+        # Check cache first
+        if normalized in self.class_cache:
+            path = self.class_cache[normalized]
+            if os.path.exists(path):
+                return path
 
-        method_signature = f".method public static {method_name}"
-        if parameter_types:
-            method_signature += "(" + "".join(parameter_types) + ")"
+        # Fallback search with directory scan
+        for dir_path in self.class_dirs:
+            for root, _, files in os.walk(dir_path):
+                if f"{os.path.basename(normalized)}.smali" in files:
+                    full_path = os.path.join(root, f"{os.path.basename(normalized)}.smali")
+                    if os.path.exists(full_path):
+                        return full_path
 
-        in_method = False
-        method_lines = []
-        new_lines = []
+        logging.error(f"Class '{class_name}' not found")
+        return None
+
+    def find_and_modify_method(self, class_name: str, method_name: str,
+                               callback: Callable[[List[str], int, int], List[str]], *parameter_types) -> bool:
+        smali_file = self.find_class(class_name)
+        if not smali_file:
+            return False
+
+        try:
+            with open(smali_file, 'r+', encoding='utf-8') as f:
+                lines = f.readlines()
+
+                method_pattern = rf".method .* {re.escape(method_name)}\("
+                if parameter_types:
+                    param_sig = ''.join(parameter_types)
+                    method_pattern += re.escape(param_sig)
+
+                start_line = None
+                for i, line in enumerate(lines):
+                    if re.match(method_pattern, line.strip()):
+                        start_line = i
+                        break
+
+                if start_line is None:
+                    logging.warning(f"Method '{method_name}' not found in '{class_name}'")
+                    return False
+
+                end_line = None
+                for j in range(start_line, len(lines)):
+                    if ".end method" in lines[j]:
+                        end_line = j
+                        break
+
+                if end_line is None:
+                    logging.error(f"Method '{method_name}' in '{class_name}' has no .end method")
+                    return False
+
+                method_lines = lines[start_line:end_line + 1]
+                modified_method = callback(method_lines, start_line, end_line)
+                lines[start_line:end_line + 1] = modified_method
+
+                f.seek(0)
+                f.writelines(lines)
+                f.truncate()
+
+            logging.info(f"Modified method '{method_name}' in '{class_name}'")
+            return True
+        except Exception as e:
+            if DEBUG:
+                logging.error(f"{TAG}: Error modifying method '{method_name}' in '{class_name}': {str(e)}")
+            return False
+
+    def find_all_and_modify_methods(self, class_name: str, method_name: str,
+                                    callback: Callable[[List[str], int, int], List[str]]) -> int:
+        """Find and modify all methods with a given name in a class."""
+        smali_file = self.find_class(class_name)
+        if not smali_file:
+            return 0
+
+        try:
+            with open(smali_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+
+            method_sig = f".method .* {method_name}\\("
+            modified_count = 0
+            i = 0
+            while i < len(lines):
+                if re.match(method_sig, lines[i].strip()):
+                    start_line = i
+                    for j in range(i + 1, len(lines)):
+                        if ".end method" in lines[j]:
+                            end_line = j
+                            modified_lines = callback(lines[start_line:end_line + 1], start_line, end_line)
+                            lines[start_line:end_line + 1] = modified_lines
+                            modified_count += 1
+                            i = end_line
+                            break
+                    i += 1
+                else:
+                    i += 1
+
+            if modified_count > 0:
+                with open(smali_file, 'w', encoding='utf-8') as f:
+                    f.writelines(lines)
+                logging.info(f"Modified {modified_count} instances of '{method_name}' in '{class_name}'")
+            return modified_count
+
+        except Exception as e:
+            if DEBUG:
+                logging.error(f"{TAG}: Error modifying methods '{method_name}' in '{class_name}': {str(e)}")
+            return 0
+
+    def modify_method_by_adding_a_line_before_line(self, class_name: str, method_name: str,
+                                                 unique_line: str, new_line: str) -> bool:
+        """
+        Find a method in a class and insert a new line before a specific existing line.
+        """
+        callback = add_line_before_callback(unique_line, new_line, method_name)
+        return self.find_and_modify_method(class_name, method_name, callback)
+
+    def modify_all_method_by_adding_a_line_before_line(self, class_name: str,
+                                                       target_line: str, new_line: str) -> int:
+        callback = add_line_before_callback(target_line, new_line)
+        smali_file = self.find_class(class_name)
+        if not smali_file:
+            return 0
+
+        try:
+            with open(smali_file, 'r+', encoding='utf-8') as f:
+                lines = f.readlines()
+                modified_count = 0
+                i = 0
+
+                while i < len(lines):
+                    if lines[i].strip().startswith('.method'):
+                        start_line = i
+                        end_line = None
+
+                        # Find method end
+                        for j in range(i, len(lines)):
+                            if lines[j].strip().startswith('.end method'):
+                                end_line = j
+                                break
+
+                        if end_line is None:
+                            i = j + 1
+                            continue
+
+                        # Check for target line presence
+                        has_target = any(target_line in line for line in lines[start_line:end_line + 1])
+                        if has_target:
+                            modified = callback(lines[start_line:end_line + 1], start_line, end_line)
+                            lines[start_line:end_line + 1] = modified
+                            modified_count += 1
+
+                        i = end_line + 1
+                    else:
+                        i += 1
+
+                if modified_count:
+                    f.seek(0)
+                    f.writelines(lines)
+                    f.truncate()
+                    logging.info(f"Modified {modified_count} methods in '{class_name}'")
+
+                return modified_count
+        except Exception as e:
+            if DEBUG:
+                logging.error(f"{TAG}: Error modifying methods in '{class_name}': {str(e)}")
+            return 0
+
+    def modify_method_by_adding_a_line_after_line(self, class_name: str, method_name: str,
+                                                unique_line: str, new_line: str) -> bool:
+        """
+        Find a method in a class and insert a new line after a specific existing line.
+        """
+        callback = add_line_after_callback(unique_line, new_line, method_name)
+        return self.find_and_modify_method(class_name, method_name, callback)
+
+
+def return_false_callback(lines: List[str], start: int, end: int) -> List[str]:
+    """Modify a method to return zero (or false) while preserving the .registers directive."""
+    modified_lines = [lines[0]]
+
+    registers_line = None
+    for line in lines[1:]:
+        if line.strip().startswith('.registers'):
+            registers_line = line
+            break
+
+    if registers_line:
+        modified_lines.append(registers_line)
+
+    return_type = 'return v0' if '()I' in lines[0] or '()Z' in lines[0] else 'return-object v0'
+    modified_lines.extend([
+        "    const/4 v0, 0x0\n",
+        f"    {return_type}\n",
+        ".end method\n"
+    ])
+
+    return modified_lines
+
+def return_true_callback(lines: List[str], start: int, end: int) -> List[str]:
+    """Modify a method to return true while preserving the .registers directive."""
+    modified_lines = [lines[0]]
+    registers_line = None
+    for line in lines[1:]:
+        if line.strip().startswith('.registers'):
+            registers_line = line
+            break
+
+    if registers_line:
+        modified_lines.append(registers_line)
+    modified_lines.extend([
+        "    const/4 v0, 0x1\n",
+        "    return v0\n",
+        ".end method\n"
+    ])
+
+    return modified_lines
+
+
+def return_void_callback(lines: list, start: int, end: int) -> list:
+    """Modify a method to return void while preserving the .registers directive."""
+    modified_lines = [lines[0]]
+    registers_line = None
+    for line in lines[1:]:
+        if line.strip().startswith('.registers'):
+            registers_line = line
+            break
+    if registers_line:
+        modified_lines.append(registers_line)
+    modified_lines.extend([
+        "    return-void\n",
+        ".end method\n"
+    ])
+    return modified_lines
+
+
+def pre_patch(base_dir: str):
+    if not os.path.exists(base_dir):
+        logging.error(f"Base directory '{base_dir}' does not exist")
+        return
+
+    method_patterns = {
+        "equals": re.compile(r'\.method.*equals\(Ljava/lang/Object;\)Z'),
+        "hashCode": re.compile(r'\.method.*hashCode\(\)I'),
+        "toString": re.compile(r'\.method.*toString\(\)Ljava/lang/String;')
+    }
+
+    for root, _, files in os.walk(base_dir):
+        for file in files:
+            if not file.endswith('.smali'):
+                continue
+
+            filepath = os.path.join(root, file)
+
+            with open(filepath, 'r+', encoding='utf-8') as f:
+                lines = f.readlines()
+
+                # Early exit if no invoke-custom
+                if not any('invoke-custom' in line for line in lines):
+                    continue
+
+                modified_lines = []
+                in_method = False
+                method_type = None
+                method_start = 0
+
+                for i, line in enumerate(lines):
+                    stripped = line.strip()
+
+                    if not in_method:
+                        # Check for method patterns
+                        for key, pattern in method_patterns.items():
+                            if pattern.match(stripped):
+                                in_method = True
+                                method_type = key
+                                method_start = i
+                                break
+                        modified_lines.append(line)
+                    else:
+                        modified_lines.append(line)
+                        if stripped == '.end method':
+                            # Replace entire method content
+                            modified_lines[method_start:i + 1] = return_false_callback(
+                                lines[method_start:i + 1], 0, 0
+                            )
+                            in_method = False
+                            method_type = None
+
+                if modified_lines != lines:
+                    f.seek(0)
+                    f.writelines(modified_lines)
+                    f.truncate()
+                    logging.info(f"Completed pre-patch for '{filepath}'")
+
+def add_line_before_callback(unique_line: str, new_line: str, method_name: str = "") -> Callable[[List[str], int, int], List[str]]:
+    """callback that adds a line before specific line"""
+    def callback(lines: List[str], start: int, end: int) -> List[str]:
+        modified_lines = []
+        found = False
         for line in lines:
-            if not in_method and method_signature in line:
-                in_method = True
-                method_lines.append(line)
-            elif in_method:
-                method_lines.append(line)
-                if line.strip() == ".end method":
-                    new_lines.extend(callback(method_lines))
-                    in_method = False
-                    method_lines = []
-            else:
-                new_lines.append(line)
+            if unique_line in line and not found:
+                modified_lines.append(new_line + '\n')
+                found = True
+            modified_lines.append(line)
+        if not found and method_name:
+            logging.warning(f"Unique line '{unique_line.strip()}' not found in method '{method_name}'")
+        return modified_lines
+    return callback
 
-        with open(file_path, "w") as f:
-            f.writelines(new_lines)
-
-    def find_all_and_modify_methods(self, class_name, method_name, callback):
-        file_path = self.find_class(class_name)
-        if not file_path:
-            return
-
-        with open(file_path, "r") as f:
-            lines = f.readlines()
-
-        in_method = False
-        method_lines = []
-        new_lines = []
+def add_line_after_callback(unique_line: str, new_line: str, method_name: str = "") -> Callable[[List[str], int, int], List[str]]:
+    """callback that adds a line after specific line"""
+    def callback(lines: List[str], start: int, end: int) -> List[str]:
+        modified_lines = []
+        found = False
         for line in lines:
-            if not in_method and f" {method_name}(" in line:
-                in_method = True
-                method_lines.append(line)
-            elif in_method:
-                method_lines.append(line)
-                if line.strip() == ".end method":
-                    new_lines.extend(callback(method_lines))
-                    in_method = False
-                    method_lines = []
+            modified_lines.append(line)
+            if unique_line in line and not found:
+                modified_lines.append(new_line + '\n')
+                found = True
+        if not found and method_name:
+            logging.warning(f"Unique line '{unique_line.strip()}' not found in method '{method_name}'")
+        return modified_lines
+    return callback
+
+
+def add_line_before_if_with_string_callback(unique_string: str, new_line: str, if_pattern: str) -> Callable[
+    [List[str], int, int], List[str]]:
+    def callback(lines: List[str], start: int, end: int) -> List[str]:
+        modified_lines = lines[:]
+        string_found_index = None
+        logging.debug(f"Method lines:\n{''.join(lines)}")  # Print method content
+        for i in range(len(modified_lines)):
+            if unique_string in modified_lines[i]:
+                string_found_index = i
+                logging.debug(f"Found string at line {i}: {modified_lines[i].strip()}")
+                break
+        if string_found_index is None:
+            logging.warning(f"String '{unique_string}' not found in method")
+            return lines
+        for i in range(string_found_index - 1, -1, -1):
+            if re.match(rf"^\s*{if_pattern}\s+v\d+, :cond_\w+", modified_lines[i].strip()):
+                logging.debug(f"Inserting '{new_line}' before line {i}: {modified_lines[i].strip()}")
+                modified_lines.insert(i, new_line + "\n")
+                return modified_lines
+        logging.warning(f"Pattern '{if_pattern}' not found before string '{unique_string}' in method")
+        return lines
+    return callback
+
+
+def replace_result_after_invoke_callback(invoke_line: str, new_result: str) -> Callable[
+    [List[str], int, int], List[str]]:
+    def callback(lines: List[str], start: int, end: int) -> List[str]:
+        modified_lines = []
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            modified_lines.append(line)
+            if invoke_line in line.strip():
+                i += 1
+                # Search forward, skipping blank lines and comments
+                while i < len(lines):
+                    next_line = lines[i].strip()
+                    if next_line.startswith("move-result"):
+                        modified_lines.append(f"{new_result}\n")
+                        i += 1  # Skip the original move-result
+                        break
+                    elif next_line and not next_line.startswith("#"):
+                        # Stop if we hit a non-blank, non-comment line that isn’t move-result
+                        modified_lines.append(lines[i])
+                        i += 1
+                        break
+                    else:
+                        modified_lines.append(lines[i])
+                        i += 1
+                else:
+                    logging.warning(f"move-result not found after '{invoke_line}'")
+            i += 1
+        if len(modified_lines) == len(lines):
+            logging.warning(f"Invoke line '{invoke_line}' or subsequent move-result not found")
+        return modified_lines
+
+    return callback
+
+
+def remove_if_and_label_after_invoke_callback(invoke_line: str, if_pattern: str) -> Callable[
+    [List[str], int, int], List[str]]:
+    def callback(lines: List[str], start: int, end: int) -> List[str]:
+        modified_lines = []
+        labels_to_remove = set()
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            stripped = line.strip()
+            if invoke_line in stripped:
+                modified_lines.append(line)
+                i += 1
+                while i < len(lines):
+                    next_line = lines[i].strip()
+                    match = re.match(rf"^\s*{if_pattern}\s+\S+,\s*:cond_(\w+)", next_line)
+                    if match:
+                        label_name = match.group(1)
+                        full_label = f":cond_{label_name}"
+                        labels_to_remove.add(full_label)
+                        i += 1
+                        break
+                    else:
+                        modified_lines.append(lines[i])
+                        i += 1
+                continue
+            if stripped in labels_to_remove:
+                i += 1
+                continue
+            modified_lines.append(line)
+            i += 1
+        return modified_lines
+    return callback
+
+
+def replace_line_callback(line_to_find: str, line_to_replace: str) -> Callable[[list, int, int], list]:
+    """A callback that replaces a line with another line in a method."""
+
+    def callback(lines: list, start: int, end: int) -> list:
+        modified_lines = []
+        replaced = False
+        for line in lines:
+            if line.strip() == line_to_find and not replaced:
+                modified_lines.append(line_to_replace + '\n')
+                replaced = True
             else:
-                new_lines.append(line)
+                modified_lines.append(line)
+        if not replaced:
+            logging.warning(f"Line '{line_to_find}' not found for replacement.")
+        return modified_lines
 
-        with open(file_path, "w") as f:
-            f.writelines(new_lines)
-
-    def modify_method_by_adding_a_line_before_line(self, class_name, method_name, line_to_find, line_to_add):
-        self.find_and_modify_method(
-            class_name,
-            method_name,
-            add_line_before_callback(line_to_add, line_to_find)
-        )
-
-    def modify_all_method_by_adding_a_line_before_line(self, class_name, line_to_find, line_to_add):
-        self.find_all_and_modify_methods(
-            class_name,
-            "",
-            add_line_before_callback(line_to_add, line_to_find)
-        )
+    return callback
