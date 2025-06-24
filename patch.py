@@ -131,13 +131,62 @@ def create_patched_jar(jar_name):
         return None
 
 
+def create_magisk_module(api_level, patched_files):
+    """Create Magisk module with patched JARs."""
+    logging.info("Creating Magisk module...")
+
+    build_dir = "build_module"
+    # Clean and recreate build directory
+    if os.path.exists(build_dir):
+        shutil.rmtree(build_dir)
+
+    # Copy magisk_module template
+    shutil.copytree("magisk_module", build_dir)
+
+    # Create required directories
+    os.makedirs(f"{build_dir}/system/framework", exist_ok=True)
+    os.makedirs(f"{build_dir}/system/system_ext/framework", exist_ok=True)
+
+    # Move patched files to correct locations
+    if 'framework' in patched_files:
+        shutil.copy2(patched_files['framework'], f"{build_dir}/system/framework/framework.jar")
+    if 'services' in patched_files:
+        shutil.copy2(patched_files['services'], f"{build_dir}/system/framework/services.jar")
+    if 'miui_services' in patched_files:
+        shutil.copy2(patched_files['miui_services'],
+                     f"{build_dir}/system/system_ext/framework/miui-services.jar")
+
+    # Update module.prop
+    version = datetime.now().strftime("%Y%m%d")
+    module_prop = os.path.join(build_dir, "module.prop")
+    with open(module_prop, 'r') as f:
+        lines = f.readlines()
+
+    with open(module_prop, 'w') as f:
+        for line in lines:
+            if line.startswith('version='):
+                f.write(f'version={version}\n')
+            elif line.startswith('versionCode='):
+                f.write(f'versionCode={version}\n')
+            else:
+                f.write(line)
+
+    # Create module zip
+    zip_name = f"Framework-Patcher-{api_level}-{version}.zip"
+    subprocess.run([
+        "7z", "a", "-tzip", zip_name,
+        f"{build_dir}/*"
+    ], check=True)
+
+    logging.info(f"Created Magisk module: {zip_name}")
+    return zip_name
+
+
 def patch_jar(jar_name, patch_script, api_level):
     """Patch a JAR file with all necessary steps."""
     jar_file = f"{jar_name}.jar"
-
-    # Verify jar size
     if not verify_jar_size(jar_file):
-        return False
+        return None
 
     logging.info(f"Processing {jar_file}...")
 
@@ -147,13 +196,11 @@ def patch_jar(jar_name, patch_script, api_level):
             shutil.rmtree(dir_name)
         os.makedirs(dir_name)
 
-    # Extract jar
+    # Extract and process
     if not extract_jar(jar_file, jar_name):
-        return False
-
-    # Decompile dex files
+        return None
     if not decompile_dex(jar_name, api_level):
-        return False
+        return None
 
     # Apply patches
     try:
@@ -161,46 +208,23 @@ def patch_jar(jar_name, patch_script, api_level):
         logging.info(f"Successfully applied patches using {patch_script}")
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to apply patches: {e}")
-        return False
+        return None
 
-    # Recompile dex files
+    # Recompile
     if not recompile_dex(jar_name, api_level):
-        return False
+        return None
 
     # Create aligned jar
     aligned_jar = create_patched_jar(jar_name)
     if not aligned_jar:
-        return False
+        return None
 
     # Move to final location
     patched_jar = f"{jar_name}_patched.jar"
     shutil.move(aligned_jar, patched_jar)
     logging.info(f"Created patched JAR: {patched_jar}")
 
-    return True
-
-
-def create_magisk_module(framework_path=None, services_path=None, miui_services_path=None):
-    """Create Magisk module with patched JARs."""
-    os.makedirs("magisk_module/system/framework", exist_ok=True)
-    os.makedirs("magisk_module/system/system_ext/framework", exist_ok=True)
-
-    # Copy patched JARs to module
-    if framework_path and os.path.exists(framework_path):
-        shutil.copy2(framework_path, "magisk_module/system/framework/framework.jar")
-    if services_path and os.path.exists(services_path):
-        shutil.copy2(services_path, "magisk_module/system/framework/services.jar")
-    if miui_services_path and os.path.exists(miui_services_path):
-        shutil.copy2(miui_services_path, "magisk_module/system/system_ext/framework/miui-services.jar")
-
-    # Create module zip
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    module_zip = f"framework_patch_{timestamp}.zip"
-    subprocess.run([
-        "7z", "a", "-tzip", module_zip, "./magisk_module/*"
-    ], check=True)
-
-    return module_zip
+    return patched_jar
 
 
 def main():
@@ -215,23 +239,24 @@ def main():
 
     # Patch requested JARs
     if args.framework:
-        if patch_jar("framework", "framework_patch.py", args.api_level):
-            patched_files['framework'] = "framework_patched.jar"
+        result = patch_jar("framework", "framework_patch.py", args.api_level)
+        if result:
+            patched_files['framework'] = result
     if args.services:
-        if patch_jar("services", "services_patch.py", args.api_level):
-            patched_files['services'] = "services_patched.jar"
+        result = patch_jar("services", "services_patch.py", args.api_level)
+        if result:
+            patched_files['services'] = result
     if args.miui_services:
-        if patch_jar("miui-services", "miui_services_patch.py", args.api_level):
-            patched_files['miui_services'] = "miui-services_patched.jar"
+        result = patch_jar("miui-services", "miui_services_patch.py", args.api_level)
+        if result:
+            patched_files['miui_services'] = result
 
-    # Create Magisk module
+    # Create Magisk module if any files were patched
     if patched_files:
-        module_zip = create_magisk_module(
-            patched_files.get('framework'),
-            patched_files.get('services'),
-            patched_files.get('miui_services')
-        )
-        logging.info(f"Created Magisk module: {module_zip}")
+        try:
+            create_magisk_module(args.api_level, patched_files)
+        except Exception as e:
+            logging.error(f"Failed to create Magisk module: {e}")
     else:
         logging.error("No files were successfully patched")
 

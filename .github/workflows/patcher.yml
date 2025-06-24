@@ -64,32 +64,14 @@ jobs:
           wget -O services.jar "${{ github.event.inputs.services_url }}"
           wget -O miui-services.jar "${{ github.event.inputs.miui_services_url }}"
 
-      - name: Patch JARs
+      - name: Patch JARs and Create Module
         run: |
           python3 patch.py --api_level ${{ github.event.inputs.api_level }} \
             --framework --services --miui-services
 
-      - name: Prepare Magisk Module
-        run: |
-          cp -r magisk_module/. build_module/
-          mkdir -p build_module/system/framework
-          [ -f "framework_patched.jar" ] && mv framework_patched.jar build_module/system/framework/framework.jar
-          [ -f "services_patched.jar" ] && mv services_patched.jar build_module/system/framework/services.jar
-          [ -f "miui-services_patched.jar" ] && mv miui-services_patched.jar build_module/system/framework/miui-services.jar
-          
-          # Update version info
-          VERSION=$(date +%Y%m%d)
-          sed -i "s/version=.*/version=${VERSION}/" build_module/module.prop
-          sed -i "s/versionCode=.*/versionCode=${VERSION}/" build_module/module.prop
-
       - name: Set Release Date
         id: date
         run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
-
-      - name: Create Module ZIP
-        run: |
-          cd build_module
-          zip -r9 ../Framework-Patcher-${{ github.event.inputs.api_level }}-${{ steps.date.outputs.date }}.zip .
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -97,8 +79,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ github.event.inputs.api_level }}-${{ steps.date.outputs.date }}
-          name: "Framework Patcher ${{ github.event.inputs.api_level }} (${{ steps.date.outputs.date }})"
-          files: Framework-Patcher-${{ github.event.inputs.api_level }}-${{ steps.date.outputs.date }}.zip
+          name: "Framework Patch ${{ github.event.inputs.api_level }} (${{ steps.date.outputs.date }})"
+          files: |
+            *.zip
           body: |
             Framework Patcher build for Android ${{ github.event.inputs.api_level }}
             
