@@ -70,13 +70,14 @@ jobs:
               for dex in classes*.dex; do
                 if [ -f "$dex" ]; then
                   echo "Disassembling $dex..."
-                  mkdir -p ${dex%.dex}
-                  java -Xmx4g -jar ../tools/baksmali.jar d \
+                  java -Xmx4g -jar ../tools/baksmali.jar disassemble \
                     --api ${{ github.event.inputs.api_level }} \
-                    --no-hidden-api-checks \
-                    --allow-odex-instructions \
+                    --no-debug-info \
+                    --no-parameter-registers \
+                    --allow-odex-opcodes \
                     --jobs 4 \
-                    $dex -o ${dex%.dex}
+                    "$dex" \
+                    -o "${dex%.dex}"
                 fi
               done
               cd ..
