@@ -1,65 +1,131 @@
 import argparse
+import logging
 import os
 import shutil
 import subprocess
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+def decompile_dex(jar_name, api_level):
+    """Decompiles dex files from a specific jar directory."""
+    jar_dir = jar_name
+    if not os.path.exists(jar_dir):
+        logging.error(f"Directory {jar_dir} not found.")
+        return False
+
+    decompile_dir = f"{jar_name}_decompile"
+    os.makedirs(decompile_dir, exist_ok=True)
+
+    # Check for classes.dex files
+    dex_files = []
+    for i in range(1, 6):
+        dex_file = f"classes{i if i > 1 else ''}.dex"
+        if os.path.exists(os.path.join(jar_dir, dex_file)):
+            dex_files.append(dex_file)
+
+    if not dex_files:
+        logging.error(f"No dex files found in {jar_dir}.")
+        return False
+
+    # Decompile each dex file
+    for dex_file in dex_files:
+        out_dir = os.path.join(decompile_dir, os.path.splitext(dex_file)[0])
+        try:
+            subprocess.run([
+                "java", "-jar", "tools/baksmali.jar",
+                "d",
+                "-a", str(api_level),
+                "--no-debug-info",
+                "--no-parameter-registers",
+                os.path.join(jar_dir, dex_file),
+                "-o", out_dir
+            ], check=True)
+            logging.info(f"Successfully decompiled {dex_file}")
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Failed to decompile {dex_file}: {e}")
+            return False
+    return True
+
+
+def recompile_dex(jar_name, api_level):
+    """Recompiles smali files back to dex."""
+    decompile_dir = f"{jar_name}_decompile"
+    if not os.path.exists(decompile_dir):
+        logging.error(f"Decompiled directory {decompile_dir} not found.")
+        return False
+
+    # Find all class directories
+    class_dirs = []
+    for i in range(1, 6):
+        class_dir = f"classes{i if i > 1 else ''}"
+        if os.path.exists(os.path.join(decompile_dir, class_dir)):
+            class_dirs.append(class_dir)
+
+    if not class_dirs:
+        logging.error(f"No class directories found in {decompile_dir}")
+        return False
+
+    # Recompile each directory to dex
+    for class_dir in class_dirs:
+        try:
+            subprocess.run([
+                "java", "-jar", "tools/smali.jar",
+                "a",
+                "-a", str(api_level),
+                os.path.join(decompile_dir, class_dir),
+                "-o", os.path.join(decompile_dir, f"{class_dir}.dex")
+            ], check=True)
+            logging.info(f"Successfully recompiled {class_dir}")
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Failed to recompile {class_dir}: {e}")
+            return False
+
+    # Create patched jar
+    patched_jar = f"{jar_name}_patched.jar"
+    if os.path.exists(f"{jar_name}.jar"):
+        shutil.copy(f"{jar_name}.jar", patched_jar)
+        # Update the jar with patched dex files
+        try:
+            subprocess.run([
+                               "zip", "-qj", patched_jar
+                           ] + [os.path.join(decompile_dir, f"{d}.dex") for d in class_dirs], check=True)
+            logging.info(f"Created patched JAR: {patched_jar}")
+            return True
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Failed to create patched JAR: {e}")
+            return False
+    return False
+
 
 def patch_jar(jar_name, patch_script, api_level):
-    """Decompiles, patches, and recompiles a JAR file using baksmali/smali."""
-    jar_file = f"{jar_name}.jar"
-    if not os.path.exists(jar_file):
-        print(f"Skipping {jar_name} patch: {jar_file} not found.")
-        return
+    """Patches a JAR file by decompiling, applying patches, and recompiling."""
+    logging.info(f"Starting patch process for {jar_name}")
 
-    print(f"Patching {jar_name}...")
+    # Ensure the jar exists
+    if not os.path.exists(f"{jar_name}.jar"):
+        logging.error(f"{jar_name}.jar not found.")
+        return False
+
+    # Clean previous decompile directory if it exists
     decompile_dir = f"{jar_name}_decompile"
-
-    # Clean previous decompile
     if os.path.exists(decompile_dir):
         shutil.rmtree(decompile_dir)
 
-    # Decompile with baksmali
-    baksmali_jar = os.path.join("tools", "baksmali.jar")
-    dex_files = []
-    # Extract all classes*.dex from the jar
-    with open(jar_file, 'rb') as f:
-        pass  # Extraction logic can be added if needed
-    # For now, assume classes.dex exists in the jar's directory
-    for i in range(1, 6):
-        dex = f"framework/classes{i if i > 1 else ''}.dex"
-        if os.path.exists(dex):
-            dex_files.append(dex)
-    if not dex_files:
-        print(f"No dex files found for {jar_name}.")
-        return
-    for idx, dex_file in enumerate(dex_files):
-        out_dir = os.path.join(decompile_dir, f"classes{idx + 1}" if idx > 0 else "classes")
-        os.makedirs(out_dir, exist_ok=True)
-        subprocess.run([
-            "java", "-jar", baksmali_jar, "d", dex_file, "-o", out_dir, "--api", str(api_level)
-        ], check=True)
+    # Decompile
+    if not decompile_dex(jar_name, api_level):
+        return False
 
-    # Patch
-    subprocess.run(["python", patch_script, decompile_dir], check=True)
+    # Apply patches
+    try:
+        subprocess.run(["python", patch_script, decompile_dir], check=True)
+        logging.info(f"Successfully applied patches using {patch_script}")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to apply patches: {e}")
+        return False
 
-    # Recompile with smali
-    smali_jar = os.path.join("tools", "smali.jar")
-    for idx, dex_file in enumerate(dex_files):
-        in_dir = os.path.join(decompile_dir, f"classes{idx + 1}" if idx > 0 else "classes")
-        out_dex = os.path.join(decompile_dir, f"classes{idx + 1 if idx > 0 else ''}.dex")
-        subprocess.run([
-            "java", "-jar", smali_jar, "a", in_dir, "-o", out_dex, "--api", str(api_level)
-        ], check=True)
-
-    # Repack JAR
-    shutil.make_archive(decompile_dir, 'zip', decompile_dir)
-    patched_jar = f"{jar_name}_patched.jar"
-    output_zip = f"{decompile_dir}.zip"
-    if os.path.exists(output_zip):
-        os.rename(output_zip, patched_jar)
-        print(f"Finished patching {jar_name}. Output: {patched_jar}")
-    else:
-        print(f"Error: Recompilation failed for {jar_name}. No output zip found.")
+    # Recompile
+    return recompile_dex(jar_name, api_level)
 
 
 def main():
@@ -70,6 +136,7 @@ def main():
     parser.add_argument("--miui-services", action="store_true", help="Patch miui-services.jar")
     args = parser.parse_args()
 
+    # Patch requested JARs
     if args.framework:
         patch_jar("framework", "framework_patch.py", args.api_level)
     if args.services:

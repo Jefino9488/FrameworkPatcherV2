@@ -56,38 +56,79 @@ jobs:
             wget -O miui-services.jar ${{ github.event.inputs.miui_services_url }}
           fi
 
-      - name: Extract and Process JARs
+      - name: Extract JARs
         run: |
-          process_jar() {
-            local jar_name=$1
-            if [ -f "${jar_name}.jar" ]; then
-              echo "Processing ${jar_name}.jar..."
-              mkdir -p ${jar_name}
-              cd ${jar_name}
-              unzip -o ../${jar_name}.jar 'classes*.dex' || true
+          # Extract framework.jar
+          if [ -f "framework.jar" ]; then
+            mkdir -p framework
+            cd framework
+            unzip -o ../framework.jar 'classes*.dex' || true
+            cd ..
+          fi
           
-              # Process each dex file with baksmali
-              for dex in classes*.dex; do
-                if [ -f "$dex" ]; then
-                  echo "Disassembling $dex..."
-                  java -Xmx4g -jar ../tools/baksmali.jar disassemble \
-                    --api ${{ github.event.inputs.api_level }} \
-                    --no-debug-info \
-                    --no-parameter-registers \
-                    --allow-odex-opcodes \
-                    --jobs 4 \
-                    "$dex" \
-                    -o "${dex%.dex}"
-                fi
-              done
-              cd ..
-            fi
-          }
+          # Extract services.jar
+          if [ -f "services.jar" ]; then
+            mkdir -p services
+            cd services
+            unzip -o ../services.jar 'classes*.dex' || true
+            cd ..
+          fi
+          
+          # Extract miui-services.jar
+          if [ -f "miui-services.jar" ]; then
+            mkdir -p miui-services
+            cd miui-services
+            unzip -o ../miui-services.jar 'classes*.dex' || true
+            cd ..
+          fi
 
-          # Process each JAR
-          process_jar "framework"
-          process_jar "services"
-          process_jar "miui-services"
+      - name: Decompile framework dex files
+        if: hashFiles('framework/*.dex') != ''
+        run: |
+          if [ -f "framework/classes.dex" ]; then
+            java -jar tools/baksmali.jar d -a ${{ github.event.inputs.api_level }} \
+              --no-debug-info --no-parameter-registers \
+              framework/classes.dex -o framework/classes
+          fi
+          for i in {2..5}; do
+            if [ -f "framework/classes${i}.dex" ]; then
+              java -jar tools/baksmali.jar d -a ${{ github.event.inputs.api_level }} \
+                --no-debug-info --no-parameter-registers \
+                "framework/classes${i}.dex" -o "framework/classes${i}"
+            fi
+          done
+
+      - name: Decompile services dex files
+        if: hashFiles('services/*.dex') != ''
+        run: |
+          if [ -f "services/classes.dex" ]; then
+            java -jar tools/baksmali.jar d -a ${{ github.event.inputs.api_level }} \
+              --no-debug-info --no-parameter-registers \
+              services/classes.dex -o services/classes
+          fi
+          for i in {2..5}; do
+            if [ -f "services/classes${i}.dex" ]; then
+              java -jar tools/baksmali.jar d -a ${{ github.event.inputs.api_level }} \
+                --no-debug-info --no-parameter-registers \
+                "services/classes${i}.dex" -o "services/classes${i}"
+            fi
+          done
+
+      - name: Decompile miui-services dex files
+        if: hashFiles('miui-services/*.dex') != ''
+        run: |
+          if [ -f "miui-services/classes.dex" ]; then
+            java -jar tools/baksmali.jar d -a ${{ github.event.inputs.api_level }} \
+              --no-debug-info --no-parameter-registers \
+              miui-services/classes.dex -o miui-services/classes
+          fi
+          for i in {2..5}; do
+            if [ -f "miui-services/classes${i}.dex" ]; then
+              java -jar tools/baksmali.jar d -a ${{ github.event.inputs.api_level }} \
+                --no-debug-info --no-parameter-registers \
+                "miui-services/classes${i}.dex" -o "miui-services/classes${i}"
+            fi
+          done
 
       - name: Patch JARs
         run: |
