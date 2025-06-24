@@ -21,7 +21,6 @@ def patch_jar(jar_name, patch_script, api_level):
         shutil.rmtree(decompile_dir)
     os.makedirs(decompile_dir, exist_ok=True)
 
-    # Extract the jar, automatically overwriting existing files
     subprocess.run(["7z", "x", "-y", jar_file, f"-o{jar_name}"], check=True)
 
     if os.path.exists(os.path.join(jar_name, "classes.dex")):
@@ -51,20 +50,22 @@ def patch_jar(jar_name, patch_script, api_level):
         logging.error(f"Failed to apply patches: {e}")
         return False
 
+    # Recompile dex files
     if os.path.exists(os.path.join(decompile_dir, "classes")):
         subprocess.run([
-            "java", "-jar", "tools/smali.jar",
+            "java", "-cp", "tools/smali.jar", "org.jf.smali.Main",
             "a",
             "-a", str(api_level),
             os.path.join(decompile_dir, "classes"),
             "-o", os.path.join(jar_name, "classes.dex")
         ], check=True)
 
+    # Handle additional dex files recompilation
     for i in range(2, 6):
         class_dir = os.path.join(decompile_dir, f"classes{i}")
         if os.path.exists(class_dir):
             subprocess.run([
-                "java", "-jar", "tools/smali.jar",
+                "java", "-cp", "tools/smali.jar", "org.jf.smali.Main",
                 "a",
                 "-a", str(api_level),
                 class_dir,
@@ -74,7 +75,6 @@ def patch_jar(jar_name, patch_script, api_level):
     patched_jar = f"{jar_name}_patched.jar"
     shutil.copy2(jar_file, patched_jar)
 
-    # Update jar with patched dex files, assuming yes to any prompts
     subprocess.run([
         "7z", "u", "-y", patched_jar, os.path.join(jar_name, "classes*.dex")
     ], check=True)
