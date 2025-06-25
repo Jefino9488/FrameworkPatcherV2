@@ -3,7 +3,6 @@ import logging
 import os
 import shutil
 import subprocess
-from datetime import datetime
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -146,7 +145,7 @@ def create_patched_jar(jar_name):
             os.chdir(current_dir)
 
 
-def create_magisk_module(api_level, patched_files):
+def create_magisk_module(api_level, device_name, version_name, patched_files):
     """Create Magisk module with patched JARs."""
     logging.info("Creating Magisk module...")
 
@@ -172,7 +171,6 @@ def create_magisk_module(api_level, patched_files):
                      f"{build_dir}/system/system_ext/framework/miui-services.jar")
 
     # Update module.prop
-    version = datetime.now().strftime("%Y%m%d")
     module_prop = os.path.join(build_dir, "module.prop")
     with open(module_prop, 'r') as f:
         lines = f.readlines()
@@ -180,14 +178,14 @@ def create_magisk_module(api_level, patched_files):
     with open(module_prop, 'w') as f:
         for line in lines:
             if line.startswith('version='):
-                f.write(f'version={version}\n')
+                f.write(f'version={version_name}\n')
             elif line.startswith('versionCode='):
-                f.write(f'versionCode={version}\n')
+                f.write(f'versionCode={version_name}\n')
             else:
                 f.write(line)
 
-    # Create module zip from within the directory to avoid parent folder
-    zip_name = f"Framework-Patcher-{api_level}-{version}.zip"
+    # Create module zip with device and version in name
+    zip_name = f"Framework-Patcher-{device_name}-{version_name}.zip"
     current_dir = os.getcwd()
     try:
         os.chdir(build_dir)
@@ -249,6 +247,8 @@ def patch_jar(jar_name, patch_script, api_level):
 def main():
     parser = argparse.ArgumentParser(description="Patch Android JAR files.")
     parser.add_argument("--api_level", required=True, help="Android API level for baksmali.")
+    parser.add_argument("--device", required=True, help="Device codename (e.g. rothko)")
+    parser.add_argument("--version", required=True, help="MIUI/ROM version (e.g. OS2.0.200.33)")
     parser.add_argument("--framework", action="store_true", help="Patch framework.jar")
     parser.add_argument("--services", action="store_true", help="Patch services.jar")
     parser.add_argument("--miui-services", action="store_true", help="Patch miui-services.jar")
@@ -273,7 +273,7 @@ def main():
     # Create Magisk module if any files were patched
     if patched_files:
         try:
-            create_magisk_module(args.api_level, patched_files)
+            create_magisk_module(args.api_level, args.device, args.version, patched_files)
         except Exception as e:
             logging.error(f"Failed to create Magisk module: {e}")
     else:
