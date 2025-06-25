@@ -92,38 +92,42 @@ jobs:
           echo "name=Framework Patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }})" >> $GITHUB_OUTPUT
           echo "asset_name=Framework-Patcher-${{ github.event.inputs.device_name }}-${{ github.event.inputs.version_name }}.zip" >> $GITHUB_OUTPUT
 
-      - name: Check Existing Release
-        id: check_release
+      - name: Delete Existing Release
         uses: actions/github-script@v6
+        continue-on-error: true
         with:
           script: |
             try {
-              const release = await github.rest.repos.getReleaseByTag({
+              // First get the release ID by tag
+              const releases = await github.rest.repos.listReleases({
                 owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag: '${{ steps.release_info.outputs.tag }}'
+                repo: context.repo.repo
               });
-              return release.data.id;
+            
+              const existingRelease = releases.data.find(r => r.tag_name === '${{ steps.release_info.outputs.tag }}');
+            
+              if (existingRelease) {
+                console.log('Found existing release, deleting...');
+                await github.rest.repos.deleteRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: existingRelease.id
+                });
+            
+                // Delete the tag
+                try {
+                  await github.rest.git.deleteRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: 'tags/${{ steps.release_info.outputs.tag }}'
+                  });
+                } catch (e) {
+                  console.log('Tag might not exist, continuing...');
+                }
+              }
             } catch (e) {
-              if (e.status === 404) return '';
-              throw e;
+              console.log('No existing release found or error occurred:', e.message);
             }
-
-      - name: Delete Existing Release
-        if: steps.check_release.outputs.result != ''
-        uses: actions/github-script@v6
-        with:
-          script: |
-            await github.rest.repos.deleteRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: ${{ steps.check_release.outputs.result }}
-            });
-
-      - name: Delete Existing Tag
-        if: steps.check_release.outputs.result != ''
-        run: |
-          git push --delete origin ${{ steps.release_info.outputs.tag }} || true
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -143,5 +147,4 @@ jobs:
             - Services: ${{ github.event.inputs.services_url }}
             - MIUI Services: ${{ github.event.inputs.miui_services_url }}
             
-            Build date: $(date +%Y-%m-%d)
-            SHA: ${{ github.sha }}
+            Build date: $(date +'%Y-%m-%d')
