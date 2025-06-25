@@ -44,6 +44,8 @@ class Helper:
         logging.error(f"Class '{class_name}' not found")
         return None
 
+    # In scripts/helper.py
+
     def find_and_modify_method(self, class_name: str, method_name: str,
                                callback: Callable[[List[str], int, int], List[str]], *parameter_types) -> bool:
         smali_file = self.find_class(class_name)
@@ -54,19 +56,30 @@ class Helper:
             with open(smali_file, 'r+', encoding='utf-8') as f:
                 lines = f.readlines()
 
-                method_pattern = rf".method .* {re.escape(method_name)}\("
+                display_sig = method_name
+                # --- New Combined Logic ---
                 if parameter_types:
-                    param_sig = ''.join(parameter_types)
-                    method_pattern += re.escape(param_sig)
+                    # FULL SIGNATURE MODE: Construct a precise pattern with parameters
+                    param_sig_str = "".join(parameter_types)
+                    method_signature_for_pattern = f"{re.escape(method_name)}\\({re.escape(param_sig_str)}\\)"
+                    method_pattern = rf"\.method\s.*?\s{method_signature_for_pattern}"
+                    display_sig = f"{method_name}({param_sig_str})"
+                else:
+                    # HALF SIGNATURE MODE: Construct a general pattern for name only
+                    method_pattern = rf"\.method\s.*?\s{re.escape(method_name)}\("
+                    logging.info(
+                        f"Using half-signature search for '{method_name}'. This will match the first overloaded method found.")
+                # --- End New Combined Logic ---
 
                 start_line = None
                 for i, line in enumerate(lines):
-                    if re.match(method_pattern, line.strip()):
+                    # Use re.search to find the pattern anywhere in the line
+                    if re.search(method_pattern, line.strip()):
                         start_line = i
                         break
 
                 if start_line is None:
-                    logging.warning(f"Method '{method_name}' not found in '{class_name}'")
+                    logging.warning(f"Method '{display_sig}' not found in '{class_name}'")
                     return False
 
                 end_line = None
@@ -76,7 +89,7 @@ class Helper:
                         break
 
                 if end_line is None:
-                    logging.error(f"Method '{method_name}' in '{class_name}' has no .end method")
+                    logging.error(f"Method '{display_sig}' in '{class_name}' has no .end method")
                     return False
 
                 method_lines = lines[start_line:end_line + 1]
@@ -87,11 +100,11 @@ class Helper:
                 f.writelines(lines)
                 f.truncate()
 
-            logging.info(f"Modified method '{method_name}' in '{class_name}'")
+            logging.info(f"Successfully modified method '{display_sig}' in '{class_name}'")
             return True
         except Exception as e:
             if DEBUG:
-                logging.error(f"{TAG}: Error modifying method '{method_name}' in '{class_name}': {str(e)}")
+                logging.error(f"{TAG}: Error modifying method '{display_sig}' in '{class_name}': {str(e)}")
             return False
 
     def find_all_and_modify_methods(self, class_name: str, method_name: str,
@@ -110,15 +123,22 @@ class Helper:
             while i < len(lines):
                 if re.match(method_sig, lines[i].strip()):
                     start_line = i
+                    end_line = -1
                     for j in range(i + 1, len(lines)):
                         if ".end method" in lines[j]:
                             end_line = j
-                            modified_lines = callback(lines[start_line:end_line + 1], start_line, end_line)
-                            lines[start_line:end_line + 1] = modified_lines
-                            modified_count += 1
-                            i = end_line
                             break
-                    i += 1
+
+                    if end_line != -1:
+                        original_block = lines[start_line: end_line + 1]
+                        modified_block = callback(original_block, start_line, end_line)
+
+                        lines[start_line: end_line + 1] = modified_block
+                        modified_count += 1
+
+                        i = start_line + len(modified_block)
+                    else:
+                        i += 1
                 else:
                     i += 1
 
@@ -202,7 +222,7 @@ def return_false_callback(lines: List[str], start: int, end: int) -> List[str]:
             break
     if registers_line:
         modified_lines.append(registers_line)
-    return_type = 'return v0' if '()I' in lines[0] or '()Z' in lines[0] else 'return-object v0'
+    return_type = 'return v0' if '()I' in lines[0] or '()Z' in lines[0] else 'return v0'
     modified_lines.extend([
         "    const/4 v0, 0x0\n",
         f"    {return_type}\n",

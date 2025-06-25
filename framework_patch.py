@@ -98,11 +98,17 @@ def main():
         )
     )
     helper.find_and_modify_method(
-        "android.util.jar.StrictJarFile", "<init>",
+        "android.util.jar.StrictJarFile",
+        "<init>",  # The method name
         remove_if_and_label_after_invoke_callback(
             "invoke-virtual {p0, v5}, Landroid/util/jar/StrictJarFile;->findEntry(Ljava/lang/String;)Ljava/util/zip/ZipEntry;",
             "if-eqz"
-        )
+        ),
+        # Each parameter type is a separate string argument
+        "Ljava/lang/String;",
+        "Ljava/io/FileDescriptor;",
+        "Z",
+        "Z"
     )
     helper.find_and_modify_method(
         "com.android.internal.pm.pkg.parsing.ParsingPackageUtils", "parseSharedUser",
