@@ -92,7 +92,12 @@ jobs:
           RELEASE_TAG="${{ github.event.inputs.device_name }}_${SAFE_VERSION}"
           echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
           echo "name=Framework Patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }})" >> $GITHUB_OUTPUT
-          echo "asset_name=Framework-Patcher-${{ github.event.inputs.device_name }}-${SAFE_VERSION}.zip" >> $GITHUB_OUTPUT
+
+      - name: Find Module ZIP
+        id: find_zip
+        run: |
+          ZIP_FILE=$(ls Framework-Patcher-${{ github.event.inputs.device_name }}*.zip)
+          echo "file_path=${ZIP_FILE}" >> $GITHUB_OUTPUT
 
       - name: Delete Existing Release
         uses: actions/github-script@v6
@@ -137,7 +142,7 @@ jobs:
         with:
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.name }}
-          files: ${{ steps.release_info.outputs.asset_name }}
+          files: ${{ steps.find_zip.outputs.file_path }}
           body: |
             Framework Patcher for ${{ github.event.inputs.device_name }}
             Version: ${{ github.event.inputs.version_name }}

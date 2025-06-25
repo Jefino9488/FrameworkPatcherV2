@@ -150,7 +150,6 @@ def create_magisk_module(api_level, device_name, version_name, patched_files):
     logging.info("Creating Magisk module...")
 
     build_dir = "build_module"
-    # Clean and recreate build directory
     if os.path.exists(build_dir):
         shutil.rmtree(build_dir)
 
@@ -184,8 +183,9 @@ def create_magisk_module(api_level, device_name, version_name, patched_files):
             else:
                 f.write(line)
 
-    # Create module zip with device and version in name
-    zip_name = f"Framework-Patcher-{device_name}-{version_name}.zip"
+    # Create module zip with sanitized version name
+    safe_version = version_name.replace('.', '-').replace(' ', '-')
+    zip_name = f"Framework-Patcher-{device_name}-{safe_version}.zip"
     current_dir = os.getcwd()
     try:
         os.chdir(build_dir)
