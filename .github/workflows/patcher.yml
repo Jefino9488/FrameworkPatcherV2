@@ -87,10 +87,12 @@ jobs:
       - name: Set Release Info
         id: release_info
         run: |
-          RELEASE_TAG="${{ github.event.inputs.device_name }}-${{ github.event.inputs.version_name }}"
+          # Format version name to be git tag friendly (replace spaces and dots with hyphens)
+          SAFE_VERSION=$(echo "${{ github.event.inputs.version_name }}" | sed 's/[. ]/-/g')
+          RELEASE_TAG="${{ github.event.inputs.device_name }}_${SAFE_VERSION}"
           echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
           echo "name=Framework Patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }})" >> $GITHUB_OUTPUT
-          echo "asset_name=Framework-Patcher-${{ github.event.inputs.device_name }}-${{ github.event.inputs.version_name }}.zip" >> $GITHUB_OUTPUT
+          echo "asset_name=Framework-Patcher-${{ github.event.inputs.device_name }}-${SAFE_VERSION}.zip" >> $GITHUB_OUTPUT
 
       - name: Delete Existing Release
         uses: actions/github-script@v6
@@ -98,7 +100,6 @@ jobs:
         with:
           script: |
             try {
-              // First get the release ID by tag
               const releases = await github.rest.repos.listReleases({
                 owner: context.repo.owner,
                 repo: context.repo.repo
