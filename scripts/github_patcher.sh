@@ -45,7 +45,7 @@ decompile_jar() {
     if [ -f "${base_name}/classes.dex" ]; then
         mkdir -p "$output_dir/classes"
         # Using apkeditor.jar for decompilation instead of baksmali
-        java -jar "$TOOLS_DIR/apkeditor.jar" d -t xml -i "${base_name}/classes.dex" -o "$output_dir/classes"
+        java -jar "$TOOLS_DIR/apkeditor.jar" d -i "${base_name}/classes.dex" -o "$output_dir/classes"
         echo "Decompiled ${base_name}/classes.dex using apkeditor"
     fi
 
@@ -54,7 +54,7 @@ decompile_jar() {
         if [ -f "${base_name}/classes${i}.dex" ]; then
             mkdir -p "$output_dir/classes${i}"
             # Using apkeditor.jar for decompilation instead of baksmali
-            java -jar "$TOOLS_DIR/apkeditor.jar" d -t xml -i "${base_name}/classes${i}.dex" -o "$output_dir/classes${i}"
+            java -jar "$TOOLS_DIR/apkeditor.jar" d -i "${base_name}/classes${i}.dex" -o "$output_dir/classes${i}"
             echo "Decompiled ${base_name}/classes${i}.dex using apkeditor"
         fi
     done
@@ -74,7 +74,7 @@ recompile_jar() {
     # Recompile main classes using apkeditor.jar
     if [ -d "$output_dir/classes" ]; then
         # Using apkeditor.jar for recompilation instead of smali
-        java -jar "$TOOLS_DIR/apkeditor.jar" b -t xml -i "$output_dir/classes" -o "${base_name}/classes.dex"
+        java -jar "$TOOLS_DIR/apkeditor.jar" b -i "$output_dir/classes" -o "${base_name}/classes.dex"
         echo "Recompiled ${base_name}/classes.dex using apkeditor"
     fi
 
@@ -82,7 +82,7 @@ recompile_jar() {
     for i in {2..5}; do
         if [ -d "$output_dir/classes${i}" ]; then
             # Using apkeditor.jar for recompilation instead of smali
-            java -jar "$TOOLS_DIR/apkeditor.jar" b -t xml -i "$output_dir/classes${i}" -o "${base_name}/classes${i}.dex"
+            java -jar "$TOOLS_DIR/apkeditor.jar" b -i "$output_dir/classes${i}" -o "${base_name}/classes${i}.dex"
             echo "Recompiled ${base_name}/classes${i}.dex using apkeditor"
         fi
     done
