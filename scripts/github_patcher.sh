@@ -36,7 +36,7 @@ decompile_jar() {
 
     # Use apktool.jar to decompile the entire JAR file at once
     # This is similar to the fby() function in dsv_a15.sh
-    java -jar "$TOOLS_DIR/apktool.jar" d -q "$jar_file" -o "$output_dir"
+    java -jar "$TOOLS_DIR/apktool.jar" d -q -f "$jar_file" -o "$output_dir"
 
     # Create unknown directory for META-INF and resources
     mkdir -p "$output_dir/unknown"
