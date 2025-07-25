@@ -78,10 +78,11 @@ jobs:
 
       - name: Patch JARs and Create Module
         run: |
-          python3 patch.py \
-            --api_level ${{ github.event.inputs.api_level }} \
-            --device "${{ github.event.inputs.device_name }}" \
-            --version "${{ github.event.inputs.version_name }}" \
+          chmod +x scripts/github_patcher.sh
+          ./scripts/github_patcher.sh \
+            ${{ github.event.inputs.api_level }} \
+            "${{ github.event.inputs.device_name }}" \
+            "${{ github.event.inputs.version_name }}" \
             --framework --services --miui-services
 
       - name: Set Release Info
@@ -109,9 +110,9 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo
               });
-            
+
               const existingRelease = releases.data.find(r => r.tag_name === '${{ steps.release_info.outputs.tag }}');
-            
+
               if (existingRelease) {
                 console.log('Found existing release, deleting...');
                 await github.rest.repos.deleteRelease({
@@ -119,7 +120,7 @@ jobs:
                   repo: context.repo.repo,
                   release_id: existingRelease.id
                 });
-            
+
                 // Delete the tag
                 try {
                   await github.rest.git.deleteRef({
@@ -147,10 +148,10 @@ jobs:
             Framework Patcher for ${{ github.event.inputs.device_name }}
             Version: ${{ github.event.inputs.version_name }}
             Android API: ${{ github.event.inputs.api_level }}
-            
+
             Sources:
             - Framework: ${{ github.event.inputs.framework_url }}
             - Services: ${{ github.event.inputs.services_url }}
             - MIUI Services: ${{ github.event.inputs.miui_services_url }}
-            
+
             Build date: $(date +'%Y-%m-%d')
