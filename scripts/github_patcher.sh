@@ -12,11 +12,10 @@ mkdir -p "$BACKUP_DIR"
 # Create tools directory if it doesn't exist
 mkdir -p "$TOOLS_DIR"
 
-# Check if apkeditor.jar exists
-if [ ! -f "$TOOLS_DIR/apkeditor.jar" ]; then
-    echo "ERROR: apkeditor.jar not found in $TOOLS_DIR"
-    echo "Please download apkeditor.jar from https://github.com/REAndroid/apkeditor/releases"
-    echo "and place it in the $TOOLS_DIR directory."
+# Check if apktool.jar exists
+if [ ! -f "$TOOLS_DIR/apktool.jar" ]; then
+    echo "ERROR: apktool.jar not found in $TOOLS_DIR"
+    echo "Please download apktool.jar and place it in the $TOOLS_DIR directory."
     exit 1
 fi
 
@@ -32,32 +31,27 @@ decompile_jar() {
     rm -rf "$output_dir" "${base_name}"
     mkdir -p "$output_dir"
 
-    # Extract JAR file
+    # Backup META-INF and resources if needed
+    mkdir -p "$BACKUP_DIR/$base_name"
+
+    # Use apktool.jar to decompile the entire JAR file at once
+    # This is similar to the fby() function in dsv_a15.sh
+    java -jar "$TOOLS_DIR/apktool.jar" d -q "$jar_file" -o "$output_dir"
+
+    # Create unknown directory for META-INF and resources
+    mkdir -p "$output_dir/unknown"
+
+    # Extract JAR file to get META-INF and resources for backup
     mkdir -p "${base_name}"
     7z x "$jar_file" -o"${base_name}" > /dev/null
 
-    # Backup META-INF and resources if needed
-    mkdir -p "$BACKUP_DIR/$base_name"
+    # Backup META-INF and resources
     cp -r "${base_name}/META-INF" "$BACKUP_DIR/$base_name/" 2>/dev/null
     cp -r "${base_name}/res" "$BACKUP_DIR/$base_name/" 2>/dev/null
 
-    # Decompile DEX files using apkeditor.jar
-    if [ -f "${base_name}/classes.dex" ]; then
-        mkdir -p "$output_dir/classes"
-        # Using apkeditor.jar for decompilation instead of baksmali
-        java -jar "$TOOLS_DIR/apkeditor.jar" d -i "${base_name}/classes.dex" -o "$output_dir/classes"
-        echo "Decompiled ${base_name}/classes.dex using apkeditor"
-    fi
-
-    # Handle additional DEX files (classes2-5.dex)
-    for i in {2..5}; do
-        if [ -f "${base_name}/classes${i}.dex" ]; then
-            mkdir -p "$output_dir/classes${i}"
-            # Using apkeditor.jar for decompilation instead of baksmali
-            java -jar "$TOOLS_DIR/apkeditor.jar" d -i "${base_name}/classes${i}.dex" -o "$output_dir/classes${i}"
-            echo "Decompiled ${base_name}/classes${i}.dex using apkeditor"
-        fi
-    done
+    # Copy META-INF and resources to unknown directory
+    cp -r "${base_name}/META-INF" "$output_dir/unknown/" 2>/dev/null
+    cp -r "${base_name}/res" "$output_dir/unknown/" 2>/dev/null
 
     echo "Decompilation of $jar_file completed"
 }
@@ -71,41 +65,9 @@ recompile_jar() {
 
     echo "Recompiling $jar_file..."
 
-    # Ensure base_name directory exists
-    if [ ! -d "${base_name}" ]; then
-        echo "Creating ${base_name} directory"
-        mkdir -p "${base_name}"
-    fi
-
-    # Recompile main classes using apkeditor.jar
-    if [ -d "$output_dir/classes" ]; then
-        # Using apkeditor.jar for recompilation instead of smali
-        java -jar "$TOOLS_DIR/apkeditor.jar" b -i "$output_dir/classes" -o "${base_name}/classes.dex"
-        echo "Recompiled ${base_name}/classes.dex using apkeditor"
-    fi
-
-    # Recompile additional classes
-    for i in {2..5}; do
-        if [ -d "$output_dir/classes${i}" ]; then
-            # Using apkeditor.jar for recompilation instead of smali
-            java -jar "$TOOLS_DIR/apkeditor.jar" b -i "$output_dir/classes${i}" -o "${base_name}/classes${i}.dex"
-            echo "Recompiled ${base_name}/classes${i}.dex using apkeditor"
-        fi
-    done
-
-    # Create new JAR file
-    local new_zip="${base_name}_new.zip"
-
-    # Create new zip from within the directory to avoid parent folder in zip
-    (cd "${base_name}" && 7z a -tzip "../$new_zip" "*" > /dev/null)
-
-    # Temporarily disabled zipalign as requested
-    # if command -v zipalign &> /dev/null; then
-    #     zipalign -f -p -v 4 "$new_zip" "$patched_jar"
-    #     rm "$new_zip"  # Clean up intermediate zip
-    # else
-        mv "$new_zip" "$patched_jar"
-    # fi
+    # Use apktool.jar to recompile the entire decompiled directory back to a JAR
+    # This is similar to the hby() function in dsv_a15.sh
+    java -jar "$TOOLS_DIR/apktool.jar" b -q -f "$output_dir" -o "$patched_jar"
 
     echo "Created patched JAR: $patched_jar"
     return 0
