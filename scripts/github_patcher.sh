@@ -80,55 +80,43 @@ add_static_return_patch() {
     local decompile_dir="$3"
     local file
 
-    # More robust file search - try different patterns and extensions
-    file=$(find "$decompile_dir" -type f -name "*.smali" -o -name "*.java" | xargs grep -l ".method.* $method" 2>/dev/null | head -n 1)
-
-    # If not found, try a broader search
-    if [ -z "$file" ]; then
-        echo "Trying broader search for $method..."
-        file=$(find "$decompile_dir" -type f | xargs grep -l "$method" 2>/dev/null | head -n 1)
-    fi
-
-    [ -z "$file" ] && return
+    file=$(find "$decompile_dir" -type f -name "*.smali" | xargs grep -l "\.method.* $method" 2>/dev/null | head -n 1)
+    [ -z "$file" ] && { echo "[!] Method $method not found"; return; }
 
     local start
-    # Try different patterns to find method start
-    start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n1)
-    if [ -z "$start" ]; then
-        start=$(grep -n "^[[:space:]]*method.* $method" "$file" | cut -d: -f1 | head -n1)
-    fi
-    if [ -z "$start" ]; then
-        start=$(grep -n "$method" "$file" | cut -d: -f1 | head -n1)
-    fi
-    [ -z "$start" ] && { echo "Method $method not found"; return; }
+    start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n 1)
+    [ -z "$start" ] && { echo "[!] Start of method $method not found"; return; }
 
-    local total_lines end=0 i="$start"
-    total_lines=$(wc -l < "$file")
-    while [ "$i" -le "$total_lines" ]; do
-        line=$(sed -n "${i}p" "$file")
-        [[ "$line" == *".end method"* || "$line" == *"end method"* || "$line" == *"}"* ]] && { end="$i"; break; }
-        i=$((i + 1))
-    done
-
-    [ "$end" -eq 0 ] && { echo "End not found for $method"; return; }
+    local end
+    end=$(sed -n "${start},\$p" "$file" | grep -n "^[[:space:]]*\.end method" | head -n 1 | cut -d: -f1)
+    end=$((start + end - 1))
+    [ "$end" -le "$start" ] && { echo "[!] End of method $method not found"; return; }
 
     local method_head
     method_head=$(sed -n "${start}p" "$file")
-    method_head_escaped=$(printf "%s\n" "$method_head" | sed 's/\\/\\\\/g')
 
-    sed -i "${start},${end}c\\
-$method_head_escaped\\
-    # -- DYNAMIC REGISTER PATCH BEGIN --
-    # Calculate required register count
-    .prologue
-    # replaced in runtime by sed
-    .registers DYNAMIC_REG_PLACEHOLDER
-# -- DYNAMIC REGISTER PATCH END --\\
-    const/4 v0, 0x$ret_val\\
-    return v0\\
-.end method" "$file"
+    # Calculate register count based on method signature
+    local param_count
+    param_count=$(echo "$method" | grep -o -E '\([^\)]*\)' | tr -cd 'LJIZBSCFD' | wc -c)
+    local registers=$((param_count + 2))
 
-    echo "Patched $method to return $ret_val"
+    # Use heredoc to safely replace method body
+    local tmpfile
+    tmpfile=$(mktemp)
+
+    cat <<EOF > "$tmpfile"
+$method_head
+    .registers $registers
+    const/4 v0, 0x$ret_val
+    return v0
+.end method
+EOF
+
+    sed -i "${start},${end}r $tmpfile" "$file"
+    sed -i "${start},${end}d" "$file"
+    rm "$tmpfile"
+
+    echo "[+] Patched $method to return $ret_val"
 }
 
 # Function to patch return-void method
