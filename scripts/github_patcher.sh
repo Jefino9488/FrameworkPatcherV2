@@ -71,6 +71,12 @@ recompile_jar() {
 
     echo "Recompiling $jar_file..."
 
+    # Ensure base_name directory exists
+    if [ ! -d "${base_name}" ]; then
+        echo "Creating ${base_name} directory"
+        mkdir -p "${base_name}"
+    fi
+
     # Recompile main classes using apkeditor.jar
     if [ -d "$output_dir/classes" ]; then
         # Using apkeditor.jar for recompilation instead of smali
@@ -112,19 +118,33 @@ add_static_return_patch() {
     local decompile_dir="$3"
     local file
 
-    file=$(find "$decompile_dir" -type f -name "*.smali" | xargs grep -l ".method.* $method" 2>/dev/null | head -n 1)
+    # More robust file search - try different patterns and extensions
+    file=$(find "$decompile_dir" -type f -name "*.smali" -o -name "*.java" | xargs grep -l ".method.* $method" 2>/dev/null | head -n 1)
+
+    # If not found, try a broader search
+    if [ -z "$file" ]; then
+        echo "Trying broader search for $method..."
+        file=$(find "$decompile_dir" -type f | xargs grep -l "$method" 2>/dev/null | head -n 1)
+    fi
 
     [ -z "$file" ] && return
 
     local start
+    # Try different patterns to find method start
     start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n1)
+    if [ -z "$start" ]; then
+        start=$(grep -n "^[[:space:]]*method.* $method" "$file" | cut -d: -f1 | head -n1)
+    fi
+    if [ -z "$start" ]; then
+        start=$(grep -n "$method" "$file" | cut -d: -f1 | head -n1)
+    fi
     [ -z "$start" ] && { echo "Method $method not found"; return; }
 
     local total_lines end=0 i="$start"
     total_lines=$(wc -l < "$file")
     while [ "$i" -le "$total_lines" ]; do
         line=$(sed -n "${i}p" "$file")
-        [[ "$line" == *".end method"* ]] && { end="$i"; break; }
+        [[ "$line" == *".end method"* || "$line" == *"end method"* || "$line" == *"}"* ]] && { end="$i"; break; }
         i=$((i + 1))
     done
 
@@ -150,18 +170,33 @@ patch_return_void_method() {
     local decompile_dir="$2"
     local file
 
-    file=$(find "$decompile_dir" -type f -name "*.smali" | xargs grep -l ".method.* $method" 2>/dev/null | head -n 1)
+    # More robust file search - try different patterns and extensions
+    file=$(find "$decompile_dir" -type f -name "*.smali" -o -name "*.java" | xargs grep -l ".method.* $method" 2>/dev/null | head -n 1)
+
+    # If not found, try a broader search
+    if [ -z "$file" ]; then
+        echo "Trying broader search for $method..."
+        file=$(find "$decompile_dir" -type f | xargs grep -l "$method" 2>/dev/null | head -n 1)
+    fi
+
     [ -z "$file" ] && { echo "Method $method not found"; return; }
 
     local start
+    # Try different patterns to find method start
     start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n1)
+    if [ -z "$start" ]; then
+        start=$(grep -n "^[[:space:]]*method.* $method" "$file" | cut -d: -f1 | head -n1)
+    fi
+    if [ -z "$start" ]; then
+        start=$(grep -n "$method" "$file" | cut -d: -f1 | head -n1)
+    fi
     [ -z "$start" ] && { echo "Method $method start not found"; return; }
 
     local total_lines end=0 i="$start"
     total_lines=$(wc -l < "$file")
     while [ "$i" -le "$total_lines" ]; do
         line=$(sed -n "${i}p" "$file")
-        [[ "$line" == *".end method"* ]] && { end="$i"; break; }
+        [[ "$line" == *".end method"* || "$line" == *"end method"* || "$line" == *"}"* ]] && { end="$i"; break; }
         i=$((i + 1))
     done
 
@@ -186,7 +221,14 @@ modify_invoke_custom_methods() {
     echo "Checking for invoke-custom..."
 
     local smali_files
-    smali_files=$(grep -rl "invoke-custom" "$decompile_dir" --include="*.smali" 2>/dev/null)
+    # More robust file search - try different patterns and extensions
+    smali_files=$(grep -rl "invoke-custom" "$decompile_dir" --include="*.smali" --include="*.java" 2>/dev/null)
+
+    # If not found, try a broader search
+    if [ -z "$smali_files" ]; then
+        echo "Trying broader search for invoke-custom..."
+        smali_files=$(find "$decompile_dir" -type f -exec grep -l "invoke-custom" {} \; 2>/dev/null)
+    fi
 
     [ -z "$smali_files" ] && { echo "No invoke-custom found"; return; }
 
