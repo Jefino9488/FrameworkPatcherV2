@@ -9,52 +9,24 @@ BACKUP_DIR="$WORK_DIR/backup"
 # Create backup directory
 mkdir -p "$BACKUP_DIR"
 
-# Create tools directory if it doesn't exist
-mkdir -p "$TOOLS_DIR"
-
-# Check if apktool.jar exists
-if [ ! -f "$TOOLS_DIR/apktool.jar" ]; then
-    echo "ERROR: apktool.jar not found in $TOOLS_DIR"
-    echo "Please download apktool.jar and place it in the $TOOLS_DIR directory."
-    exit 1
-fi
-
 # Function to decompile JAR file
 decompile_jar() {
     local jar_file="$1"
     local base_name="$(basename "$jar_file" .jar)"
     local output_dir="$WORK_DIR/${base_name}_decompile"
 
-    echo "Decompiling $jar_file..."
+    echo "Decompiling $jar_file with apktool..."
 
-    # Clean previous directories if they exist
     rm -rf "$output_dir" "${base_name}"
     mkdir -p "$output_dir"
 
-    # Backup META-INF and resources if needed
+    # Extract resources for backup
     mkdir -p "$BACKUP_DIR/$base_name"
+    unzip -o "$jar_file" "META-INF/*" "res/*" -d "$BACKUP_DIR/$base_name" >/dev/null 2>&1
 
-    # Use apktool.jar to decompile the entire JAR file at once
-    # This is similar to the fby() function in dsv_a15.sh
-    java -jar "$TOOLS_DIR/apktool.jar" d -q -f "$jar_file" -o "$output_dir"
-
-    # Create unknown directory for META-INF and resources
-    mkdir -p "$output_dir/unknown"
-
-    # Extract JAR file to get META-INF and resources for backup
-    mkdir -p "${base_name}"
-    7z x "$jar_file" -o"${base_name}" > /dev/null
-
-    # Backup META-INF and resources
-    cp -r "${base_name}/META-INF" "$BACKUP_DIR/$base_name/" 2>/dev/null
-    cp -r "${base_name}/res" "$BACKUP_DIR/$base_name/" 2>/dev/null
-
-    # Copy META-INF and resources to unknown directory
-    cp -r "${base_name}/META-INF" "$output_dir/unknown/" 2>/dev/null
-    cp -r "${base_name}/res" "$output_dir/unknown/" 2>/dev/null
-
-    echo "Decompilation of $jar_file completed"
+    java -jar "$TOOLS_DIR/apktool.jar" d -q "$jar_file" -o "$output_dir"
 }
+
 
 # Function to recompile JAR file
 recompile_jar() {
@@ -63,14 +35,11 @@ recompile_jar() {
     local output_dir="$WORK_DIR/${base_name}_decompile"
     local patched_jar="${base_name}_patched.jar"
 
-    echo "Recompiling $jar_file..."
+    echo "Recompiling $jar_file with apktool..."
 
-    # Use apktool.jar to recompile the entire decompiled directory back to a JAR
-    # This is similar to the hby() function in dsv_a15.sh
     java -jar "$TOOLS_DIR/apktool.jar" b -q -f "$output_dir" -o "$patched_jar"
 
     echo "Created patched JAR: $patched_jar"
-    return 0
 }
 
 # Function to add static return patch
@@ -80,43 +49,36 @@ add_static_return_patch() {
     local decompile_dir="$3"
     local file
 
-    file=$(find "$decompile_dir" -type f -name "*.smali" | xargs grep -l "\.method.* $method" 2>/dev/null | head -n 1)
-    [ -z "$file" ] && { echo "[!] Method $method not found"; return; }
+    file=$(find "$decompile_dir" -type f -name "*.smali" | xargs grep -l ".method.* $method" 2>/dev/null | head -n 1)
+
+    [ -z "$file" ] && return
 
     local start
-    start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n 1)
-    [ -z "$start" ] && { echo "[!] Start of method $method not found"; return; }
+    start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n1)
+    [ -z "$start" ] && { echo "Method $method not found"; return; }
 
-    local end
-    end=$(sed -n "${start},\$p" "$file" | grep -n "^[[:space:]]*\.end method" | head -n 1 | cut -d: -f1)
-    end=$((start + end - 1))
-    [ "$end" -le "$start" ] && { echo "[!] End of method $method not found"; return; }
+    local total_lines end=0 i="$start"
+    total_lines=$(wc -l < "$file")
+    while [ "$i" -le "$total_lines" ]; do
+        line=$(sed -n "${i}p" "$file")
+        [[ "$line" == *".end method"* ]] && { end="$i"; break; }
+        i=$((i + 1))
+    done
+
+    [ "$end" -eq 0 ] && { echo "End not found for $method"; return; }
 
     local method_head
     method_head=$(sed -n "${start}p" "$file")
+    method_head_escaped=$(printf "%s\n" "$method_head" | sed 's/\\/\\\\/g')
 
-    # Calculate register count based on method signature
-    local param_count
-    param_count=$(echo "$method" | grep -o -E '\([^\)]*\)' | tr -cd 'LJIZBSCFD' | wc -c)
-    local registers=$((param_count + 2))
+    sed -i "${start},${end}c\\
+$method_head_escaped\\
+    .registers 8\\
+    const/4 v0, 0x$ret_val\\
+    return v0\\
+.end method" "$file"
 
-    # Use heredoc to safely replace method body
-    local tmpfile
-    tmpfile=$(mktemp)
-
-    cat <<EOF > "$tmpfile"
-$method_head
-    .registers $registers
-    const/4 v0, 0x$ret_val
-    return v0
-.end method
-EOF
-
-    sed -i "${start},${end}r $tmpfile" "$file"
-    sed -i "${start},${end}d" "$file"
-    rm "$tmpfile"
-
-    echo "[+] Patched $method to return $ret_val"
+    echo "Patched $method to return $ret_val"
 }
 
 # Function to patch return-void method
@@ -125,36 +87,35 @@ patch_return_void_method() {
     local decompile_dir="$2"
     local file
 
-    file=$(find "$decompile_dir" -type f -name "*.smali" | xargs grep -l "\.method.* $method" 2>/dev/null | head -n 1)
-    [ -z "$file" ] && { echo "[!] Method $method not found"; return; }
+    file=$(find "$decompile_dir" -type f -name "*.smali" | xargs grep -l ".method.* $method" 2>/dev/null | head -n 1)
+    [ -z "$file" ] && { echo "Method $method not found"; return; }
 
     local start
-    start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n 1)
-    [ -z "$start" ] && { echo "[!] Method $method start not found"; return; }
+    start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n1)
+    [ -z "$start" ] && { echo "Method $method start not found"; return; }
 
-    local end
-    end=$(sed -n "${start},\$p" "$file" | grep -n "^[[:space:]]*\.end method" | head -n 1 | cut -d: -f1)
-    end=$((start + end - 1))
+    local total_lines end=0 i="$start"
+    total_lines=$(wc -l < "$file")
+    while [ "$i" -le "$total_lines" ]; do
+        line=$(sed -n "${i}p" "$file")
+        [[ "$line" == *".end method"* ]] && { end="$i"; break; }
+        i=$((i + 1))
+    done
+
+    [ "$end" -eq 0 ] && { echo "Method $method end not found"; return; }
 
     local method_head
     method_head=$(sed -n "${start}p" "$file")
-    local tmpfile
-    tmpfile=$(mktemp)
+    method_head_escaped=$(printf "%s\n" "$method_head" | sed 's/\\/\\\\/g')
 
-    cat <<EOF > "$tmpfile"
-$method_head
-    .registers 1
-    return-void
-.end method
-EOF
+    sed -i "${start},${end}c\\
+$method_head_escaped\\
+    .registers 8\\
+    return-void\\
+.end method" "$file"
 
-    sed -i "${start},${end}r $tmpfile" "$file"
-    sed -i "${start},${end}d" "$file"
-    rm "$tmpfile"
-
-    echo "[+] Patched $method → return-void"
+    echo "Patched $method → return-void"
 }
-
 
 # Function to modify invoke-custom methods
 modify_invoke_custom_methods() {
@@ -162,19 +123,11 @@ modify_invoke_custom_methods() {
     echo "Checking for invoke-custom..."
 
     local smali_files
-    # More robust file search - try different patterns and extensions
-    smali_files=$(grep -rl "invoke-custom" "$decompile_dir" --include="*.smali" --include="*.java" 2>/dev/null)
-
-    # If not found, try a broader search
-    if [ -z "$smali_files" ]; then
-        echo "Trying broader search for invoke-custom..."
-        smali_files=$(find "$decompile_dir" -type f -exec grep -l "invoke-custom" {} \; 2>/dev/null)
-    fi
+    smali_files=$(grep -rl "invoke-custom" "$decompile_dir" --include="*.smali" 2>/dev/null)
 
     [ -z "$smali_files" ] && { echo "No invoke-custom found"; return; }
 
     for smali_file in $smali_files; do
-    grep -q "^\.method" "$smali_file" || { echo "[!] Skipping non-method file $smali_file"; continue; }
         echo "Modifying: $smali_file"
 
         sed -i "/.method.*equals(/,/^.end method$/ {
@@ -591,7 +544,12 @@ checkCapabilityRecover(Landroid/content/pm/PackageParser\$SigningDetails;I)Z"
                     method_head=$(sed -n "${start}p" "$file")
                     method_head_escaped=$(printf "%s\n" "$method_head" | sed 's/\\/\\\\/g')
 
-                    add_static_return_patch "$method" "$ret_val" "$decompile_dir"
+                    sed -i "${start},${end}c\\
+$method_head_escaped\\
+    .registers 8\\
+    const/4 v0, 0x$ret_val\\
+    return v0\\
+.end method" "$file"
 
                     echo "Patched $method to return $ret_val"
                 else
