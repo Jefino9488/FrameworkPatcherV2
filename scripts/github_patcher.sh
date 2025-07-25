@@ -17,19 +17,19 @@ decompile_jar() {
 
     echo "Decompiling $jar_file with apktool..."
 
-    rm -rf "$output_dir" "${base_name}"
+    rm -rf "$output_dir" "$base_name"
     mkdir -p "$output_dir"
 
-    # Extract resources for backup
     mkdir -p "$BACKUP_DIR/$base_name"
     unzip -o "$jar_file" "META-INF/*" "res/*" -d "$BACKUP_DIR/$base_name" >/dev/null 2>&1
 
-    java -jar "$TOOLS_DIR/apktool.jar" d -q "$jar_file" -o "$output_dir"
+    java -jar "$TOOLS_DIR/apktool.jar" d -q -f "$jar_file" -o "$output_dir"
 
     mkdir -p "$output_dir/unknown"
     cp -r "$BACKUP_DIR/$base_name/res" "$output_dir/unknown/" 2>/dev/null
     cp -r "$BACKUP_DIR/$base_name/META-INF" "$output_dir/unknown/" 2>/dev/null
 }
+
 
 
 # Function to recompile JAR file
