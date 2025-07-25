@@ -12,10 +12,10 @@ mkdir -p "$BACKUP_DIR"
 # Create tools directory if it doesn't exist
 mkdir -p "$TOOLS_DIR"
 
-# Check if apktool.jar exists
-if [ ! -f "$TOOLS_DIR/apktool.jar" ]; then
-    echo "ERROR: apktool.jar not found in $TOOLS_DIR"
-    echo "Please download apktool.jar and place it in the $TOOLS_DIR directory."
+# Check if apkeditor.jar exists
+if [ ! -f "$TOOLS_DIR/apkeditor.jar" ]; then
+    echo "ERROR: apkeditor.jar not found in $TOOLS_DIR"
+    echo "Please download apkeditor.jar and place it in the $TOOLS_DIR directory."
     exit 1
 fi
 
@@ -34,9 +34,9 @@ decompile_jar() {
     # Backup META-INF and resources if needed
     mkdir -p "$BACKUP_DIR/$base_name"
 
-    # Use apktool.jar to decompile the entire JAR file at once
+    # Use apkeditor.jar to decompile the entire JAR file at once
     # This is similar to the fby() function in dsv_a15.sh
-    java -jar "$TOOLS_DIR/apktool.jar" d -q "$jar_file" -o "$output_dir"
+    java -jar "$TOOLS_DIR/apkeditor.jar" d -q "$jar_file" -o "$output_dir"
 
     # Create unknown directory for META-INF and resources
     mkdir -p "$output_dir/unknown"
@@ -65,9 +65,9 @@ recompile_jar() {
 
     echo "Recompiling $jar_file..."
 
-    # Use apktool.jar to recompile the entire decompiled directory back to a JAR
+    # Use apkeditor.jar to recompile the entire decompiled directory back to a JAR
     # This is similar to the hby() function in dsv_a15.sh
-    java -jar "$TOOLS_DIR/apktool.jar" b -q -f "$output_dir" -o "$patched_jar"
+    java -jar "$TOOLS_DIR/apkeditor.jar" b -q -f "$output_dir" -o "$patched_jar"
 
     echo "Created patched JAR: $patched_jar"
     return 0
