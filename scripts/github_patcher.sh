@@ -13,7 +13,7 @@ mkdir -p "$BACKUP_DIR"
 mkdir -p "$TOOLS_DIR"
 
 # Check if APKEditor.jar exists
-if [ ! -f "$TOOLS_DIR/APKEditor.jar" ]; then
+if [ ! -f "$TOOLS_DIR/apkeditor.jar" ]; then
     echo "ERROR: APKEditor.jar not found in $TOOLS_DIR"
     echo "Please download APKEditor.jar from https://github.com/REAndroid/APKEditor/releases"
     echo "and place it in the $TOOLS_DIR directory."
