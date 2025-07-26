@@ -149,10 +149,10 @@ modify_invoke_custom_methods() {
         }" "$smali_file"
 
         sed -i "/.method.*toString(/,/^.end method$/ {
-            /^    .registers/c\    .registers 2
+            s/^[[:space:]]*\.registers.*/    .registers 1/
             /^    invoke-custom/d
-            /^    move-result/d
-            /^    return/c\    const/4 v0, 0x0\n\n    return v0
+            /^    move-result.*/d
+            /^    return.*/c\    const/4 v0, 0x0\n\n    return-object v0
         }" "$smali_file"
     done
 
