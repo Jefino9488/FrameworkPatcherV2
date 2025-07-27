@@ -164,77 +164,35 @@ jobs:
       - name: Send Telegram Notification (Success)
         if: success()
         run: |
-          escape_md() {
-            echo "$1" | sed -e 's/\\/\\\\/g' \
-                            -e 's/\./\\./g' \
-                            -e 's/\-/\\-/g' \
-                            -e 's/(/\\(/g' \
-                            -e 's/)/\\)/g' \
-                            -e 's/\[/\\[/g' \
-                            -e 's/\]/\\]/g' \
-                            -e 's/{/\\{/g' \
-                            -e 's/}/\\}/g' \
-                            -e 's/</\\</g' \
-                            -e 's/>/\\>/g' \
-                            -e 's/#/\\#/g' \
-                            -e 's/\+/\\+/g' \
-                            -e 's/=/\\=/g' \
-                            -e 's/|/\\|/g' \
-                            -e 's/~/\\~/g' \
-                            -e 's/`/\\`/g' \
-                            -e 's/_/\\_/g' \
-                            -e 's/\*/\\*/g' \
-                            -e 's/!/\\!/g'
-          }
+          MESSAGE="*Framework patch is now available for your device:*\n\n"
+          MESSAGE+="*Codename:* \`${{ github.event.inputs.device_name }}\`\n"
+          MESSAGE+="*Version:* \`${{ github.event.inputs.version_name }}\`\n"
+          MESSAGE+="*Android API:* \`${{ github.event.inputs.api_level }}\`"
 
-          DEVICE_NAME_ESCAPED=$(escape_md "${{ github.event.inputs.device_name }}")
-          VERSION_NAME_ESCAPED=$(escape_md "${{ github.event.inputs.version_name }}")
           RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${{ steps.release_info.outputs.tag }}"
-          RELEASE_URL_ESCAPED=$(escape_md "$RELEASE_URL")
-
-          MESSAGE="Your framework patch for ${DEVICE_NAME_ESCAPED} \\(${VERSION_NAME_ESCAPED}\\) is ready\\! Download it here: ${RELEASE_URL_ESCAPED}"
+          
+          REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"Click here to download\",\"url\":\"$RELEASE_URL\"}]]}"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ github.event.inputs.user_id }} \
             -d text="$MESSAGE" \
-            -d parse_mode="MarkdownV2" \
-            -d disable_web_page_preview=true
+            -d parse_mode="Markdown" \
+            -d reply_markup="$REPLY_MARKUP"
 
       - name: Send Telegram Notification (Failure)
         if: failure()
         run: |
-          escape_md() {
-            echo "$1" | sed -e 's/\\/\\\\/g' \
-                            -e 's/\./\\./g' \
-                            -e 's/\-/\\-/g' \
-                            -e 's/(/\\(/g' \
-                            -e 's/)/\\)/g' \
-                            -e 's/\[/\\[/g' \
-                            -e 's/\]/\\]/g' \
-                            -e 's/{/\\{/g' \
-                            -e 's/}/\\}/g' \
-                            -e 's/</\\</g' \
-                            -e 's/>/\\>/g' \
-                            -e 's/#/\\#/g' \
-                            -e 's/\+/\\+/g' \
-                            -e 's/=/\\=/g' \
-                            -e 's/|/\\|/g' \
-                            -e 's/~/\\~/g' \
-                            -e 's/`/\\`/g' \
-                            -e 's/_/\\_/g' \
-                            -e 's/\*/\\*/g' \
-                            -e 's/!/\\!/g'
-          }
-
-          DEVICE_NAME_ESCAPED=$(escape_md "${{ github.event.inputs.device_name }}")
-          VERSION_NAME_ESCAPED=$(escape_md "${{ github.event.inputs.version_name }}")
           WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          WORKFLOW_URL_ESCAPED=$(escape_md "$WORKFLOW_URL")
 
-          MESSAGE="Your framework patch for ${DEVICE_NAME_ESCAPED} \\(${VERSION_NAME_ESCAPED}\\) failed\\! Check logs here: ${WORKFLOW_URL_ESCAPED}"
+          MESSAGE="*Framework patch failed for your device:*\n\n"
+          MESSAGE+="*Codename:* \`${{ github.event.inputs.device_name }}\`\n"
+          MESSAGE+="*Version:* \`${{ github.event.inputs.version_name }}\`\n\n"
+          MESSAGE+="Please check the workflow logs for more details."
+
+          REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"View Workflow Run\",\"url\":\"$WORKFLOW_URL\"}]]}"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ github.event.inputs.user_id }} \
             -d text="$MESSAGE" \
-            -d parse_mode="MarkdownV2" \
-            -d disable_web_page_preview=true
+            -d parse_mode="Markdown" \
+            -d reply_markup="$REPLY_MARKUP"
