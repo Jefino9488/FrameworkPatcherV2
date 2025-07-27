@@ -19,17 +19,14 @@ on:
       framework_url:
         description: 'URL to framework.jar'
         required: true
-        default: 'https://dumps.tadiphone.dev/dumps/redmi/rothko/-/raw/missi-user-15-AP3A.240617.008-OS2.0.200.33.VNNCNXM-release-keys/system/system/framework/framework.jar'
         type: string
       services_url:
         description: 'URL to services.jar'
         required: true
-        default: 'https://dumps.tadiphone.dev/dumps/redmi/rothko/-/raw/missi-user-15-AP3A.240617.008-OS2.0.200.33.VNNCNXM-release-keys/system/system/framework/services.jar'
         type: string
       miui_services_url:
         description: 'URL to miui-services.jar'
         required: true
-        default: 'https://dumps.tadiphone.dev/dumps/redmi/rothko/-/raw/missi-user-15-AP3A.240617.008-OS2.0.200.33.VNNCNXM-release-keys/system_ext/framework/miui-services.jar'
         type: string
       user_id:
         description: 'Telegram User ID to notify'
@@ -56,10 +53,6 @@ jobs:
             sudo apt-get install -y android-tools-zipalign
           fi
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
 
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -161,33 +154,25 @@ jobs:
 
             Build date: $(date +'%Y-%m-%d')
 
-      - name: Send Telegram Notification
+      - name: Send Telegram Notification (Success)
         if: success()
         run: |
-          RELEASE_URL="${{ steps.create_release.outputs.url }}" # Access the URL from the create_release step
+          RELEASE_URL="${{ steps.create_release.outputs.url }}"
+          # Use raw URL and rely on Telegram's auto-linking or simple Markdown link
           MESSAGE="Your framework patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }}) is ready! Download it here: ${RELEASE_URL}"
-          ENCODED_MESSAGE=$(python -c 'import urllib.parse; print(urllib.parse.quote_plus("${{ env.MESSAGE }}"))' )
-          
-          # Replace YOUR_TELEGRAM_BOT_TOKEN with your actual bot token
-          # You should store this in GitHub Secrets (e.g., TELEGRAM_BOT_TOKEN)
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-          -d chat_id=${{ github.event.inputs.user_id }} \
-          -d text="${MESSAGE}" \
-          -d parse_mode="MarkdownV2" \
-          -d disable_web_page_preview="true"
-        env:
-          MESSAGE: "Your framework patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }}) is ready! Download it here: ${{ steps.create_release.outputs.url }}"
+          echo "${MESSAGE}" | xargs -0 curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ github.event.inputs.user_id }} \
+            -d text="$((cat - ; echo) <&0)" \
+            -d parse_mode="MarkdownV2" \
+            -d disable_web_page_preview="true"
 
-      - name: Send Telegram Notification on Failure
+      - name: Send Telegram Notification (Failure)
         if: failure()
         run: |
           MESSAGE="Your framework patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }}) failed. Please check the workflow run for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          ENCODED_MESSAGE=$(python -c 'import urllib.parse; print(urllib.parse.quote_plus("${{ env.MESSAGE }}"))' )
           
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-          -d chat_id=${{ github.event.inputs.user_id }} \
-          -d text="${MESSAGE}" \
-          -d parse_mode="MarkdownV2" \
-          -d disable_web_page_preview="true"
-        env:
-          MESSAGE: "Your framework patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }}) failed. Please check the workflow run for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "${MESSAGE}" | xargs -0 curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ github.event.inputs.user_id }} \
+            -d text="$((cat - ; echo) <&0)" \
+            -d parse_mode="MarkdownV2" \
+            -d disable_web_page_preview="true"
