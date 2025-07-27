@@ -31,7 +31,7 @@ on:
         required: true
         default: 'https://dumps.tadiphone.dev/dumps/redmi/rothko/-/raw/missi-user-15-AP3A.240617.008-OS2.0.200.33.VNNCNXM-release-keys/system_ext/framework/miui-services.jar'
         type: string
-      user_id: # New input for the user ID
+      user_id:
         description: 'Telegram User ID to notify'
         required: true
         type: string

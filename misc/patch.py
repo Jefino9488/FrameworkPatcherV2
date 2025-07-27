@@ -154,7 +154,7 @@ def create_magisk_module(api_level, device_name, version_name, patched_files):
         shutil.rmtree(build_dir)
 
     # Copy magisk_module template
-    shutil.copytree("magisk_module", build_dir)
+    shutil.copytree("../magisk_module", build_dir)
 
     # Create required directories
     os.makedirs(f"{build_dir}/system/framework", exist_ok=True)
