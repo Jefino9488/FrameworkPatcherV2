@@ -62,7 +62,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: framework-patcher-bot
-          image: ${{ steps.build-image.outputs.tag }}
+          image: ${{ steps.build-image.outputs.tag }} # This should be correct.
           region: ${{ env.REGION }}
           env_vars: |
             BOT_TOKEN=${{ secrets.BOT_TOKEN }}
@@ -74,5 +74,8 @@ jobs:
             API_ID=${{ secrets.API_ID }}
             API_HASH=${{ secrets.API_HASH }}
             OWNER_ID=${{ secrets.OWNER_ID }}
-          min_instances: 1
-          allow_unauthenticated: true
+          # Removed min_instances and allow_unauthenticated as they are not valid inputs for v2
+          # Use 'flags' to pass these if they are still needed for the gcloud command
+          flags: |
+            --min-instances 1
+            --allow-unauthenticated
