@@ -157,9 +157,11 @@ jobs:
       - name: Send Telegram Notification (Success)
         if: success()
         run: |
-          RELEASE_URL="${{ steps.create_release.outputs.url }}"
-          # Use raw URL and rely on Telegram's auto-linking or simple Markdown link
-          MESSAGE="Your framework patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }}) is ready! Download it here: ${RELEASE_URL}"
+          RELEASE_URL="https://github.com/Jefino9488/FrameworkPatcherV2/releases/tag/Test_OS2-0-200-33"
+          # Escape parentheses for MarkdownV2
+          DEVICE_NAME_ESCAPED="${{ github.event.inputs.device_name }}"
+          VERSION_NAME_ESCAPED=$(echo "${{ github.event.inputs.version_name }}" | sed 's/(/\\(/g; s/)/\\)/g')
+          MESSAGE="Your framework patch for ${DEVICE_NAME_ESCAPED} (${VERSION_NAME_ESCAPED}) is ready! Download it here: ${RELEASE_URL}"
           echo "${MESSAGE}" | xargs -0 curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ github.event.inputs.user_id }} \
             -d text="$((cat - ; echo) <&0)" \
@@ -169,7 +171,11 @@ jobs:
       - name: Send Telegram Notification (Failure)
         if: failure()
         run: |
-          MESSAGE="Your framework patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }}) failed. Please check the workflow run for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          # Escape parentheses for MarkdownV2 for failure message too
+          DEVICE_NAME_ESCAPED="${{ github.event.inputs.device_name }}"
+          VERSION_NAME_ESCAPED=$(echo "${{ github.event.inputs.version_name }}" | sed 's/(/\\(/g; s/)/\\)/g') # Escape parentheses
+          
+          MESSAGE="Your framework patch for ${DEVICE_NAME_ESCAPED} (${VERSION_NAME_ESCAPED}) failed. Please check the workflow run for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           
           echo "${MESSAGE}" | xargs -0 curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ github.event.inputs.user_id }} \
