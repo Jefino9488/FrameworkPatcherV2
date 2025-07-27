@@ -58,7 +58,6 @@ STATE_WAITING_FOR_FILES = 1
 STATE_WAITING_FOR_DEVICE_NAME = 2
 STATE_WAITING_FOR_VERSION_NAME = 3
 
-
 # --- Helper Functions for PixelDrain and Formatting ---
 
 # inside upload_file_stream()
@@ -97,8 +96,7 @@ async def upload_file_stream(file_path: str, pixeldrain_api_key: str) -> tuple:
     return response_data, logs
 
 
-async def trigger_github_workflow_async(links: dict, device_name: str, version_name: str,
-                                        user_id: int) -> int:  # Added user_id
+async def trigger_github_workflow_async(links: dict, device_name: str, version_name: str, user_id: int) -> int:
     url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/actions/workflows/{WORKFLOW_ID}/dispatches"
     headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
@@ -113,7 +111,7 @@ async def trigger_github_workflow_async(links: dict, device_name: str, version_n
             "framework_url": links.get("framework.jar"),
             "services_url": links.get("services.jar"),
             "miui_services_url": links.get("miui-services.jar"),
-            "user_id": str(user_id)  # Pass user_id as a string
+            "user_id": str(user_id)
         }
     }
     logger.info(
@@ -122,7 +120,6 @@ async def trigger_github_workflow_async(links: dict, device_name: str, version_n
         resp = await client.post(url, json=data, headers=headers)
         resp.raise_for_status()
         return resp.status_code
-
 
 def get_id(text: str) -> str | None:
     """Extracts PixelDrain ID from a URL or raw ID."""
@@ -138,7 +135,6 @@ def get_id(text: str) -> str | None:
         return text
     return None
 
-
 def format_size(size: int) -> str:
     """Formats file size into human-readable string."""
     if size < 1024:
@@ -150,7 +146,6 @@ def format_size(size: int) -> str:
     else:
         return f"{size / (1024 * 1024 * 1024)::.2f} GB"
 
-
 def format_date(date_str: str) -> str:
     """Formats ISO date string."""
     try:
@@ -159,7 +154,6 @@ def format_date(date_str: str) -> str:
         return f"{date} {time}"
     except (AttributeError, IndexError):
         return date_str
-
 
 async def send_data(file_id: str, message: Message):
     text = "`Fetching file information...`"
@@ -217,7 +211,6 @@ async def send_data(file_id: str, message: Message):
         disable_web_page_preview=True
     )
 
-
 # --- Pyrogram Handlers ---
 
 @Bot.on_message(filters.private & filters.command("start"))
@@ -232,7 +225,6 @@ async def start_command_handler(bot: Client, message: Message):
         ])
     )
 
-
 @Bot.on_message(filters.private & filters.command("start_patch"))
 async def start_patch_command(bot: Client, message: Message):
     """Initiates the framework patching conversation."""
@@ -245,7 +237,6 @@ async def start_patch_command(bot: Client, message: Message):
         quote=True
     )
 
-
 @Bot.on_message(filters.private & filters.command("cancel"))
 async def cancel_command(bot: Client, message: Message):
     """Cancels the current operation and resets the user's state."""
@@ -256,11 +247,14 @@ async def cancel_command(bot: Client, message: Message):
     else:
         await message.reply_text("No active operation to cancel.", quote=True)
 
-
 @Bot.on_message(filters.private & filters.media)
 async def handle_media_upload(bot: Client, message: Message):
     """Handles media uploads for the framework patching process."""
     user_id = message.from_user.id
+
+    # IMPORTANT: Add this check to ignore messages from other bots
+    if message.from_user.is_bot:
+        return
 
     if user_id not in user_states or user_states[user_id]["state"] != STATE_WAITING_FOR_FILES:
         await message.reply_text(
@@ -366,6 +360,11 @@ async def handle_media_upload(bot: Client, message: Message):
 async def handle_text_input(bot: Client, message: Message):
     """Handles text inputs for device name, version name, or PixelDrain info."""
     user_id = message.from_user.id
+
+    # IMPORTANT: Add this check to ignore messages from other bots
+    if message.from_user.is_bot:
+        return
+
     current_state = user_states.get(user_id, {}).get("state", STATE_NONE)
 
     if current_state == STATE_WAITING_FOR_DEVICE_NAME:
@@ -383,7 +382,7 @@ async def handle_text_input(bot: Client, message: Message):
             device_name = user_states[user_id]["device_name"]
             version_name = user_states[user_id]["version_name"]
 
-            status = await trigger_github_workflow_async(links, device_name, version_name, user_id)  # Pass user_id
+            status = await trigger_github_workflow_async(links, device_name, version_name, user_id)
             await message.reply_text(
                 f"Workflow triggered successfully (status {status}). You will receive a notification when the process is complete.",
                 quote=True)
@@ -423,10 +422,14 @@ async def handle_text_input(bot: Client, message: Message):
         await message.reply_text("I'm currently expecting files or specific text input. Use /cancel to restart.",
                                  quote=True)
 
-
 # --- Authorization Management Handlers (Owner Only) ---
 @Bot.on_message(filters.command("auth") & filters.user(OWNER_ID))
 async def auth_command(bot: Client, message: Message):
+    """
+    Authorization system is disabled. All users can use the bot.
+    """
+    if message.from_user.is_bot:  # Ignore messages from bots
+        return
     try:
         if message.reply_to_message:
             user = message.reply_to_message.from_user
@@ -449,20 +452,32 @@ async def auth_command(bot: Client, message: Message):
         logger.error(f"Error in /auth command: {e}", exc_info=True)
         await message.reply_text(f"An error occurred: `{e}`", quote=True)
 
-
 @Bot.on_message(filters.command("auths") & filters.user(OWNER_ID))
 async def auths_command(bot: Client, message: Message):
+    """
+    Authorization system is disabled. All users can use the bot.
+    """
+    if message.from_user.is_bot:  # Ignore messages from bots
+        return
     await message.reply_text("Authorization system is disabled. All users can use the bot.", quote=True)
-
 
 @Bot.on_message(filters.command("unauth") & filters.user(OWNER_ID))
 async def unauth_command(bot: Client, message: Message):
+    """
+    Authorization system is disabled. All users can use the bot.
+    """
+    if message.from_user.is_bot:  # Ignore messages from bots
+        return
     await message.reply_text("Authorization system is disabled. All users can use the bot.", quote=True)
-
 
 # --- Group Upload Command ---
 @Bot.on_message(filters.group & filters.reply & filters.command("pdup"))
 async def group_upload_command(bot: Client, message: Message):
+    """
+    Uploads replied media to Pixeldrain.
+    """
+    if message.from_user.is_bot:  # Ignore messages from bots
+        return
     replied_message = message.reply_to_message
     if replied_message and (
             replied_message.photo or replied_message.document or replied_message.video or replied_message.audio):
@@ -473,7 +488,6 @@ async def group_upload_command(bot: Client, message: Message):
         await message.reply_text(
             "Please reply to a valid media message (photo, document, video, or audio) with /pdup to upload.",
             quote=True)
-
 
 # --- Start the Bot ---
 Bot.run()
