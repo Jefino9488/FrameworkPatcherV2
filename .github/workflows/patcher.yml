@@ -144,7 +144,8 @@ jobs:
           - Services: ${{ github.event.inputs.services_url }}
           - MIUI Services: ${{ github.event.inputs.miui_services_url }}
 
-          Build date: $(date +'%Y-%m-%d')"
+          Build date: $(date +'%Y-%m-%d')
+          Build time: $(date +'%H:%M:%S UTC')"
           echo "release_body<<EOF" >> $GITHUB_OUTPUT
           echo "$BODY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -178,7 +179,7 @@ jobs:
                             -e 's/#/\\#/g' \
                             -e 's/\+/\\+/g' \
                             -e 's/=/\\=/g' \
-                            -e 's/|/\\|/g' \
+                            -e 's/|/\\|g' \
                             -e 's/~\\/\\~\\\\/g' \
                             -e 's/`/\\`/g' \
                             -e 's/_/\\_/g' \
