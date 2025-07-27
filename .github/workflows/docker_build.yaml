@@ -15,6 +15,8 @@ env:
   GITHUB_REPO: FrameworkPatcherV2 #
   GITHUB_WORKFLOW_ID: patcher.yml #
 
+# ... (rest of your YAML)
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -27,6 +29,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # NEW STEP: Set lowercase repository name as an environment variable
+      - name: Set lowercase repository name
+        run: echo "REPO_LOWER=${{ github.repository | lower }}" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -35,36 +41,34 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }} # Built-in GitHub Actions token
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image to GHCR
         id: build-image
         uses: docker/build-push-action@v5
         with:
-          context: . # The build context is the root of the repository
-          file: ./Dockerfile # Path to your Dockerfile (should be at the root)
+          context: .
+          file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/framework-patcher-bot:latest
+          tags: ghcr.io/${{ env.REPO_LOWER }}/framework-patcher-bot:latest
 
       - name: Google Auth (for Cloud Run deployment)
         id: auth_gcp
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: projects/292738675226/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider #
+          workload_identity_provider: projects/292738675226/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
           service_account: github-actions-builder@frameworkpatcher.iam.gserviceaccount.com
 
       - name: Deploy to Google Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: framework-patcher-bot # The name of your Cloud Run service
-          image: ${{ steps.build-image.outputs.tag }} # Uses the image pushed to GHCR
+          service: framework-patcher-bot
+          image: ${{ steps.build-image.outputs.tag }}
           region: ${{ env.REGION }}
-          # Environment variables for your bot.
-          # These should be stored as GitHub Repository Secrets for security.
           env_vars: |
             BOT_TOKEN=${{ secrets.BOT_TOKEN }}
             PIXELDRAIN_API_KEY=${{ secrets.PIXELDRAIN_API_KEY }}
-            GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN }} # Specific token for bot's internal GitHub API calls
+            GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN }}
             GITHUB_OWNER=${{ env.GITHUB_OWNER }}
             GITHUB_REPO=${{ env.GITHUB_REPO }}
             GITHUB_WORKFLOW_ID=${{ env.GITHUB_WORKFLOW_ID }}
