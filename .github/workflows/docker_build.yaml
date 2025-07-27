@@ -16,7 +16,6 @@ env:
   GITHUB_REPO: FrameworkPatcherV2 #
   GITHUB_WORKFLOW_ID: patcher.yml #
 
-# ... (rest of your YAML)
 
 jobs:
   build-and-deploy:
@@ -32,7 +31,7 @@ jobs:
 
       # NEW STEP: Set lowercase repository name as an environment variable
       - name: Set lowercase repository name
-        run: echo "REPO_LOWER=${{ github.repository | lower }}" >> $GITHUB_ENV
+        run: echo "REPO_LOWER=${{ toLower(github.repository) }}" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
