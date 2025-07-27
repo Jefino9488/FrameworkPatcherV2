@@ -31,6 +31,10 @@ on:
         required: true
         default: 'https://dumps.tadiphone.dev/dumps/redmi/rothko/-/raw/missi-user-15-AP3A.240617.008-OS2.0.200.33.VNNCNXM-release-keys/system_ext/framework/miui-services.jar'
         type: string
+      user_id: # New input for the user ID
+        description: 'Telegram User ID to notify'
+        required: true
+        type: string
 
 jobs:
   patch:
@@ -137,6 +141,7 @@ jobs:
             }
 
       - name: Create Release
+        id: create_release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -155,3 +160,34 @@ jobs:
             - MIUI Services: ${{ github.event.inputs.miui_services_url }}
 
             Build date: $(date +'%Y-%m-%d')
+
+      - name: Send Telegram Notification
+        if: success()
+        run: |
+          RELEASE_URL="${{ steps.create_release.outputs.url }}" # Access the URL from the create_release step
+          MESSAGE="Your framework patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }}) is ready! Download it here: ${RELEASE_URL}"
+          ENCODED_MESSAGE=$(python -c 'import urllib.parse; print(urllib.parse.quote_plus("${{ env.MESSAGE }}"))' )
+          
+          # Replace YOUR_TELEGRAM_BOT_TOKEN with your actual bot token
+          # You should store this in GitHub Secrets (e.g., TELEGRAM_BOT_TOKEN)
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+          -d chat_id=${{ github.event.inputs.user_id }} \
+          -d text="${MESSAGE}" \
+          -d parse_mode="MarkdownV2" \
+          -d disable_web_page_preview="true"
+        env:
+          MESSAGE: "Your framework patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }}) is ready! Download it here: ${{ steps.create_release.outputs.url }}"
+
+      - name: Send Telegram Notification on Failure
+        if: failure()
+        run: |
+          MESSAGE="Your framework patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }}) failed. Please check the workflow run for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ENCODED_MESSAGE=$(python -c 'import urllib.parse; print(urllib.parse.quote_plus("${{ env.MESSAGE }}"))' )
+          
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+          -d chat_id=${{ github.event.inputs.user_id }} \
+          -d text="${MESSAGE}" \
+          -d parse_mode="MarkdownV2" \
+          -d disable_web_page_preview="true"
+        env:
+          MESSAGE: "Your framework patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }}) failed. Please check the workflow run for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
