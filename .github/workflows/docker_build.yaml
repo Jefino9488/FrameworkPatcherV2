@@ -7,6 +7,7 @@ on:
     paths:
       - 'bot/**' # Trigger when files in the 'bot' directory change
       - 'Dockerfile' # Also trigger if Dockerfile itself changes
+  workflow_dispatch:
 
 env:
   PROJECT_ID: frameworkpatcher
