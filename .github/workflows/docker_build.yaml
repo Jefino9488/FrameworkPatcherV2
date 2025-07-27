@@ -1,0 +1,75 @@
+name: Build & Deploy Bot to Cloud Run
+
+on:
+  push:
+    branches:
+      - master # Or your main branch like 'main'
+    paths:
+      - 'bot/**' # Trigger when files in the 'bot' directory change
+      - 'Dockerfile' # Also trigger if Dockerfile itself changes
+
+env:
+  PROJECT_ID: frameworkpatcher
+  REGION: asia-south1
+  GITHUB_OWNER: Jefino9488 #
+  GITHUB_REPO: FrameworkPatcherV2 #
+  GITHUB_WORKFLOW_ID: patcher.yml #
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # Required to push to GitHub Packages (GHCR)
+      id-token: write # Required for Workload Identity Federation
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} # Built-in GitHub Actions token
+
+      - name: Build and push Docker image to GHCR
+        id: build-image
+        uses: docker/build-push-action@v5
+        with:
+          context: . # The build context is the root of the repository
+          file: ./Dockerfile # Path to your Dockerfile (should be at the root)
+          push: true
+          tags: ghcr.io/${{ github.repository }}/framework-patcher-bot:latest
+
+      - name: Google Auth (for Cloud Run deployment)
+        id: auth_gcp
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/292738675226/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider #
+          service_account: github-actions-builder@frameworkpatcher.iam.gserviceaccount.com
+
+      - name: Deploy to Google Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: framework-patcher-bot # The name of your Cloud Run service
+          image: ${{ steps.build-image.outputs.tag }} # Uses the image pushed to GHCR
+          region: ${{ env.REGION }}
+          # Environment variables for your bot.
+          # These should be stored as GitHub Repository Secrets for security.
+          env_vars: |
+            BOT_TOKEN=${{ secrets.BOT_TOKEN }}
+            PIXELDRAIN_API_KEY=${{ secrets.PIXELDRAIN_API_KEY }}
+            GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN }} # Specific token for bot's internal GitHub API calls
+            GITHUB_OWNER=${{ env.GITHUB_OWNER }}
+            GITHUB_REPO=${{ env.GITHUB_REPO }}
+            GITHUB_WORKFLOW_ID=${{ env.GITHUB_WORKFLOW_ID }}
+            API_ID=${{ secrets.API_ID }}
+            API_HASH=${{ secrets.API_HASH }}
+            OWNER_ID=${{ secrets.OWNER_ID }}
+          min_instances: 1
+          allow_unauthenticated: true
