@@ -164,11 +164,19 @@ jobs:
       - name: Send Telegram Notification (Success)
         if: success()
         run: |
-          MESSAGE="*Framework patch is now available for your device:*\n\n"
-          MESSAGE+="*Codename:* \`${{ github.event.inputs.device_name }}\`\n"
-          MESSAGE+="*Version:* \`${{ github.event.inputs.version_name }}\`\n"
-          MESSAGE+="*Android API:* \`${{ github.event.inputs.api_level }}\`"
+          escape_mdv2() {
+            echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
+          }
 
+          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.device_name }}")
+          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
+          API_LEVEL_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.api_level }}")
+
+          MESSAGE=$(printf "Framework patch is now available for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`" \
+            "$DEVICE_NAME_ESCAPED" \
+            "$VERSION_NAME_ESCAPED" \
+            "$API_LEVEL_ESCAPED")
+          
           RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${{ steps.release_info.outputs.tag }}"
           
           REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"Click here to download\",\"url\":\"$RELEASE_URL\"}]]}"
@@ -176,23 +184,28 @@ jobs:
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ github.event.inputs.user_id }} \
             -d text="$MESSAGE" \
-            -d parse_mode="Markdown" \
+            -d parse_mode="MarkdownV2" \
             -d reply_markup="$REPLY_MARKUP"
 
       - name: Send Telegram Notification (Failure)
         if: failure()
         run: |
+          escape_mdv2() {
+            echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
+          }
+
+          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.device_name }}")
+          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
           WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
-          MESSAGE="*Framework patch failed for your device:*\n\n"
-          MESSAGE+="*Codename:* \`${{ github.event.inputs.device_name }}\`\n"
-          MESSAGE+="*Version:* \`${{ github.event.inputs.version_name }}\`\n\n"
-          MESSAGE+="Please check the workflow logs for more details."
+          MESSAGE=$(printf "Framework patch failed for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n\nPlease check the workflow logs for more details." \
+            "$DEVICE_NAME_ESCAPED" \
+            "$VERSION_NAME_ESCAPED")
 
           REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"View Workflow Run\",\"url\":\"$WORKFLOW_URL\"}]]}"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ github.event.inputs.user_id }} \
             -d text="$MESSAGE" \
-            -d parse_mode="Markdown" \
+            -d parse_mode="MarkdownV2" \
             -d reply_markup="$REPLY_MARKUP"
