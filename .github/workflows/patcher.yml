@@ -53,7 +53,6 @@ jobs:
             sudo apt-get install -y android-tools-zipalign
           fi
 
-
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
@@ -133,6 +132,24 @@ jobs:
               console.log('No existing release found or error occurred:', e.message);
             }
 
+      - name: Generate Release Body
+        id: generate_release_body
+        run: |
+          BODY="Framework Patcher for ${{ github.event.inputs.device_name }}
+          Version: ${{ github.event.inputs.version_name }}
+          Android API: ${{ github.event.inputs.api_level }}
+
+          Sources:
+          - Framework: ${{ github.event.inputs.framework_url }}
+          - Services: ${{ github.event.inputs.services_url }}
+          - MIUI Services: ${{ github.event.inputs.miui_services_url }}
+
+          Build date: $(date +'%Y-%m-%d')
+          Build time: $(date +'%H:%M:%S UTC')"
+          echo "release_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
@@ -142,94 +159,53 @@ jobs:
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.name }}
           files: ${{ steps.find_zip.outputs.file_path }}
-          body: |
-            Framework Patcher for ${{ github.event.inputs.device_name }}
-            Version: ${{ github.event.inputs.version_name }}
-            Android API: ${{ github.event.inputs.api_level }}
-
-            Sources:
-            - Framework: ${{ github.event.inputs.framework_url }}
-            - Services: ${{ github.event.inputs.services_url }}
-            - MIUI Services: ${{ github.event.inputs.miui_services_url }}
-
-            Build date: $(date +'%Y-%m-%d')
+          body: ${{ steps.generate_release_body.outputs.release_body }}
 
       - name: Send Telegram Notification (Success)
         if: success()
         run: |
-          escape_md() {
-            echo "$1" | sed -e 's/\\/\\\\/g' \
-                            -e 's/\./\\./g' \
-                            -e 's/\-/\\-/g' \
-                            -e 's/(/\\(/g' \
-                            -e 's/)/\\)/g' \
-                            -e 's/\[/\\[/g' \
-                            -e 's/\]/\\]/g' \
-                            -e 's/{/\\{/g' \
-                            -e 's/}/\\}/g' \
-                            -e 's/</\\</g' \
-                            -e 's/>/\\>/g' \
-                            -e 's/#/\\#/g' \
-                            -e 's/\+/\\+/g' \
-                            -e 's/=/\\=/g' \
-                            -e 's/|/\\|/g' \
-                            -e 's/~\\/\\~\\\\/g' \
-                            -e 's/`/\\`/g' \
-                            -e 's/_/\\_/g' \
-                            -e 's/\*/\\*/g' \
-                            -e 's/!/\\!/g'
+          escape_mdv2() {
+            echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
           }
 
-          DEVICE_NAME_ESCAPED=$(escape_md "${{ github.event.inputs.device_name }}")
-          VERSION_NAME_ESCAPED=$(escape_md "${{ github.event.inputs.version_name }}")
-          RELEASE_URL="https://github.com/Jefino9488/FrameworkPatcherV2/releases/tag/Test_OS2-0-200-33"
-          RELEASE_URL_ESCAPED=$(escape_md "$RELEASE_URL")
+          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.device_name }}")
+          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
+          API_LEVEL_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.api_level }}")
 
-          MESSAGE="Your framework patch for ${DEVICE_NAME_ESCAPED} \\(${VERSION_NAME_ESCAPED}\\) is ready\\! Download it here: ${RELEASE_URL_ESCAPED}"
+          MESSAGE=$(printf "Framework patch is now available for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`" \
+            "$DEVICE_NAME_ESCAPED" \
+            "$VERSION_NAME_ESCAPED" \
+            "$API_LEVEL_ESCAPED")
+          
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${{ steps.release_info.outputs.tag }}"
+          
+          REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"Click here to download\",\"url\":\"$RELEASE_URL\"}]]}"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ github.event.inputs.user_id }} \
             -d text="$MESSAGE" \
             -d parse_mode="MarkdownV2" \
-            -d disable_web_page_preview=true
-
+            -d reply_markup="$REPLY_MARKUP"
 
       - name: Send Telegram Notification (Failure)
         if: failure()
         run: |
-          escape_md() {
-            echo "$1" | sed -e 's/\\/\\\\/g' \
-                            -e 's/\./\\./g' \
-                            -e 's/\-/\\-/g' \
-                            -e 's/(/\\(/g' \
-                            -e 's/)/\\)/g' \
-                            -e 's/\[/\\[/g' \
-                            -e 's/\]/\\]/g' \
-                            -e 's/{/\\{/g' \
-                            -e 's/}/\\}/g' \
-                            -e 's/</\\</g' \
-                            -e 's/>/\\>/g' \
-                            -e 's/#/\\#/g' \
-                            -e 's/\+/\\+/g' \
-                            -e 's/=/\\=/g' \
-                            -e 's/|/\\|/g' \
-                            -e 's/~\\/\\~\\\\/g' \
-                            -e 's/`/\\`/g' \
-                            -e 's/_/\\_/g' \
-                            -e 's/\*/\\*/g' \
-                            -e 's/!/\\!/g'
+          escape_mdv2() {
+            echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
           }
 
-          DEVICE_NAME_ESCAPED=$(escape_md "${{ github.event.inputs.device_name }}")
-          VERSION_NAME_ESCAPED=$(escape_md "${{ github.event.inputs.version_name }}")
+          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.device_name }}")
+          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
           WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          WORKFLOW_URL_ESCAPED=$(escape_md "$WORKFLOW_URL")
 
-          MESSAGE="Your framework patch for ${DEVICE_NAME_ESCAPED} \\(${VERSION_NAME_ESCAPED}\\) failed\\! Check logs here: ${WORKFLOW_URL_ESCAPED}"
+          MESSAGE=$(printf "Framework patch failed for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n\nPlease check the workflow logs for more details." \
+            "$DEVICE_NAME_ESCAPED" \
+            "$VERSION_NAME_ESCAPED")
+
+          REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"View Workflow Run\",\"url\":\"$WORKFLOW_URL\"}]]}"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ github.event.inputs.user_id }} \
             -d text="$MESSAGE" \
             -d parse_mode="MarkdownV2" \
-            -d disable_web_page_preview=true
-      
+            -d reply_markup="$REPLY_MARKUP"
