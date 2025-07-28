@@ -58,22 +58,24 @@ jobs:
           workload_identity_provider: projects/292738675226/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
           service_account: github-actions-builder@frameworkpatcher.iam.gserviceaccount.com
 
-      - name: Deploy to Google Cloud Run
+      - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: framework-patcher-bot
-          region: ${{ env.REGION }}
+          region: asia-south1
+          image: gcr.io/${{ env.PROJECT_ID }}/framework-patcher-bot
           env_vars: |
             BOT_TOKEN=${{ secrets.BOT_TOKEN }}
             PIXELDRAIN_API_KEY=${{ secrets.PIXELDRAIN_API_KEY }}
-            GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN }}
-            GITHUB_OWNER=${{ env.GITHUB_OWNER }}
-            GITHUB_REPO=${{ env.GITHUB_REPO }}
-            GITHUB_WORKFLOW_ID=${{ env.GITHUB_WORKFLOW_ID }}
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            GITHUB_OWNER=Jefino9488
+            GITHUB_REPO=FrameworkPatcherV2
+            GITHUB_WORKFLOW_ID=patcher.yml
             API_ID=${{ secrets.API_ID }}
             API_HASH=${{ secrets.API_HASH }}
             OWNER_ID=${{ secrets.OWNER_ID }}
-          flags: |
-            --min-instances 1
-            --allow-unauthenticated
-            --image ${{ steps.build-image.outputs.tag }}
+          labels: |
+            managed-by=github-actions
+            commit-sha=${{ github.sha }}
+          allow_unauthenticated: true
+          min_instances: 1
