@@ -32,6 +32,8 @@ Bot = Client(
     api_id=API_ID,
     api_hash=API_HASH
 )
+# --- Global Rate Limit Tracker ---
+user_rate_limits = {}
 
 # --- Bot Texts & Buttons ---
 START_TEXT = """Hello {},
@@ -367,10 +369,8 @@ async def handle_media_upload(bot: Client, message: Message):
 
 @Bot.on_message(filters.private & filters.text)
 async def handle_text_input(bot: Client, message: Message):
-    """Handles text inputs for device name, version name, or PixelDrain info."""
     user_id = message.from_user.id
 
-    # IMPORTANT: Add this check to ignore messages from other bots
     if message.from_user.is_bot:
         return
 
@@ -382,16 +382,29 @@ async def handle_text_input(bot: Client, message: Message):
         await message.reply_text("Now enter the ROM version (e.g., OS2.0.200.33):", quote=True)
 
     elif current_state == STATE_WAITING_FOR_VERSION_NAME:
+        from datetime import datetime
+        today = datetime.now().date()
+        triggers = user_rate_limits.get(user_id, [])
+        triggers = [t for t in triggers if t.date() == today]
+
+        if len(triggers) >= 3:
+            await message.reply_text("You have reached the daily limit of 3 workflow triggers. Try again tomorrow.",
+                                     quote=True)
+            user_states.pop(user_id, None)
+            return
+
         user_states[user_id]["version_name"] = message.text.strip()
         await message.reply_text("All inputs received. Triggering GitHub workflow...", quote=True)
 
         try:
-            # links is now a dictionary, pass it as is
             links = user_states[user_id]["files"]
             device_name = user_states[user_id]["device_name"]
             version_name = user_states[user_id]["version_name"]
 
             status = await trigger_github_workflow_async(links, device_name, version_name, user_id)
+            triggers.append(datetime.now())
+            user_rate_limits[user_id] = triggers
+
             await message.reply_text(
                 f"Workflow triggered successfully (status {status}). You will receive a notification when the process is complete.",
                 quote=True)
