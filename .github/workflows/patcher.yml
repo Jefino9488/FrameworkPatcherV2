@@ -172,7 +172,7 @@ jobs:
           VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
           API_LEVEL_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.api_level }}")
 
-          MESSAGE=$(printf "Framework patch is now available for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`" \
+          MESSAGE=$(printf "Framework patch is ready for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`" \
             "$DEVICE_NAME_ESCAPED" \
             "$VERSION_NAME_ESCAPED" \
             "$API_LEVEL_ESCAPED")

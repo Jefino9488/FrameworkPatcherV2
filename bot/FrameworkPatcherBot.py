@@ -58,6 +58,7 @@ STATE_WAITING_FOR_FILES = 1
 STATE_WAITING_FOR_DEVICE_NAME = 2
 STATE_WAITING_FOR_VERSION_NAME = 3
 
+
 # --- Helper Functions for PixelDrain and Formatting ---
 
 # inside upload_file_stream()
@@ -121,6 +122,7 @@ async def trigger_github_workflow_async(links: dict, device_name: str, version_n
         resp.raise_for_status()
         return resp.status_code
 
+
 def get_id(text: str) -> str | None:
     """Extracts PixelDrain ID from a URL or raw ID."""
     if text.startswith("http"):
@@ -135,6 +137,7 @@ def get_id(text: str) -> str | None:
         return text
     return None
 
+
 def format_size(size: int) -> str:
     """Formats file size into human-readable string."""
     if size < 1024:
@@ -146,6 +149,7 @@ def format_size(size: int) -> str:
     else:
         return f"{size / (1024 * 1024 * 1024)::.2f} GB"
 
+
 def format_date(date_str: str) -> str:
     """Formats ISO date string."""
     try:
@@ -154,6 +158,7 @@ def format_date(date_str: str) -> str:
         return f"{date} {time}"
     except (AttributeError, IndexError):
         return date_str
+
 
 async def send_data(file_id: str, message: Message):
     text = "`Fetching file information...`"
@@ -179,7 +184,7 @@ async def send_data(file_id: str, message: Message):
             f"**Upload Date:** `{format_date(data['date_upload'])}`\n"
             f"**File Size:** `{format_size(data['size'])}`\n"
             f"**File Type:** `{data['mime_type']}`\n\n"
-            f"\u00A9 [𝘗𝘳𝘫𝘬𝘵:𝘚𝘪𝘥.](https://burhanverse.t.me)"
+            f"\u00A9 [Jefino9488](https://Jefino9488.t.me)"
         )
         reply_markup = InlineKeyboardMarkup(
             [
@@ -211,6 +216,7 @@ async def send_data(file_id: str, message: Message):
         disable_web_page_preview=True
     )
 
+
 # --- Pyrogram Handlers ---
 
 @Bot.on_message(filters.private & filters.command("start"))
@@ -225,6 +231,7 @@ async def start_command_handler(bot: Client, message: Message):
         ])
     )
 
+
 @Bot.on_message(filters.private & filters.command("start_patch"))
 async def start_patch_command(bot: Client, message: Message):
     """Initiates the framework patching conversation."""
@@ -237,6 +244,7 @@ async def start_patch_command(bot: Client, message: Message):
         quote=True
     )
 
+
 @Bot.on_message(filters.private & filters.command("cancel"))
 async def cancel_command(bot: Client, message: Message):
     """Cancels the current operation and resets the user's state."""
@@ -246,6 +254,7 @@ async def cancel_command(bot: Client, message: Message):
         await message.reply_text("Operation cancelled. You can /start_patch again.", quote=True)
     else:
         await message.reply_text("No active operation to cancel.", quote=True)
+
 
 @Bot.on_message(filters.private & filters.media)
 async def handle_media_upload(bot: Client, message: Message):
@@ -422,6 +431,7 @@ async def handle_text_input(bot: Client, message: Message):
         await message.reply_text("I'm currently expecting files or specific text input. Use /cancel to restart.",
                                  quote=True)
 
+
 # --- Authorization Management Handlers (Owner Only) ---
 @Bot.on_message(filters.command("auth") & filters.user(OWNER_ID))
 async def auth_command(bot: Client, message: Message):
@@ -452,6 +462,7 @@ async def auth_command(bot: Client, message: Message):
         logger.error(f"Error in /auth command: {e}", exc_info=True)
         await message.reply_text(f"An error occurred: `{e}`", quote=True)
 
+
 @Bot.on_message(filters.command("auths") & filters.user(OWNER_ID))
 async def auths_command(bot: Client, message: Message):
     """
@@ -461,6 +472,7 @@ async def auths_command(bot: Client, message: Message):
         return
     await message.reply_text("Authorization system is disabled. All users can use the bot.", quote=True)
 
+
 @Bot.on_message(filters.command("unauth") & filters.user(OWNER_ID))
 async def unauth_command(bot: Client, message: Message):
     """
@@ -469,6 +481,7 @@ async def unauth_command(bot: Client, message: Message):
     if message.from_user.is_bot:  # Ignore messages from bots
         return
     await message.reply_text("Authorization system is disabled. All users can use the bot.", quote=True)
+
 
 # --- Group Upload Command ---
 @Bot.on_message(filters.group & filters.reply & filters.command("pdup"))
@@ -488,6 +501,7 @@ async def group_upload_command(bot: Client, message: Message):
         await message.reply_text(
             "Please reply to a valid media message (photo, document, video, or audio) with /pdup to upload.",
             quote=True)
+
 
 # --- Start the Bot ---
 Bot.run()
