@@ -4,7 +4,10 @@ import os
 import httpx
 from dotenv import load_dotenv
 from pyrogram import Client, filters
+from pyrogram.enums import ParseMode
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
+
+from shell import run_shell_cmd
 
 # Load environment variables from .env file
 load_dotenv()
@@ -37,12 +40,10 @@ user_rate_limits = {}
 
 # --- Bot Texts & Buttons ---
 START_TEXT = """Hello {},
-Ready to patch some frameworks? Send `/start_patch` to begin the process of uploading JAR files and triggering the GitHub workflow.
+Ready to patch some frameworks? Send `/start_patch` to begin the process of uploading JAR files and triggering the GitHub workflow."""
 
-You can also send a Pixeldrain media ID or link to get file information."""
-
-BUTTON1 = InlineKeyboardButton(text="𝘗𝘳𝘫𝘬𝘵:𝘚𝘪𝘥.", url="https://burhanverse.t.me")
-BUTTON2 = InlineKeyboardButton(text="Contact Owner", url="https://aqxzaxbot.t.me")
+BUTTON1 = InlineKeyboardButton(text="Jefino9488", url="https://t.me/Jefino9488")
+BUTTON2 = InlineKeyboardButton(text="Support Group", url="https://t.me/codes9488")
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -514,6 +515,29 @@ async def group_upload_command(bot: Client, message: Message):
         await message.reply_text(
             "Please reply to a valid media message (photo, document, video, or audio) with /pdup to upload.",
             quote=True)
+
+
+@Bot.on_message(filters.private & filters.command("sh") & filters.user(OWNER_ID))
+async def shell_handler(bot: Client, message: Message):
+    cmd = message.text.split(None, 1)[1] if len(message.command) > 1 else ""
+    if not cmd:
+        await message.reply_text("Usage: `/sh <command>`", quote=True)
+        return
+
+    reply = await message.reply_text("Executing...", quote=True)
+    try:
+        output = await run_shell_cmd(cmd)
+    except Exception as e:
+        await reply.edit_text(f"Error:\n`{str(e)}`", quote=True)
+        return
+
+    if not output.strip():
+        output = "Command executed with no output."
+
+    if len(output) > 4000:
+        output = output[:4000] + "\n\nOutput truncated..."
+
+    await reply.edit_text(f"**$ {cmd}**\n\n```{output}```", quote=True, parse_mode=ParseMode.MARKDOWN)
 
 
 # --- Start the Bot ---
