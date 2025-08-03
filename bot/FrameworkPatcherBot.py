@@ -243,7 +243,7 @@ async def start_patch_command(bot: Client, message: Message):
     user_states[user_id] = {"state": STATE_WAITING_FOR_FILES, "files": {}, "device_name": None, "version_name": None}
     await message.reply_text(
         "Okay, let's start the framework patching process.\n"
-        "Please send all 3 JAR files (framework.jar, services.jar, miui-services.jar) at once.",
+        "Please send all 3 JAR files (framework.jar, services.jar, miui-services.jar).",
         quote=True
     )
 
@@ -264,7 +264,6 @@ async def handle_media_upload(bot: Client, message: Message):
     """Handles media uploads for the framework patching process."""
     user_id = message.from_user.id
 
-    # IMPORTANT: Add this check to ignore messages from other bots
     if message.from_user.is_bot:
         return
 
@@ -311,19 +310,28 @@ async def handle_media_upload(bot: Client, message: Message):
         logs.append(f"Downloaded {file_name} Successfully")
 
         dir_name, old_file_name = os.path.split(file_path)
-        # --- FIX START ---
         file_base, file_extension = os.path.splitext(old_file_name)  # Add this line
-        # --- FIX END ---
         renamed_file_name = f"{file_base}_{user_id}_{os.urandom(4).hex()}{file_extension}"
         renamed_file_path = os.path.join(dir_name, renamed_file_name)
         os.rename(file_path, renamed_file_path)
         file_path = renamed_file_path
         logs.append(f"Renamed file to {os.path.basename(file_path)}")
 
+        received_count = len(user_states[user_id]["files"]) + 1  # +1 since current file will be counted
+        required_files = ["framework.jar", "services.jar", "miui-services.jar"]
+        missing_files = [f for f in required_files if f not in user_states[user_id]["files"] and f != file_name]
+
+        await message.reply_text(
+            f"Received {file_name}. You have {received_count}/3 files. "
+            f"Remaining: {', '.join(missing_files) if missing_files else 'None'}.",
+            quote=True
+        )
+
         await processing_message.edit_text(
-            text=f"`Downloaded {file_name} Successfully, Now Uploading to PixelDrain...`",
+            text=f"`Uploading {file_name} to PixelDrain...`",
             disable_web_page_preview=True
         )
+
         response_data, upload_logs = await upload_file_stream(file_path, PIXELDRAIN_API_KEY)
         logs.extend(upload_logs)
 
@@ -445,58 +453,6 @@ async def handle_text_input(bot: Client, message: Message):
         await message.reply_text("I'm currently expecting files or specific text input. Use /cancel to restart.",
                                  quote=True)
 
-
-# --- Authorization Management Handlers (Owner Only) ---
-@Bot.on_message(filters.command("auth") & filters.user(OWNER_ID))
-async def auth_command(bot: Client, message: Message):
-    """
-    Authorization system is disabled. All users can use the bot.
-    """
-    if message.from_user.is_bot:  # Ignore messages from bots
-        return
-    try:
-        if message.reply_to_message:
-            user = message.reply_to_message.from_user
-        elif len(message.command) > 1:
-            user_id = int(message.command[1])
-            user = await bot.get_users(user_id)
-        else:
-            await message.reply_text("Usage: /auth <user_id> or reply to a user's message with /auth", quote=True)
-            return
-
-        user_id_to_auth = user.id
-        username = user.username or "No username"
-
-        await message.reply_text(f"Authorization system is disabled. All users can use the bot.", quote=True)
-
-    except (IndexError, ValueError):
-        await message.reply_text("Usage: /auth <user_id> or reply to a user's message with /auth. Invalid user ID.",
-                                 quote=True)
-    except Exception as e:
-        logger.error(f"Error in /auth command: {e}", exc_info=True)
-        await message.reply_text(f"An error occurred: `{e}`", quote=True)
-
-
-@Bot.on_message(filters.command("auths") & filters.user(OWNER_ID))
-async def auths_command(bot: Client, message: Message):
-    """
-    Authorization system is disabled. All users can use the bot.
-    """
-    if message.from_user.is_bot:  # Ignore messages from bots
-        return
-    await message.reply_text("Authorization system is disabled. All users can use the bot.", quote=True)
-
-
-@Bot.on_message(filters.command("unauth") & filters.user(OWNER_ID))
-async def unauth_command(bot: Client, message: Message):
-    """
-    Authorization system is disabled. All users can use the bot.
-    """
-    if message.from_user.is_bot:  # Ignore messages from bots
-        return
-    await message.reply_text("Authorization system is disabled. All users can use the bot.", quote=True)
-
-
 # --- Group Upload Command ---
 @Bot.on_message(filters.group & filters.reply & filters.command("pdup"))
 async def group_upload_command(bot: Client, message: Message):
@@ -519,7 +475,11 @@ async def group_upload_command(bot: Client, message: Message):
 
 @Bot.on_message(filters.private & filters.command("sh") & filters.user(OWNER_ID))
 async def shell_handler(bot: Client, message: Message):
-    cmd = message.text.split(None, 1)[1] if len(message.command) > 1 else ""
+    cmd = message.text.split(None, 1)
+    if len(cmd) < 2:
+        await message.reply_text("Usage: `/sh <command>`", quote=True, parse_mode=ParseMode.MARKDOWN)
+        return
+    cmd = cmd[1]
     if not cmd:
         await message.reply_text("Usage: `/sh <command>`", quote=True)
         return
