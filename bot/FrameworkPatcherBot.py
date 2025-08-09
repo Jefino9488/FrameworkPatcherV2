@@ -454,7 +454,7 @@ async def handle_text_input(bot: Client, message: Message):
                                  quote=True)
 
 # --- Group Upload Command ---
-@Bot.on_message(filters.group & filters.reply & filters.command("pdup"))
+@Bot.on_message(filters.group & filters.reply & filters.command("pdup") & filters.user(OWNER_ID))
 async def group_upload_command(bot: Client, message: Message):
     """
     Uploads replied media to Pixeldrain.
