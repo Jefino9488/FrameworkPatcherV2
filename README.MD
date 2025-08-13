@@ -5,11 +5,15 @@ through the bot, which triggers a GitHub Actions workflow to create patched Magi
 
 ## Features
 
+- Support only for Android 15 (A15) at the moment
+- Patching of `framework.jar`, `services.jar`, and `miui-services.jar`
+- Automatic decompilation and recompilation of JAR files
 - Telegram-based interface for easy file submission
 - Automated framework patching using GitHub Actions
 - Magisk module generation
 - PixelDrain integration for file hosting
 - Telegram notifications for build status
+- Support for multiple Android versions (A13,A14) will be added in the future
 
 ## Usage
 
@@ -90,13 +94,34 @@ For support contact: [@Jefino9488](https://t.me/Jefino9488)
 
 ## Credits
 
-- [Pyrogram](https://pyrogram.org/) - Telegram MTProto API framework
-- [smali/baksmali](https://github.com/JesusFreke/smali) - dex disassembler/assembler
-- [7-Zip](https://www.7-zip.org/) - file archiving utility
-- [PixelDrain](https://pixeldrain.com/) - file hosting service
-- [ARSCLib](https://github.com/REandroid/ARSCLib) - Android resource table handling
-- [APKEditor](https://github.com/REandroid/APKEditor) - APK manipulation tool
-- [Jefino9488](https://github.com/Jefino9488) - Project author
-- [REAndroid](https://github.com/REandroid) - ARSCLib and APKEditor
-- [JesusFreke](https://github.com/JesusFreke) - smali/baksmali
-- 
+**Frameworks & Libraries**
+
+* [Pyrogram](https://pyrogram.org/) — Telegram MTProto API framework
+* [ARSCLib](https://github.com/REandroid/ARSCLib) — Android resource table handling
+* [APKEditor](https://github.com/REandroid/APKEditor) — APK manipulation tool
+* [smali/baksmali](https://github.com/JesusFreke/smali) — DEX disassembler/assembler
+* [7-Zip](https://www.7-zip.org/) — File archiving utility
+* [CorePatch](https://github.com/LSPosed/CorePatch) — LSPosed module
+
+**Services**
+
+* [PixelDrain](https://pixeldrain.com/) — File hosting service
+* [GitHub Actions](https://github.com/Jefino9488/FrameworkPatcherV2/actions) — CI/CD for automation
+* [DanBot Hosting](https://danbot.host/) — Hosting for the bot [Burhanverse](https://github.com/Burhanverse)
+
+**Developers & Contributors**
+
+* [REAndroid](https://github.com/REandroid) — Creator of ARSCLib & APKEditor
+* [JesusFreke](https://github.com/JesusFreke) — Creator of smali/baksmali
+* [NoOBdevXD (@SoutaEver)](https://github.com/NoOBdevXD) — Original idea & initial shell script implementation
+* [Burhanverse (@sidawakens)](https://github.com/Burhanverse) — Adapted PixelDrain bot code & hosting
+* [Super\_Cat07](https://t.me/Super_Cat07) — Original method on A9–A14
+* [Cazymods](https://t.me/not_aric) — Contributed `isPersistent` method
+* [MMETMA](https://t.me/MMETMA2) — Fixed bootloop issues on A15, shared UID methods
+* [PappLaci](https://t.me/PappLaci) — Fixed Google Play Services issues on A15
+* [Saikrishna1504](https://github.com/Saikrishna1504) — Support, encouragement & contributions
+* [kindaUnknown](https://github.com/kindaUnknown) — Contributions in bot development, testing & support
+
+**Acknowledgements**
+
+* [All Contributors](https://allcontributors.org/docs/en/emoji-key) — For their contributions
