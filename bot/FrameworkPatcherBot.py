@@ -1,8 +1,12 @@
+import asyncio
+import html
 import logging
 import os
+import sys
 
 import httpx
 from dotenv import load_dotenv
+from git import Repo
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
@@ -11,6 +15,9 @@ from shell import run_shell_cmd
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Initialize repo object
+REPO = Repo(os.path.dirname(os.path.dirname(__file__)))
 
 # --- Environment Variables ---
 try:
@@ -376,7 +383,12 @@ async def handle_media_upload(bot: Client, message: Message):
             os.remove(file_path)
 
 
-@Bot.on_message(filters.private & filters.text & ~filters.command("sh"))
+@Bot.on_message(
+    filters.private
+    & filters.text
+    & ~filters.command(["start", "start_patch", "cancel", "update", "sh"]),
+    group=10
+)
 async def handle_text_input(bot: Client, message: Message):
     user_id = message.from_user.id
 
@@ -502,6 +514,82 @@ async def shell_handler(bot: Client, message: Message):
 
     await reply.edit_text(f"**$ {cmd}**\n\n```{output}```")
 
+
+async def get_commits() -> str | None:
+    try:
+        # Always fetch from origin/master
+        await asyncio.to_thread(REPO.git.fetch, 'origin', 'master')
+
+        commits_list = list(REPO.iter_commits("HEAD..origin/master"))
+        logging.info(f"Found {len(commits_list)} commits to pull.")
+
+        if not commits_list:
+            return ""
+
+        commits = ""
+        for idx, commit in enumerate(commits_list):
+            author_name = html.escape(commit.author.name)
+            commit_msg = html.escape(commit.message.strip())
+            commits += (
+                f"<b>{author_name}</b> pushed "
+                f"<a href='https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}/commit/{commit}'>{str(commit)[:6]}</a>: "
+                f"{commit_msg}\n"
+            )
+            if idx >= 15:
+                break
+
+        return commits
+    except Exception as e:
+        logging.error(f"Error in get_commits: {e}", exc_info=True)
+        return None
+
+
+async def pull_commits() -> bool:
+    """Pull latest changes from GitHub master branch."""
+    try:
+        # Run git pull in a thread to avoid blocking the event loop
+        await asyncio.to_thread(REPO.git.reset, '--hard')  # Ensure local matches remote
+        await asyncio.to_thread(REPO.git.clean, '-fd')  # Remove untracked files
+        await asyncio.to_thread(REPO.git.pull, 'origin', 'master')
+        logging.info("Successfully pulled updates from origin/master.")
+        return True
+    except Exception as e:
+        logging.error(f"Error while pulling commits: {e}", exc_info=True)
+        return False
+
+
+@Bot.on_message(filters.command("update") & filters.user(OWNER_ID))
+async def update_bot(client: Client, message: Message):
+    """Update the bot from GitHub repository in one step (always sync)"""
+    reply = await message.reply_text("Checking for updates...")
+
+    commits = await get_commits()
+
+    if commits is None:
+        commits_text = "<i>Unable to detect commits, forcing sync...</i>"
+    elif not commits:
+        commits_text = "<i>No commits found, forcing sync...</i>"
+    else:
+        commits_text = f"<b>Updates Found:</b>\n\n{commits}"
+
+    await reply.edit_text(
+        f"{commits_text}\nPulling changes...",
+        parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True
+    )
+
+    if not await pull_commits():
+        await reply.edit_text("Failed to pull updates. Please try again later.")
+        return
+
+    await reply.edit_text(
+        f"{commits_text}\n<b>Pull complete!</b>\nRestarting bot...",
+        parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True
+    )
+
+    # Restart bot process
+    os.execl(sys.executable, sys.executable, *sys.argv)
 
 # --- Start the Bot ---
 Bot.run()
