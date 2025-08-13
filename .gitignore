@@ -8,3 +8,8 @@ venv
 /bot/digest.txt
 /bot/FrameworkPatcherBot.session
 /send_telegram.sh
+/.idea/misc.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/vcs.xml
+/.idea/workspace.xml
+/.idea/FrameworkPatcherV2.iml
