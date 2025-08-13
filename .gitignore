@@ -1,7 +1,10 @@
-.idea
+    .idea
 .venv
 framework.jar
 framework
 framework_decompile
 venv
 /.env
+/bot/digest.txt
+/bot/FrameworkPatcherBot.session
+/send_telegram.sh

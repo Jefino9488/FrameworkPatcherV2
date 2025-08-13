@@ -376,7 +376,7 @@ async def handle_media_upload(bot: Client, message: Message):
             os.remove(file_path)
 
 
-@Bot.on_message(filters.private & filters.text)
+@Bot.on_message(filters.private & filters.text & ~filters.command("sh"))
 async def handle_text_input(bot: Client, message: Message):
     user_id = message.from_user.id
 
@@ -435,6 +435,9 @@ async def handle_text_input(bot: Client, message: Message):
     elif current_state == STATE_NONE:
         try:
             file_id = get_id(message.text)
+            if message.text.strip().startswith("/sh"):
+                # Ignore /sh commands here; they are handled by the shell handler
+                return
             if file_id:
                 info_message = await message.reply_text(
                     text="`Processing...`",
@@ -488,7 +491,7 @@ async def shell_handler(bot: Client, message: Message):
     try:
         output = await run_shell_cmd(cmd)
     except Exception as e:
-        await reply.edit_text(f"Error:\n`{str(e)}`", quote=True)
+        await reply.edit_text(f"Error:\n`{str(e)}`")
         return
 
     if not output.strip():
@@ -497,7 +500,7 @@ async def shell_handler(bot: Client, message: Message):
     if len(output) > 4000:
         output = output[:4000] + "\n\nOutput truncated..."
 
-    await reply.edit_text(f"**$ {cmd}**\n\n```{output}```", quote=True, parse_mode=ParseMode.MARKDOWN)
+    await reply.edit_text(f"**$ {cmd}**\n\n```{output}```")
 
 
 # --- Start the Bot ---
