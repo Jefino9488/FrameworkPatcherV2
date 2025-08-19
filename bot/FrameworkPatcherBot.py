@@ -588,6 +588,19 @@ async def update_bot(client: Client, message: Message):
         disable_web_page_preview=True
     )
 
+    try:
+        await run_shell_cmd("pip install -r requirements.txt")
+        logging.info("Dependencies installed successfully.")
+    except Exception as e:
+        logging.error(f"Failed to install requirements: {e}", exc_info=True)
+        await reply.edit_text("Pulled changes but failed to install requirements. Restarting anyway...")
+
+    await reply.edit_text(
+        f"{commits_text}\n<b>Pull complete!</b>\nDependencies installed.\nRestarting bot...",
+        parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True
+    )
+
     # Restart bot process
     os.execl(sys.executable, sys.executable, *sys.argv)
 
