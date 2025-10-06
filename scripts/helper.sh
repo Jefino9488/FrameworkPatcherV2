@@ -224,6 +224,9 @@ modify_invoke_custom_methods() {
     [ -z "$smali_files" ] && { log "No invoke-custom found"; return 0; }
 
     for smali_file in $smali_files; do
+        # Skip if file doesn't exist (can happen with grep finding references)
+        [ ! -f "$smali_file" ] && continue
+
         log "Modifying: $smali_file"
 
         # equals
@@ -232,7 +235,7 @@ modify_invoke_custom_methods() {
             /^    invoke-custom/d
             /^    move-result/d
             /^    return/c\\    const/4 v0, 0x0\\n\\n    return v0
-        }" "$smali_file" || true
+        }" "$smali_file" 2>/dev/null || true
 
         # hashCode
         sed -i "/.method.*hashCode(/,/^.end method$/ {
@@ -240,7 +243,7 @@ modify_invoke_custom_methods() {
             /^    invoke-custom/d
             /^    move-result/d
             /^    return/c\\    const/4 v0, 0x0\\n\\n    return v0
-        }" "$smali_file" || true
+        }" "$smali_file" 2>/dev/null || true
 
         # toString
         sed -i "/.method.*toString(/,/^.end method$/ {
@@ -248,7 +251,7 @@ modify_invoke_custom_methods() {
             /^    invoke-custom/d
             /^    move-result.*/d
             /^    return.*/c\\    const/4 v0, 0x0\\n\\n    return-object v0
-        }" "$smali_file" || true
+        }" "$smali_file" 2>/dev/null || true
     done
 
     log "invoke-custom patch done"
