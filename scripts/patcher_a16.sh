@@ -498,7 +498,7 @@ patch_framework() {
     pkg_parser_file=$(find "$decompile_dir" -type f -path "*/android/content/pm/PackageParser.smali" | head -n1)
     if [ -n "$pkg_parser_file" ]; then
         insert_line_before_all "$pkg_parser_file" "ApkSignatureVerifier;->unsafeGetCertsWithoutVerification" "const/4 v1, 0x1"
-        insert_const_before_condition_near_string "$pkg_parser_file" "\"<manifest> specifies bad sharedUserId name \"" "if-nez v14, :" "v14" "1"
+        insert_const_before_condition_near_string "$pkg_parser_file" '<manifest> specifies bad sharedUserId name' "if-nez v14, :" "v14" "1"
     else
         warn "PackageParser.smali not found"
     fi
@@ -581,7 +581,7 @@ patch_framework() {
     local parsing_package_utils_file
     parsing_package_utils_file=$(find "$decompile_dir" -type f -path "*/com/android/internal/pm/pkg/parsing/ParsingPackageUtils.smali" | head -n1)
     if [ -n "$parsing_package_utils_file" ]; then
-        insert_const_before_condition_near_string "$parsing_package_utils_file" "\"<manifest> specifies bad sharedUserId name \"" "if-eqz v4, :" "v4" "0"
+        insert_const_before_condition_near_string "$parsing_package_utils_file" '<manifest> specifies bad sharedUserId name' "if-eqz v4, :" "v4" "0"
     else
         warn "ParsingPackageUtils.smali not found"
     fi
