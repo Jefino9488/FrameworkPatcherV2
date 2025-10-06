@@ -661,6 +661,25 @@ patch_services() {
 
     modify_invoke_custom_methods "$decompile_dir"
 
+    # Emit robust verification logs for CI (avoid brittle hardcoded file paths)
+    log "[VERIFY] services: locating isLeavingSharedUser invoke (context)"
+    grep -R -n --include='*.smali' \
+      'invoke-interface {p5}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z' \
+      "$decompile_dir" | head -n 1 || true
+
+    log "[VERIFY] services: verifySignatures/compareSignatures/matchSignaturesCompat presence"
+    grep -R -n --include='*.smali' '^[[:space:]]*\\.method.* verifySignatures' "$decompile_dir" | head -n 1 || true
+    grep -R -n --include='*.smali' '^[[:space:]]*\\.method.* compareSignatures' "$decompile_dir" | head -n 1 || true
+    grep -R -n --include='*.smali' '^[[:space:]]*\\.method.* matchSignaturesCompat' "$decompile_dir" | head -n 1 || true
+
+    log "[VERIFY] services: ReconcilePackageUtils <clinit> toggle lines"
+    local rpu_file
+    rpu_file=$(find "$decompile_dir" -type f -path "*/com/android/server/pm/ReconcilePackageUtils.smali" | head -n1)
+    if [ -n "$rpu_file" ]; then
+        grep -n '^[[:space:]]*\\.method static constructor <clinit>()V' "$rpu_file" || true
+        grep -n 'const/4 v0, 0x[01]' "$rpu_file" | head -n 5 || true
+    fi
+
     recompile_jar "$services_path" >/dev/null
     rm -rf "$decompile_dir" "$WORK_DIR/services"
     log "Completed services.jar patching"
