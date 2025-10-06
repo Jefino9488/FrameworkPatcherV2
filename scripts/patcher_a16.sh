@@ -67,8 +67,11 @@ PY
             ;;
         *)
             err "Failed to insert '${new_line}' in $file (status $status)"
+            return 1
             ;;
     esac
+
+    return 0
 }
 
 insert_const_before_condition_near_string() {
@@ -130,8 +133,11 @@ PY
             ;;
         *)
             err "Failed to patch condition in $file (status $status)"
+            return 1
             ;;
     esac
+
+    return 0
 }
 
 replace_move_result_after_invoke() {
@@ -196,8 +202,11 @@ PY
             ;;
         *)
             err "Failed to replace move-result in $file (status $status)"
+            return 1
             ;;
     esac
+
+    return 0
 }
 
 force_methods_return_const() {
@@ -287,8 +296,11 @@ PY
             ;;
         *)
             err "Failed to rewrite methods '${method_substring}' in $file (status $status)"
+            return 1
             ;;
     esac
+
+    return 0
 }
 
 replace_if_block_in_strict_jar_file() {
@@ -347,8 +359,11 @@ PY
             ;;
         *)
             err "Failed to adjust StrictJarFile (status $status)"
+            return 1
             ;;
     esac
+
+    return 0
 }
 
 patch_reconcile_clinit() {
@@ -391,8 +406,11 @@ PY
             ;;
         *)
             err "Failed to patch ReconcilePackageUtils (status $status)"
+            return 1
             ;;
     esac
+
+    return 0
 }
 
 ensure_const_before_if_for_register() {
@@ -453,8 +471,11 @@ PY
             ;;
         *)
             err "Failed to enforce const on ${register} in $file (status $status)"
+            return 1
             ;;
     esac
+
+    return 0
 }
 
 # ----------------------------------------------
