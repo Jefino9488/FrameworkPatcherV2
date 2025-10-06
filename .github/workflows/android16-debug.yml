@@ -1,0 +1,156 @@
+name: Android 16 Debug Patcher (Beta)
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_level:
+        description: 'Android API level (Android 16 preview is API 36)'
+        required: true
+        default: '36'
+        type: string
+      device_name:
+        description: 'Device codename (for labeling artifacts)'
+        required: true
+        type: string
+      version_name:
+        description: 'ROM/firmware version identifier'
+        required: true
+        type: string
+      framework_url:
+        description: 'Download URL to framework.jar (leave blank if skipping)'
+        required: false
+        default: ''
+        type: string
+      services_url:
+        description: 'Download URL to services.jar (leave blank if skipping)'
+        required: false
+        default: ''
+        type: string
+      miui_services_url:
+        description: 'Download URL to miui-services.jar (leave blank if skipping)'
+        required: false
+        default: ''
+        type: string
+      patch_framework:
+        description: 'Patch framework.jar'
+        required: true
+        default: true
+        type: boolean
+      patch_services:
+        description: 'Patch services.jar'
+        required: true
+        default: true
+        type: boolean
+      patch_miui_services:
+        description: 'Patch miui-services.jar'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  beta-debug:
+    name: Android 16 Patcher (Beta)
+    runs-on: ubuntu-latest
+    env:
+      BETA_NOTE: "⚠️ Android 16 patching is in beta/testing"
+    steps:
+      - name: Display beta notice
+        run: |
+          echo "${BETA_NOTE}"
+          echo "This debug workflow is intended for manual testing only."
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y p7zip-full wget zip python3
+
+      - name: Prepare tools directory
+        run: |
+          mkdir -p tools
+          if [ ! -f tools/apktool.jar ]; then
+            wget -O tools/apktool.jar https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar
+          fi
+
+      - name: Download target JARs
+        run: |
+          set -e
+          if [ "${{ inputs.patch_framework }}" = "true" ]; then
+            if [ -z "${{ inputs.framework_url }}" ]; then
+              echo "framework_url not provided but patch_framework is true" >&2
+              exit 1
+            fi
+            wget -O framework.jar "${{ inputs.framework_url }}"
+          fi
+
+          if [ "${{ inputs.patch_services }}" = "true" ]; then
+            if [ -z "${{ inputs.services_url }}" ]; then
+              echo "services_url not provided but patch_services is true" >&2
+              exit 1
+            fi
+            wget -O services.jar "${{ inputs.services_url }}"
+          fi
+
+          if [ "${{ inputs.patch_miui_services }}" = "true" ]; then
+            if [ -z "${{ inputs.miui_services_url }}" ]; then
+              echo "miui_services_url not provided but patch_miui_services is true" >&2
+              exit 1
+            fi
+            wget -O miui-services.jar "${{ inputs.miui_services_url }}"
+          fi
+
+      - name: Run Android 16 patcher (beta)
+        run: |
+          chmod +x scripts/patcher_a16.sh
+
+          PATCH_FLAGS=""
+          if [ "${{ inputs.patch_framework }}" = "true" ]; then
+            PATCH_FLAGS="$PATCH_FLAGS --framework"
+          fi
+          if [ "${{ inputs.patch_services }}" = "true" ]; then
+            PATCH_FLAGS="$PATCH_FLAGS --services"
+          fi
+          if [ "${{ inputs.patch_miui_services }}" = "true" ]; then
+            PATCH_FLAGS="$PATCH_FLAGS --miui-services"
+          fi
+
+          echo "Patching with flags: $PATCH_FLAGS"
+
+          ./scripts/patcher_a16.sh \
+            "${{ inputs.api_level }}" \
+            "${{ inputs.device_name }}" \
+            "${{ inputs.version_name }}" \
+            $PATCH_FLAGS
+
+      - name: List generated artifacts
+        run: |
+          echo "Generated files:"
+          ls -R | grep -E 'patched\.jar$|Framework-Patcher-'
+
+      - name: Upload patched jars (debug)
+        uses: actions/upload-artifact@v4
+        with:
+          name: android16-patched-jars-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            framework_patched.jar
+            services_patched.jar
+            miui-services_patched.jar
+          retention-days: 7
+
+      - name: Upload Magisk module zip (debug)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android16-magisk-module-${{ github.run_id }}
+          if-no-files-found: warn
+          path: Framework-Patcher-${{ inputs.device_name }}-*.zip
+          retention-days: 7
