@@ -609,51 +609,46 @@ patch_services() {
     local decompile_dir
     decompile_dir=$(decompile_jar "$services_path") || return 1
 
-    patch_return_void_method "checkDowngrade" "$decompile_dir"
+    # Hardcoded, stable file paths under services_decompile (apktool layout on A16)
+    local pms_utils_file="$decompile_dir/classes3/com/android/server/pm/PackageManagerServiceUtils.smali"
+    local install_package_helper_file="$decompile_dir/classes3/com/android/server/pm/InstallPackageHelper.smali"
+    local reconcile_package_utils_file="$decompile_dir/classes3/com/android/server/pm/ReconcilePackageUtils.smali"
 
-    local method_file
-
-    method_file=$(find_smali_method_file "$decompile_dir" "shouldCheckUpgradeKeySetLocked")
-    if [ -n "$method_file" ]; then
-        force_methods_return_const "$method_file" "shouldCheckUpgradeKeySetLocked" "0"
+    # checkDowngrade → return-void (any overloads present get handled by substring search within file)
+    if [ -f "$pms_utils_file" ]; then
+        patch_return_void_method "checkDowngrade" "$decompile_dir"
+        force_methods_return_const "$pms_utils_file" "verifySignatures" "0"
+        force_methods_return_const "$pms_utils_file" "compareSignatures" "0"
+        force_methods_return_const "$pms_utils_file" "matchSignaturesCompat" "1"
     else
-        warn "shouldCheckUpgradeKeySetLocked not found in services.jar"
+        warn "PackageManagerServiceUtils.smali not found at expected path"
     fi
 
-    method_file=$(grep -rl --include="*.smali" "^[[:space:]]*\\.method.* verifySignatures" "$decompile_dir" 2>/dev/null | head -n1)
-    if [ -n "$method_file" ]; then
-        force_methods_return_const "$method_file" "verifySignatures" "0"
+    # shouldCheckUpgradeKeySetLocked may live outside PMS utils on some builds – try to pin first, then fallback to search
+    local should_check_file="$decompile_dir/classes3/com/android/server/pm/KeySetManagerService.smali"
+    if [ -f "$should_check_file" ]; then
+        force_methods_return_const "$should_check_file" "shouldCheckUpgradeKeySetLocked" "0"
     else
-        warn "verifySignatures not found in services.jar"
+        method_file=$(find_smali_method_file "$decompile_dir" "shouldCheckUpgradeKeySetLocked")
+        [ -n "$method_file" ] && force_methods_return_const "$method_file" "shouldCheckUpgradeKeySetLocked" "0" || warn "shouldCheckUpgradeKeySetLocked not found"
     fi
 
-    method_file=$(grep -rl --include="*.smali" "^[[:space:]]*\\.method.* compareSignatures" "$decompile_dir" 2>/dev/null | head -n1)
-    if [ -n "$method_file" ]; then
-        force_methods_return_const "$method_file" "compareSignatures" "0"
-    else
-        warn "compareSignatures not found in services.jar"
-    fi
-
-    method_file=$(grep -rl --include="*.smali" "^[[:space:]]*\\.method.* matchSignaturesCompat" "$decompile_dir" 2>/dev/null | head -n1)
-    if [ -n "$method_file" ]; then
-        force_methods_return_const "$method_file" "matchSignaturesCompat" "1"
-    else
-        warn "matchSignaturesCompat not found in services.jar"
-    fi
-
-    # Locate the exact smali file containing the isLeavingSharedUser() invoke and apply the guard override
+    # Apply shared-user guard in known file path (InstallPackageHelper)
     local invoke_pattern="invoke-interface {p5}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z"
-    local install_package_helper_file
-    install_package_helper_file=$(grep -rl --include="*.smali" "$invoke_pattern" "$decompile_dir" 2>/dev/null | head -n1)
-    if [ -n "$install_package_helper_file" ]; then
+    if [ -f "$install_package_helper_file" ]; then
         ensure_const_before_if_for_register "$install_package_helper_file" "$invoke_pattern" "if-eqz v3, :" "v3" "1"
     else
-        warn "No file containing pattern found: $invoke_pattern"
+        # Fallback to repo-wide search if layout differs
+        local fallback_file
+        fallback_file=$(grep -rl --include='*.smali' "$invoke_pattern" "$decompile_dir" 2>/dev/null | head -n1)
+        if [ -n "$fallback_file" ]; then
+            ensure_const_before_if_for_register "$fallback_file" "$invoke_pattern" "if-eqz v3, :" "v3" "1"
+        else
+            warn "InstallPackageHelper.smali not found and pattern not located"
+        fi
     fi
 
-    local reconcile_package_utils_file
-    reconcile_package_utils_file=$(find "$decompile_dir" -type f -path "*/com/android/server/pm/ReconcilePackageUtils.smali" | head -n1)
-    if [ -n "$reconcile_package_utils_file" ]; then
+    if [ -f "$reconcile_package_utils_file" ]; then
         patch_reconcile_clinit "$reconcile_package_utils_file"
     else
         warn "ReconcilePackageUtils.smali not found"
