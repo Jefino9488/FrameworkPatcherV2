@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from scripts.helper import Helper, return_void_callback, return_false_callback, return_true_callback, \
+from misc.helper import Helper, return_void_callback, return_false_callback, return_true_callback, \
     add_line_before_if_with_string_callback, pre_patch
 
 

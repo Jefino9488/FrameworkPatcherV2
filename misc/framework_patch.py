@@ -1,4 +1,4 @@
-from scripts.helper import *
+from misc.helper import *
 
 def main():
     framework_dir = "framework_decompile"
