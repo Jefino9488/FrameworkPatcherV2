@@ -28,8 +28,8 @@ init_env() {
 # ------------------------------
 # Logging helpers
 # ------------------------------
-log()  { printf "%s\n" "[INFO] $*"; }
-warn() { printf "%s\n" "[WARN] $*"; }
+log()  { printf "%s\n" "[INFO] $*" >&2; }
+warn() { printf "%s\n" "[WARN] $*" >&2; }
 err()  { printf "%s\n" "[ERROR] $*" >&2; }
 
 # ------------------------------
