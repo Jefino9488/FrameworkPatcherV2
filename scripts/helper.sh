@@ -218,16 +218,18 @@ modify_invoke_custom_methods() {
     local decompile_dir="$1"
     echo "Checking for invoke-custom in $decompile_dir..."
 
+    # Use find with + instead of \; to batch files and suppress all grep errors
     local smali_files
-    smali_files=$(grep -rl "invoke-custom" "$decompile_dir" --include="*.smali" 2>/dev/null || true)
+    smali_files=$(find "$decompile_dir" -type f -name "*.smali" -print0 2>/dev/null | xargs -0 grep -l "invoke-custom" 2>/dev/null || true)
 
     [ -z "$smali_files" ] && { log "No invoke-custom found"; return 0; }
 
+    local count=0
     for smali_file in $smali_files; do
-        # Skip if file doesn't exist (can happen with grep finding references)
+        # Skip if file doesn't exist (extra safety check)
         [ ! -f "$smali_file" ] && continue
 
-        log "Modifying: $smali_file"
+        count=$((count + 1))
 
         # equals
         sed -i "/.method.*equals(/,/^.end method$/ {
@@ -254,7 +256,11 @@ modify_invoke_custom_methods() {
         }" "$smali_file" 2>/dev/null || true
     done
 
-    log "invoke-custom patch done"
+    if [ "$count" -gt 0 ]; then
+        log "Modified $count files with invoke-custom"
+    else
+        log "No invoke-custom found"
+    fi
 }
 
 # ------------------------------

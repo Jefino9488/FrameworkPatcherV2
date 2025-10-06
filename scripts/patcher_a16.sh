@@ -620,33 +620,35 @@ patch_services() {
         warn "shouldCheckUpgradeKeySetLocked not found in services.jar"
     fi
 
-    method_file=$(find_smali_method_file "$decompile_dir" "verifySignatures")
+    method_file=$(grep -rl --include="*.smali" "^[[:space:]]*\\.method.* verifySignatures" "$decompile_dir" 2>/dev/null | head -n1)
     if [ -n "$method_file" ]; then
         force_methods_return_const "$method_file" "verifySignatures" "0"
     else
         warn "verifySignatures not found in services.jar"
     fi
 
-    method_file=$(find_smali_method_file "$decompile_dir" "compareSignatures")
+    method_file=$(grep -rl --include="*.smali" "^[[:space:]]*\\.method.* compareSignatures" "$decompile_dir" 2>/dev/null | head -n1)
     if [ -n "$method_file" ]; then
         force_methods_return_const "$method_file" "compareSignatures" "0"
     else
         warn "compareSignatures not found in services.jar"
     fi
 
-    method_file=$(find_smali_method_file "$decompile_dir" "matchSignaturesCompat")
+    method_file=$(grep -rl --include="*.smali" "^[[:space:]]*\\.method.* matchSignaturesCompat" "$decompile_dir" 2>/dev/null | head -n1)
     if [ -n "$method_file" ]; then
         force_methods_return_const "$method_file" "matchSignaturesCompat" "1"
     else
         warn "matchSignaturesCompat not found in services.jar"
     fi
 
+    # Locate the exact smali file containing the isLeavingSharedUser() invoke and apply the guard override
+    local invoke_pattern="invoke-interface {p5}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z"
     local install_package_helper_file
-    install_package_helper_file=$(find "$decompile_dir" -type f -path "*/com/android/server/pm/InstallPackageHelper.smali" | head -n1)
+    install_package_helper_file=$(grep -rl --include="*.smali" "$invoke_pattern" "$decompile_dir" 2>/dev/null | head -n1)
     if [ -n "$install_package_helper_file" ]; then
-        ensure_const_before_if_for_register "$install_package_helper_file" "invoke-interface {p5}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z" "if-eqz v3, :" "v3" "1"
+        ensure_const_before_if_for_register "$install_package_helper_file" "$invoke_pattern" "if-eqz v3, :" "v3" "1"
     else
-        warn "InstallPackageHelper.smali not found"
+        warn "No file containing pattern found: $invoke_pattern"
     fi
 
     local reconcile_package_utils_file
