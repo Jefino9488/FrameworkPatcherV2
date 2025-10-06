@@ -95,6 +95,18 @@ decompile_jar() {
     cp -r "$BACKUP_DIR/$base_name/META-INF" "$output_dir/unknown/" 2>/dev/null || true
 
     log "Decompile finished: $output_dir"
+
+    # Provide compatibility symlinks for tools expecting smali_classes* paths
+    # Map classes -> smali and classesN -> smali_classesN if not already present
+    if [ -d "$output_dir/classes" ] && [ ! -e "$output_dir/smali" ]; then
+        ln -s "classes" "$output_dir/smali" 2>/dev/null || true
+    fi
+    for n in 2 3 4 5 6 7 8 9; do
+        if [ -d "$output_dir/classes${n}" ] && [ ! -e "$output_dir/smali_classes${n}" ]; then
+            ln -s "classes${n}" "$output_dir/smali_classes${n}" 2>/dev/null || true
+        fi
+    done
+
     echo "$output_dir"
 }
 
