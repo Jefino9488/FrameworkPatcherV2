@@ -506,9 +506,9 @@ patch_framework() {
     local pkg_parser_exception_file
     pkg_parser_exception_file=$(find "$decompile_dir" -type f -path "*/android/content/pm/PackageParser\$PackageParserException.smali" | head -n1)
     if [ -n "$pkg_parser_exception_file" ]; then
-        insert_line_before_all "$pkg_parser_exception_file" "iput p1, p0, Landroid/content/pm/PackageParser$PackageParserException;->error:I" "const/4 p1, 0x0"
+        insert_line_before_all "$pkg_parser_exception_file" 'iput p1, p0, Landroid/content/pm/PackageParser$PackageParserException;->error:I' "const/4 p1, 0x0"
     else
-        warn "PackageParser$PackageParserException.smali not found"
+        warn 'PackageParser$PackageParserException.smali not found'
     fi
 
     local pkg_signing_details_file
@@ -516,7 +516,7 @@ patch_framework() {
     if [ -n "$pkg_signing_details_file" ]; then
         force_methods_return_const "$pkg_signing_details_file" "checkCapability" "1"
     else
-        warn "PackageParser$SigningDetails.smali not found"
+        warn 'PackageParser$SigningDetails.smali not found'
     fi
 
     local signing_details_file
