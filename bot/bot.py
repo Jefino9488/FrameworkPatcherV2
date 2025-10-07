@@ -3,12 +3,15 @@ import html
 import logging
 import os
 import sys
+import time
 
 import httpx
+import psutil
 from dotenv import load_dotenv
 from git import Repo
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
+from pyrogram.errors import FloodWait, NetworkMigrate, AuthKeyUnregistered, ConnectionError
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
 
 from shell import run_shell_cmd
@@ -42,7 +45,19 @@ Bot = Client(
     "FrameworkPatcherBot",
     bot_token=BOT_TOKEN,
     api_id=API_ID,
-    api_hash=API_HASH
+    api_hash=API_HASH,
+    # Enhanced connection settings
+    max_concurrent_transmissions=1,
+    retries=5,
+    timeout=30,
+    # Connection pool settings
+    connection_pool_size=10,
+    keep_alive=True,
+    # Session settings
+    session_string=None,
+    # Error handling
+    handle_migrate=True,
+    handle_flood=True,
 )
 # --- Global Rate Limit Tracker ---
 user_rate_limits = {}
@@ -64,6 +79,10 @@ logger = logging.getLogger(__name__)
 
 # --- Global State Management for Conversation ---
 user_states = {}
+connection_retries = {}
+last_connection_check = time.time()
+bot_process_id = os.getpid()
+update_in_progress = False
 
 # --- Conversation States (Constants) ---
 STATE_NONE = 0
@@ -73,41 +92,313 @@ STATE_WAITING_FOR_DEVICE_NAME = 3
 STATE_WAITING_FOR_VERSION_NAME = 4
 
 
+# --- Connection Health Monitoring ---
+async def check_connection_health() -> bool:
+    """Check if the bot connection is healthy."""
+    try:
+        me = await Bot.get_me()
+        return me is not None
+    except Exception as e:
+        logger.error(f"Connection health check failed: {e}")
+        return False
+
+
+async def ensure_connection(func, *args, **kwargs):
+    """Ensure connection is healthy before executing function."""
+    max_retries = 3
+    retry_delay = 2
+
+    for attempt in range(max_retries):
+        try:
+            if await check_connection_health():
+                return await func(*args, **kwargs)
+            else:
+                logger.warning(f"Connection unhealthy, attempt {attempt + 1}/{max_retries}")
+                await asyncio.sleep(retry_delay * (attempt + 1))
+        except (ConnectionError, NetworkMigrate, AuthKeyUnregistered) as e:
+            logger.error(f"Connection error on attempt {attempt + 1}: {e}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(retry_delay * (attempt + 1))
+            else:
+                raise e
+        except FloodWait as e:
+            logger.warning(f"Flood wait: {e.value} seconds")
+            await asyncio.sleep(e.value)
+        except Exception as e:
+            logger.error(f"Unexpected error on attempt {attempt + 1}: {e}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(retry_delay * (attempt + 1))
+            else:
+                raise e
+
+    raise ConnectionError("Failed to establish connection after multiple attempts")
+
+
+# --- Auto-Update and Process Management Functions ---
+
+async def backup_current_state():
+    """Create a backup of current bot state before updating."""
+    try:
+        backup_dir = "/tmp/bot_backup"
+        os.makedirs(backup_dir, exist_ok=True)
+
+        # Backup current session
+        session_file = "FrameworkPatcherBot.session"
+        if os.path.exists(session_file):
+            await run_shell_cmd(f"cp {session_file} {backup_dir}/")
+
+        # Backup logs
+        await run_shell_cmd(f"cp -r logs {backup_dir}/ 2>/dev/null || true")
+
+        logger.info("Bot state backup completed")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to backup bot state: {e}")
+        return False
+
+
+async def get_bot_processes():
+    """Get all bot processes running."""
+    try:
+        processes = []
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                if 'python' in proc.info['name'].lower():
+                    cmdline = ' '.join(proc.info['cmdline']) if proc.info['cmdline'] else ''
+                    if 'bot.py' in cmdline or 'FrameworkPatcherBot' in cmdline:
+                        processes.append(proc)
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+        return processes
+    except Exception as e:
+        logger.error(f"Error getting bot processes: {e}")
+        return []
+
+
+async def graceful_shutdown():
+    """Gracefully shutdown the bot."""
+    global update_in_progress
+    update_in_progress = True
+
+    try:
+        logger.info("Starting graceful shutdown...")
+
+        # Notify users about maintenance
+        await notify_users_maintenance()
+
+        # Wait a bit for ongoing operations to complete
+        await asyncio.sleep(5)
+
+        # Stop the bot
+        await Bot.stop()
+        logger.info("Bot stopped gracefully")
+
+    except Exception as e:
+        logger.error(f"Error during graceful shutdown: {e}")
+
+
+async def notify_users_maintenance():
+    """Notify users about maintenance."""
+    try:
+        # Get list of recent users from user_states
+        recent_users = list(user_states.keys())
+
+        for user_id in recent_users[-10:]:  # Notify last 10 users
+            try:
+                await Bot.send_message(
+                    user_id,
+                    "🔧 Bot is being updated. Please wait a moment and try again in a few minutes.\n\n"
+                    "The update will be completed automatically. Thank you for your patience!"
+                )
+            except Exception:
+                pass  # Ignore errors for individual users
+
+    except Exception as e:
+        logger.error(f"Error notifying users about maintenance: {e}")
+
+
+async def restart_bot_process():
+    """Restart the bot process."""
+    try:
+        logger.info("Restarting bot process...")
+
+        # Get current script path
+        script_path = os.path.abspath(__file__)
+
+        # Create restart script
+        restart_script = f"""
+#!/bin/bash
+cd {os.path.dirname(os.path.dirname(script_path))}
+sleep 5
+nohup python {script_path} > bot.log 2>&1 &
+echo $! > bot.pid
+"""
+
+        # Write and execute restart script
+        with open("/tmp/restart_bot.sh", "w") as f:
+            f.write(restart_script)
+
+        os.chmod("/tmp/restart_bot.sh", 0o755)
+        await run_shell_cmd("/tmp/restart_bot.sh")
+
+        logger.info("Bot restart initiated")
+
+    except Exception as e:
+        logger.error(f"Error restarting bot process: {e}")
+
+
+async def check_for_updates() -> tuple[bool, str]:
+    """Check for updates from GitHub repository."""
+    try:
+        # Fetch latest changes
+        await asyncio.to_thread(REPO.git.fetch, 'origin', 'master')
+
+        # Check for new commits
+        commits_list = list(REPO.iter_commits("HEAD..origin/master"))
+
+        if commits_list:
+            commits_info = []
+            for commit in commits_list[:5]:  # Show last 5 commits
+                commits_info.append(f"• {commit.message.strip()[:50]}...")
+
+            return True, "\n".join(commits_info)
+        else:
+            return False, "No updates available"
+
+    except Exception as e:
+        logger.error(f"Error checking for updates: {e}")
+        return False, f"Error checking updates: {str(e)}"
+
+
+async def perform_update():
+    """Perform the actual update process."""
+    try:
+        logger.info("Starting update process...")
+
+        # Create backup
+        await backup_current_state()
+
+        # Pull latest changes
+        await asyncio.to_thread(REPO.git.reset, '--hard')
+        await asyncio.to_thread(REPO.git.clean, '-fd')
+        await asyncio.to_thread(REPO.git.pull, 'origin', 'master')
+
+        # Install/update dependencies
+        await run_shell_cmd("pip install -r requirements.txt")
+
+        logger.info("Update completed successfully")
+        return True
+
+    except Exception as e:
+        logger.error(f"Error during update: {e}")
+        return False
+
+
 # --- Helper Functions for PixelDrain and Formatting ---
 
 # inside upload_file_stream()
 
 async def upload_file_stream(file_path: str, pixeldrain_api_key: str) -> tuple:
+    """Upload file to PixelDrain with improved timeout and retry handling."""
     logs = []
     response_data = None
-    for attempt in range(3):
+    max_attempts = 5
+    base_timeout = 120  # Increased base timeout
+
+    for attempt in range(max_attempts):
         try:
-            async with httpx.AsyncClient(timeout=60) as client:
+            # Progressive timeout increase
+            timeout = base_timeout + (attempt * 30)
+            logger.info(f"Upload attempt {attempt + 1}/{max_attempts} with timeout {timeout}s")
+
+            # Enhanced HTTP client configuration
+            limits = httpx.Limits(
+                max_keepalive_connections=5,
+                max_connections=10,
+                keepalive_expiry=30.0
+            )
+
+            async with httpx.AsyncClient(
+                    timeout=httpx.Timeout(
+                        connect=30.0,
+                        read=timeout,
+                        write=timeout,
+                        pool=10.0
+                    ),
+                    limits=limits,
+                    follow_redirects=True,
+                    http2=True
+            ) as client:
                 with open(file_path, "rb") as file:
+                    file_size = os.path.getsize(file_path)
                     files = {"file": (os.path.basename(file_path), file, "application/octet-stream")}
+
+                    logs.append(f"Uploading {os.path.basename(file_path)} ({file_size} bytes) to PixelDrain...")
+                    
                     response = await client.post(
                         "https://pixeldrain.com/api/file",
                         files=files,
-                        auth=("", pixeldrain_api_key)
+                        auth=("", pixeldrain_api_key),
+                        headers={
+                            "User-Agent": "FrameworkPatcherBot/1.0",
+                            "Accept": "application/json"
+                        }
                     )
                     response.raise_for_status()
+
             logs.append("Uploaded Successfully to PixelDrain")
             response_data = response.json()
+            logger.info(f"Upload successful on attempt {attempt + 1}")
             break
+
+        except httpx.TimeoutException as e:
+            error_msg = f"Upload timeout on attempt {attempt + 1}: {e}"
+            logger.error(error_msg)
+            logs.append(error_msg)
+            if attempt == max_attempts - 1:
+                response_data = {"error": f"Upload failed after {max_attempts} attempts due to timeout"}
+            
         except httpx.RequestError as e:
-            error_msg = f"HTTPX Request error during PixelDrain upload: {type(e).__name__}: {e}"
+            error_msg = f"HTTPX Request error during PixelDrain upload (attempt {attempt + 1}): {type(e).__name__}: {e}"
             logger.error(error_msg)
             logs.append(error_msg)
-            if attempt == 2:
-                response_data = {"error": str(e)}
-        except Exception as e:
-            error_msg = f"Unexpected error during PixelDrain upload: {type(e).__name__}: {e}"
+            if attempt == max_attempts - 1:
+                response_data = {"error": f"Upload failed after {max_attempts} attempts: {str(e)}"}
+
+        except httpx.HTTPStatusError as e:
+            error_msg = f"HTTP error {e.response.status_code} on attempt {attempt + 1}: {e.response.text}"
             logger.error(error_msg)
             logs.append(error_msg)
-            response_data = {"error": str(e)}
+            if e.response.status_code in [429, 502, 503, 504]:  # Retry on these status codes
+                if attempt < max_attempts - 1:
+                    wait_time = min(2 ** attempt, 30)  # Exponential backoff, max 30s
+                    logs.append(f"Retrying in {wait_time} seconds...")
+                    await asyncio.sleep(wait_time)
+                    continue
+            response_data = {"error": f"HTTP {e.response.status_code}: {e.response.text}"}
             break
+
+        except Exception as e:
+            error_msg = f"Unexpected error during PixelDrain upload (attempt {attempt + 1}): {type(e).__name__}: {e}"
+            logger.error(error_msg, exc_info=True)
+            logs.append(error_msg)
+            if attempt == max_attempts - 1:
+                response_data = {"error": f"Upload failed after {max_attempts} attempts: {str(e)}"}
+
+        # Wait before retry (except on last attempt)
+        if attempt < max_attempts - 1:
+            wait_time = min(2 ** attempt, 30)  # Exponential backoff, max 30s
+            logs.append(f"Retrying in {wait_time} seconds...")
+            await asyncio.sleep(wait_time)
+
+    # Clean up file
     if os.path.exists(file_path):
-        os.remove(file_path)
+        try:
+            os.remove(file_path)
+            logs.append("Temporary file cleaned up")
+        except Exception as e:
+            logger.error(f"Failed to remove temporary file {file_path}: {e}")
+    
     return response_data, logs
 
 
@@ -122,12 +413,16 @@ def _select_workflow_id(api_level: str) -> str:
 
 async def trigger_github_workflow_async(links: dict, device_name: str, version_name: str, api_level: str,
                                         user_id: int) -> int:
+    """Trigger GitHub workflow with improved error handling and retry logic."""
     workflow_id = _select_workflow_id(api_level)
     url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/actions/workflows/{workflow_id}/dispatches"
+
     headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github.v3+json"
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "FrameworkPatcherBot/1.0"
     }
+
     data = {
         "ref": "master",
         "inputs": {
@@ -140,12 +435,73 @@ async def trigger_github_workflow_async(links: dict, device_name: str, version_n
             "user_id": str(user_id)
         }
     }
+
     logger.info(
         f"Attempting to dispatch GitHub workflow to {url} for device {device_name} version {version_name} for user {user_id}")
-    async with httpx.AsyncClient(timeout=60) as client:
-        resp = await client.post(url, json=data, headers=headers)
-        resp.raise_for_status()
-        return resp.status_code
+
+    max_attempts = 3
+    base_timeout = 60
+
+    for attempt in range(max_attempts):
+        try:
+            timeout = base_timeout + (attempt * 20)
+            logger.info(f"GitHub workflow trigger attempt {attempt + 1}/{max_attempts} with timeout {timeout}s")
+
+            async with httpx.AsyncClient(
+                    timeout=httpx.Timeout(
+                        connect=20.0,
+                        read=timeout,
+                        write=timeout,
+                        pool=10.0
+                    ),
+                    limits=httpx.Limits(max_connections=5, max_keepalive_connections=2)
+            ) as client:
+                resp = await client.post(url, json=data, headers=headers)
+                resp.raise_for_status()
+
+                logger.info(f"GitHub workflow triggered successfully on attempt {attempt + 1}")
+                return resp.status_code
+
+        except httpx.TimeoutException as e:
+            logger.error(f"GitHub API timeout on attempt {attempt + 1}: {e}")
+            if attempt == max_attempts - 1:
+                raise e
+
+        except httpx.HTTPStatusError as e:
+            logger.error(f"GitHub API error {e.response.status_code} on attempt {attempt + 1}: {e.response.text}")
+            if e.response.status_code in [429, 502, 503, 504]:  # Retry on these status codes
+                if attempt < max_attempts - 1:
+                    wait_time = min(2 ** attempt, 30)
+                    logger.info(f"Retrying GitHub API call in {wait_time} seconds...")
+                    await asyncio.sleep(wait_time)
+                    continue
+            raise e
+
+        except httpx.RequestError as e:
+            logger.error(f"GitHub API request error on attempt {attempt + 1}: {e}")
+            if attempt < max_attempts - 1:
+                wait_time = min(2 ** attempt, 30)
+                logger.info(f"Retrying GitHub API call in {wait_time} seconds...")
+                await asyncio.sleep(wait_time)
+                continue
+            raise e
+
+        except Exception as e:
+            logger.error(f"Unexpected error triggering GitHub workflow on attempt {attempt + 1}: {e}", exc_info=True)
+            if attempt < max_attempts - 1:
+                wait_time = min(2 ** attempt, 30)
+                logger.info(f"Retrying GitHub API call in {wait_time} seconds...")
+                await asyncio.sleep(wait_time)
+                continue
+            raise e
+
+        # Wait before retry (except on last attempt)
+        if attempt < max_attempts - 1:
+            wait_time = min(2 ** attempt, 30)
+            logger.info(f"Retrying GitHub API call in {wait_time} seconds...")
+            await asyncio.sleep(wait_time)
+
+    raise Exception("Failed to trigger GitHub workflow after all attempts")
 
 
 def get_id(text: str) -> str | None:
@@ -247,14 +603,22 @@ async def send_data(file_id: str, message: Message):
 @Bot.on_message(filters.private & filters.command("start"))
 async def start_command_handler(bot: Client, message: Message):
     """Handles the /start command."""
-    await message.reply_text(
-        text=START_TEXT.format(message.from_user.mention),
-        disable_web_page_preview=True,
-        quote=True,
-        reply_markup=InlineKeyboardMarkup([
-            [BUTTON1, BUTTON2]
-        ])
-    )
+    try:
+        await ensure_connection(
+            message.reply_text,
+            text=START_TEXT.format(message.from_user.mention),
+            disable_web_page_preview=True,
+            quote=True,
+            reply_markup=InlineKeyboardMarkup([
+                [BUTTON1, BUTTON2]
+            ])
+        )
+    except Exception as e:
+        logger.error(f"Error in start command handler: {e}")
+        try:
+            await message.reply_text("Sorry, I'm experiencing connection issues. Please try again later.", quote=True)
+        except:
+            pass
 
 
 @Bot.on_message(filters.private & filters.command("start_patch"))
@@ -357,8 +721,29 @@ async def handle_media_upload(bot: Client, message: Message):
             text=f"`Downloading {file_name}...`",
             disable_web_page_preview=True
         )
-        file_path = await message.download()
-        logs.append(f"Downloaded {file_name} Successfully")
+
+        # Enhanced download with retry logic
+        max_download_attempts = 3
+        download_successful = False
+
+        for download_attempt in range(max_download_attempts):
+            try:
+                logger.info(f"Download attempt {download_attempt + 1}/{max_download_attempts} for {file_name}")
+                file_path = await message.download()
+                download_successful = True
+                logs.append(f"Downloaded {file_name} Successfully")
+                break
+            except Exception as e:
+                logger.error(f"Download attempt {download_attempt + 1} failed for {file_name}: {e}")
+                if download_attempt < max_download_attempts - 1:
+                    wait_time = 2 ** download_attempt
+                    logs.append(f"Download failed, retrying in {wait_time} seconds...")
+                    await asyncio.sleep(wait_time)
+                else:
+                    raise e
+
+        if not download_successful:
+            raise Exception("Failed to download file after all attempts")
 
         dir_name, old_file_name = os.path.split(file_path)
         file_base, file_extension = os.path.splitext(old_file_name)  # Add this line
@@ -561,6 +946,60 @@ async def shell_handler(bot: Client, message: Message):
     await reply.edit_text(f"**$ {cmd}**\n\n```{output}```")
 
 
+@Bot.on_message(filters.command("deploy") & filters.user(OWNER_ID))
+async def deploy_new_bot(client: Client, message: Message):
+    """Deploy the new bot version from GitHub"""
+    reply = await message.reply_text("🚀 Deploying new bot version...")
+
+    try:
+        # Create deployment script
+        script_path = os.path.abspath(__file__)
+        project_root = os.path.dirname(os.path.dirname(script_path))
+
+        deploy_script = f"""#!/bin/bash
+cd {project_root}
+
+echo "🔄 Stopping current bot processes..."
+pkill -f "bot.py" || true
+sleep 3
+
+echo "📥 Pulling latest changes..."
+git fetch origin master
+git reset --hard origin/master
+git clean -fd
+
+echo "📦 Installing dependencies..."
+pip install -r requirements.txt
+
+echo "🚀 Starting new bot..."
+nohup python {script_path} > bot.log 2>&1 &
+echo $! > bot.pid
+
+echo "✅ Deployment complete!"
+"""
+
+        # Write and execute deployment script
+        with open("/tmp/deploy_bot.sh", "w") as f:
+            f.write(deploy_script)
+
+        os.chmod("/tmp/deploy_bot.sh", 0o755)
+
+        await reply.edit_text("🚀 Executing deployment script...")
+
+        # Execute deployment
+        output = await run_shell_cmd("/tmp/deploy_bot.sh")
+
+        await reply.edit_text(
+            f"✅ <b>Deployment Complete!</b>\n\n"
+            f"<code>{output}</code>",
+            parse_mode=ParseMode.HTML
+        )
+
+    except Exception as e:
+        logger.error(f"Error in deploy command: {e}", exc_info=True)
+        await reply.edit_text(f"❌ Deployment failed: {str(e)}")
+
+
 async def get_commits() -> str | None:
     try:
         # Always fetch from origin/master
@@ -606,49 +1045,187 @@ async def pull_commits() -> bool:
 
 @Bot.on_message(filters.command("update") & filters.user(OWNER_ID))
 async def update_bot(client: Client, message: Message):
-    """Update the bot from GitHub repository in one step (always sync)"""
-    reply = await message.reply_text("Checking for updates...")
+    """Enhanced update command with automatic restart capability"""
+    global update_in_progress
 
-    commits = await get_commits()
-
-    if commits is None:
-        commits_text = "<i>Unable to detect commits, forcing sync...</i>"
-    elif not commits:
-        commits_text = "<i>No commits found, forcing sync...</i>"
-    else:
-        commits_text = f"<b>Updates Found:</b>\n\n{commits}"
-
-    await reply.edit_text(
-        f"{commits_text}\nPulling changes...",
-        parse_mode=ParseMode.HTML,
-        disable_web_page_preview=True
-    )
-
-    if not await pull_commits():
-        await reply.edit_text("Failed to pull updates. Please try again later.")
+    if update_in_progress:
+        await message.reply_text("⚠️ Update already in progress. Please wait...")
         return
 
-    await reply.edit_text(
-        f"{commits_text}\n<b>Pull complete!</b>\nRestarting bot...",
-        parse_mode=ParseMode.HTML,
-        disable_web_page_preview=True
-    )
+    reply = await message.reply_text("🔍 Checking for updates...")
 
     try:
-        await run_shell_cmd("pip install -r requirements.txt")
-        logging.info("Dependencies installed successfully.")
+        # Check for updates
+        has_updates, update_info = await check_for_updates()
+
+        if not has_updates:
+            await reply.edit_text("✅ Bot is already up to date!")
+            return
+
+        await reply.edit_text(
+            f"🆕 <b>Updates Found:</b>\n\n{update_info}\n\n"
+            "🔄 Starting update process...",
+            parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True
+        )
+
+        # Perform update
+        update_success = await perform_update()
+
+        if not update_success:
+            await reply.edit_text("❌ Update failed. Check logs for details.")
+            return
+
+        await reply.edit_text(
+            f"✅ <b>Update Complete!</b>\n\n{update_info}\n\n"
+            "🔄 Restarting bot...",
+            parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True
+        )
+
+        # Graceful shutdown and restart
+        await graceful_shutdown()
+        await restart_bot_process()
+
     except Exception as e:
-        logging.error(f"Failed to install requirements: {e}", exc_info=True)
-        await reply.edit_text("Pulled changes but failed to install requirements. Restarting anyway...")
+        logger.error(f"Error in update command: {e}", exc_info=True)
+        await reply.edit_text(f"❌ Update failed: {str(e)}")
 
-    await reply.edit_text(
-        f"{commits_text}\n<b>Pull complete!</b>\nDependencies installed.\nRestarting bot...",
-        parse_mode=ParseMode.HTML,
-        disable_web_page_preview=True
-    )
 
-    # Restart bot process
-    os.execl(sys.executable, sys.executable, *sys.argv)
+@Bot.on_message(filters.command("force_update") & filters.user(OWNER_ID))
+async def force_update_bot(client: Client, message: Message):
+    """Force update without checking for changes"""
+    global update_in_progress
+
+    if update_in_progress:
+        await message.reply_text("⚠️ Update already in progress. Please wait...")
+        return
+
+    reply = await message.reply_text("🔄 Force updating bot...")
+    
+    try:
+        update_success = await perform_update()
+
+        if not update_success:
+            await reply.edit_text("❌ Force update failed. Check logs for details.")
+            return
+
+        await reply.edit_text("✅ Force update complete! Restarting bot...")
+
+        # Graceful shutdown and restart
+        await graceful_shutdown()
+        await restart_bot_process()
+        
+    except Exception as e:
+        logger.error(f"Error in force update command: {e}", exc_info=True)
+        await reply.edit_text(f"❌ Force update failed: {str(e)}")
+
+
+@Bot.on_message(filters.command("restart") & filters.user(OWNER_ID))
+async def restart_bot(client: Client, message: Message):
+    """Restart the bot without updating"""
+    global update_in_progress
+
+    if update_in_progress:
+        await message.reply_text("⚠️ Update already in progress. Please wait...")
+        return
+
+    reply = await message.reply_text("🔄 Restarting bot...")
+
+    try:
+        await reply.edit_text("🔄 Restarting bot...")
+        await graceful_shutdown()
+        await restart_bot_process()
+
+    except Exception as e:
+        logger.error(f"Error in restart command: {e}", exc_info=True)
+        await reply.edit_text(f"❌ Restart failed: {str(e)}")
+
+
+@Bot.on_message(filters.command("status") & filters.user(OWNER_ID))
+async def bot_status(client: Client, message: Message):
+    """Show bot status and process information"""
+    try:
+        # Get bot processes
+        processes = await get_bot_processes()
+
+        # Get system info
+        memory_info = psutil.virtual_memory()
+        disk_info = psutil.disk_usage('/')
+
+        status_text = f"""
+🤖 <b>Bot Status</b>
+
+📊 <b>Processes:</b> {len(processes)} running
+🆔 <b>Current PID:</b> {bot_process_id}
+🔄 <b>Update Status:</b> {'In Progress' if update_in_progress else 'Idle'}
+
+💾 <b>Memory:</b> {memory_info.percent}% used ({memory_info.used // 1024 // 1024}MB / {memory_info.total // 1024 // 1024}MB)
+💿 <b>Disk:</b> {disk_info.percent}% used ({disk_info.used // 1024 // 1024 // 1024}GB / {disk_info.total // 1024 // 1024 // 1024}GB)
+
+👥 <b>Active Users:</b> {len(user_states)}
+🔗 <b>Connection:</b> {'Healthy' if await check_connection_health() else 'Issues detected'}
+
+⏰ <b>Uptime:</b> {time.time() - last_connection_check:.0f} seconds since last check
+"""
+
+        if processes:
+            status_text += "\n📋 <b>Bot Processes:</b>\n"
+            for proc in processes:
+                try:
+                    status_text += f"• PID {proc.pid}: {proc.status()}\n"
+                except:
+                    status_text += f"• PID {proc.pid}: Unknown status\n"
+
+        await message.reply_text(status_text, parse_mode=ParseMode.HTML)
+
+    except Exception as e:
+        logger.error(f"Error in status command: {e}", exc_info=True)
+        await message.reply_text(f"❌ Status check failed: {str(e)}")
+
+
+# --- Connection Health Monitor ---
+async def connection_monitor():
+    """Periodic connection health monitoring."""
+    global last_connection_check
+
+    while True:
+        try:
+            current_time = time.time()
+            if current_time - last_connection_check > 300:  # Check every 5 minutes
+                if not await check_connection_health():
+                    logger.warning("Connection health check failed, attempting to reconnect...")
+                    try:
+                        await Bot.stop()
+                        await asyncio.sleep(5)
+                        await Bot.start()
+                        logger.info("Bot reconnected successfully")
+                    except Exception as e:
+                        logger.error(f"Failed to reconnect: {e}")
+
+                last_connection_check = current_time
+
+            await asyncio.sleep(60)  # Check every minute
+        except Exception as e:
+            logger.error(f"Error in connection monitor: {e}")
+            await asyncio.sleep(60)
+
+
+# --- Bot Startup Handler ---
+@Bot.on_ready()
+async def on_ready():
+    """Called when the bot is ready."""
+    logger.info("Bot is ready and connected!")
+    # Start connection monitor
+    asyncio.create_task(connection_monitor())
 
 # --- Start the Bot ---
-Bot.run()
+if __name__ == "__main__":
+    try:
+        logger.info("Starting Framework Patcher Bot...")
+        Bot.run()
+    except KeyboardInterrupt:
+        logger.info("Bot stopped by user")
+    except Exception as e:
+        logger.error(f"Fatal error starting bot: {e}", exc_info=True)
+        sys.exit(1)
