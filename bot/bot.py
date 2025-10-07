@@ -53,6 +53,7 @@ Ready to patch some frameworks? Send `/start_patch` to begin the process of uplo
 
 BUTTON1 = InlineKeyboardButton(text="Jefino9488", url="https://t.me/Jefino9488")
 BUTTON2 = InlineKeyboardButton(text="Support Group", url="https://t.me/codes9488")
+BUTTON_SUPPORT = InlineKeyboardButton(text="Support me", url="https://buymeacoffee.com/jefino")
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -113,9 +114,9 @@ async def upload_file_stream(file_path: str, pixeldrain_api_key: str) -> tuple:
 def _select_workflow_id(api_level: str) -> str:
     # Prefer specific workflow IDs if provided, fallback to default WORKFLOW_ID
     if api_level == "36":
-        return WORKFLOW_ID_A16 or WORKFLOW_ID
+        return WORKFLOW_ID_A16 or "android16.yml" or WORKFLOW_ID
     if api_level == "35":
-        return WORKFLOW_ID_A15 or WORKFLOW_ID
+        return WORKFLOW_ID_A15 or "patcher.yml" or WORKFLOW_ID
     return WORKFLOW_ID
 
 
@@ -472,7 +473,8 @@ async def handle_text_input(bot: Client, message: Message):
 
             await message.reply_text(
                 f"Workflow triggered successfully (status {status}). You will receive a notification when the process is complete.",
-                quote=True)
+                quote=True
+            )
         except httpx.HTTPStatusError as e:
             logger.error(
                 f"GitHub workflow trigger failed for user {user_id}: HTTP Error {e.response.status_code} - {e.response.text}",
