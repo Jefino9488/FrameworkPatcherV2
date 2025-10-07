@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from git import Repo
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
-from pyrogram.errors import FloodWait, NetworkMigrate, AuthKeyUnregistered, ConnectionError
+from pyrogram.errors import FloodWait, NetworkMigrate, AuthKeyUnregistered
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
 
 from shell import run_shell_cmd
@@ -45,19 +45,7 @@ Bot = Client(
     "FrameworkPatcherBot",
     bot_token=BOT_TOKEN,
     api_id=API_ID,
-    api_hash=API_HASH,
-    # Enhanced connection settings
-    max_concurrent_transmissions=1,
-    retries=5,
-    timeout=30,
-    # Connection pool settings
-    connection_pool_size=10,
-    keep_alive=True,
-    # Session settings
-    session_string=None,
-    # Error handling
-    handle_migrate=True,
-    handle_flood=True,
+    api_hash=API_HASH
 )
 # --- Global Rate Limit Tracker ---
 user_rate_limits = {}
@@ -115,7 +103,7 @@ async def ensure_connection(func, *args, **kwargs):
             else:
                 logger.warning(f"Connection unhealthy, attempt {attempt + 1}/{max_retries}")
                 await asyncio.sleep(retry_delay * (attempt + 1))
-        except (ConnectionError, NetworkMigrate, AuthKeyUnregistered) as e:
+        except (NetworkMigrate, AuthKeyUnregistered) as e:
             logger.error(f"Connection error on attempt {attempt + 1}: {e}")
             if attempt < max_retries - 1:
                 await asyncio.sleep(retry_delay * (attempt + 1))
@@ -131,7 +119,7 @@ async def ensure_connection(func, *args, **kwargs):
             else:
                 raise e
 
-    raise ConnectionError("Failed to establish connection after multiple attempts")
+    raise Exception("Failed to establish connection after multiple attempts")
 
 
 # --- Auto-Update and Process Management Functions ---
@@ -1210,14 +1198,6 @@ async def connection_monitor():
             logger.error(f"Error in connection monitor: {e}")
             await asyncio.sleep(60)
 
-
-# --- Bot Startup Handler ---
-@Bot.on_ready()
-async def on_ready():
-    """Called when the bot is ready."""
-    logger.info("Bot is ready and connected!")
-    # Start connection monitor
-    asyncio.create_task(connection_monitor())
 
 # --- Start the Bot ---
 if __name__ == "__main__":
