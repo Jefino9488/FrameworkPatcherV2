@@ -152,7 +152,7 @@ in
 android.util.jar.StrictJarFile
 
 search for
-    
+
 invoke-virtual {p0, v5}, Landroid/util/jar/StrictJarFile;->findEntry(Ljava/lang/String;)Ljava/util/zip/ZipEntry;
 
 
