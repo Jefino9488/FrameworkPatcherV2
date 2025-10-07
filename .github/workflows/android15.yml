@@ -1,4 +1,4 @@
-name: Framework Patcher
+name: Android 15 Framework Patcher
 
 on:
   workflow_dispatch:
@@ -74,8 +74,8 @@ jobs:
 
       - name: Patch JARs and Create Module
         run: |
-          chmod +x scripts/github_patcher.sh
-          ./scripts/github_patcher.sh \
+          chmod +x scripts/patcher_a15.sh
+          ./scripts/patcher_a15.sh \
             ${{ github.event.inputs.api_level }} \
             "${{ github.event.inputs.device_name }}" \
             "${{ github.event.inputs.version_name }}" \

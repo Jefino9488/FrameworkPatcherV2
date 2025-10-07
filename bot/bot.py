@@ -116,7 +116,7 @@ def _select_workflow_id(api_level: str) -> str:
     if api_level == "36":
         return WORKFLOW_ID_A16 or "android16.yml" or WORKFLOW_ID
     if api_level == "35":
-        return WORKFLOW_ID_A15 or "patcher.yml" or WORKFLOW_ID
+        return WORKFLOW_ID_A15 or "android15.yml" or WORKFLOW_ID
     return WORKFLOW_ID
 
 

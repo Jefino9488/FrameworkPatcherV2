@@ -132,6 +132,96 @@ jobs:
           echo "Generated files:"
           ls -R | grep -E 'patched\.jar$|Framework-Patcher-'
 
+      - name: Set Release Info
+        id: release_info
+        run: |
+          # Format version name to be git tag friendly (replace spaces and dots with hyphens)
+          SAFE_VERSION=$(echo "${{ inputs.version_name }}" | sed 's/[. ]/-/g')
+          RELEASE_TAG="${{ inputs.device_name }}_${SAFE_VERSION}"
+          echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "name=Android 16 Framework Patch for ${{ inputs.device_name }} (${{ inputs.version_name }})" >> $GITHUB_OUTPUT
+
+      - name: Find Module ZIP
+        id: find_zip
+        run: |
+          ZIP_FILE=$(ls Framework-Patcher-${{ inputs.device_name }}*.zip)
+          echo "file_path=${ZIP_FILE}" >> $GITHUB_OUTPUT
+
+      - name: Delete Existing Release
+        uses: actions/github-script@v6
+        continue-on-error: true
+        with:
+          script: |
+            try {
+              const releases = await github.rest.repos.listReleases({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+
+              const existingRelease = releases.data.find(r => r.tag_name === '${{ steps.release_info.outputs.tag }}');
+
+              if (existingRelease) {
+                console.log('Found existing release, deleting...');
+                await github.rest.repos.deleteRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: existingRelease.id
+                });
+
+                // Delete the tag
+                try {
+                  await github.rest.git.deleteRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: 'tags/${{ steps.release_info.outputs.tag }}'
+                  });
+                } catch (e) {
+                  console.log('Tag might not exist, continuing...');
+                }
+              }
+            } catch (e) {
+              console.log('No existing release found or error occurred:', e.message);
+            }
+
+      - name: Generate Release Body
+        id: generate_release_body
+        run: |
+          BODY="Android 16 Framework Patcher for ${{ inputs.device_name }}
+          Version: ${{ inputs.version_name }}
+          Android API: ${{ inputs.api_level }}
+
+          Sources:"
+          if [ "${{ inputs.patch_framework }}" = "true" ]; then
+            BODY="$BODY
+          - Framework: ${{ inputs.framework_url }}"
+          fi
+          if [ "${{ inputs.patch_services }}" = "true" ]; then
+            BODY="$BODY
+          - Services: ${{ inputs.services_url }}"
+          fi
+          if [ "${{ inputs.patch_miui_services }}" = "true" ]; then
+            BODY="$BODY
+          - MIUI Services: ${{ inputs.miui_services_url }}"
+          fi
+          BODY="$BODY
+
+          Build date: $(date +'%Y-%m-%d')
+          Build time: $(date +'%H:%M:%S UTC')"
+          echo "release_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag }}
+          name: ${{ steps.release_info.outputs.name }}
+          files: ${{ steps.find_zip.outputs.file_path }}
+          body: ${{ steps.generate_release_body.outputs.release_body }}
+
       - name: Upload patched jars
         uses: actions/upload-artifact@v4
         with:
@@ -168,9 +258,9 @@ jobs:
             "$VERSION_NAME_ESCAPED" \
             "$API_LEVEL_ESCAPED")
           
-          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${{ steps.release_info.outputs.tag }}"
           
-          REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"Download artifacts\",\"url\":\"$ARTIFACT_URL\"}],[{\"text\":\"Support me\",\"url\":\"https://buymeacoffee.com/jefino\"}]]}"
+          REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"Click here to download\",\"url\":\"$RELEASE_URL\"}],[{\"text\":\"Support me\",\"url\":\"https://buymeacoffee.com/jefino\"}]]}"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ inputs.user_id }} \
