@@ -600,33 +600,65 @@ patch_framework() {
 patch_services() {
     local services_path="${WORK_DIR}/services.jar"
 
-    if [ ! -f "$services_path" ]; then
-        err "services.jar not found at $services_path"
+    # Allow using a pre-existing decompile dir for verification/patching
+    local external_dir_flag=0
+    local external_dir=""
+    if [ -n "${SERVICES_DECOMPILE_DIR:-}" ] && [ -d "${SERVICES_DECOMPILE_DIR}" ]; then
+        external_dir_flag=1
+        external_dir="${SERVICES_DECOMPILE_DIR}"
+    elif [ -d "${WORK_DIR}/services_decompile" ]; then
+        external_dir_flag=1
+        external_dir="${WORK_DIR}/services_decompile"
+    fi
+
+    if [ $external_dir_flag -eq 0 ] && [ ! -f "$services_path" ]; then
+        err "services.jar not found at $services_path and no SERVICES_DECOMPILE_DIR provided"
         return 1
     fi
 
     log "Starting Android 16 services.jar patch"
     local decompile_dir
-    decompile_dir=$(decompile_jar "$services_path") || return 1
+    if [ $external_dir_flag -eq 1 ]; then
+        log "Using existing services decompile dir: $external_dir"
+        decompile_dir="$external_dir"
+    else
+        decompile_dir=$(decompile_jar "$services_path") || return 1
+    fi
 
-    # Hardcoded, stable file paths under services_decompile (apktool layout on A16)
-    local pms_utils_file="$decompile_dir/classes3/com/android/server/pm/PackageManagerServiceUtils.smali"
-    local install_package_helper_file="$decompile_dir/classes3/com/android/server/pm/InstallPackageHelper.smali"
-    local reconcile_package_utils_file="$decompile_dir/classes3/com/android/server/pm/ReconcilePackageUtils.smali"
+    # Resolve smali files across classes*/ to handle layout differences in CI
+    resolve_smali_file() {
+        # $1: relative path like com/android/server/pm/PackageManagerServiceUtils.smali
+        local rel="$1"
+        local cand
+        for d in "$decompile_dir/classes" "$decompile_dir/classes2" "$decompile_dir/classes3" "$decompile_dir/classes4"; do
+            cand="$d/$rel"
+            [ -f "$cand" ] && { printf "%s\n" "$cand"; return 0; }
+        done
+        # fallback to find to be safe
+        find "$decompile_dir" -type f -path "*/$rel" | head -n1
+    }
 
-    # checkDowngrade → return-void (any overloads present get handled by substring search within file)
-    if [ -f "$pms_utils_file" ]; then
-        patch_return_void_method "checkDowngrade" "$decompile_dir"
+    local pms_utils_file
+    pms_utils_file=$(resolve_smali_file "com/android/server/pm/PackageManagerServiceUtils.smali")
+    local install_package_helper_file
+    install_package_helper_file=$(resolve_smali_file "com/android/server/pm/InstallPackageHelper.smali")
+    local reconcile_package_utils_file
+    reconcile_package_utils_file=$(resolve_smali_file "com/android/server/pm/ReconcilePackageUtils.smali")
+
+    # checkDowngrade → return-void (all overloads)
+    if [ -n "$pms_utils_file" ] && [ -f "$pms_utils_file" ]; then
+        patch_return_void_methods_all "checkDowngrade" "$decompile_dir"
         force_methods_return_const "$pms_utils_file" "verifySignatures" "0"
         force_methods_return_const "$pms_utils_file" "compareSignatures" "0"
         force_methods_return_const "$pms_utils_file" "matchSignaturesCompat" "1"
     else
-        warn "PackageManagerServiceUtils.smali not found at expected path"
+        warn "PackageManagerServiceUtils.smali not found"
     fi
 
     # shouldCheckUpgradeKeySetLocked may live outside PMS utils on some builds – try to pin first, then fallback to search
-    local should_check_file="$decompile_dir/classes3/com/android/server/pm/KeySetManagerService.smali"
-    if [ -f "$should_check_file" ]; then
+    local should_check_file
+    should_check_file=$(resolve_smali_file "com/android/server/pm/KeySetManagerService.smali")
+    if [ -n "$should_check_file" ] && [ -f "$should_check_file" ]; then
         force_methods_return_const "$should_check_file" "shouldCheckUpgradeKeySetLocked" "0"
     else
         method_file=$(find_smali_method_file "$decompile_dir" "shouldCheckUpgradeKeySetLocked")
@@ -635,7 +667,7 @@ patch_services() {
 
     # Apply shared-user guard in known file path (InstallPackageHelper)
     local invoke_pattern="invoke-interface {p5}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z"
-    if [ -f "$install_package_helper_file" ]; then
+    if [ -n "$install_package_helper_file" ] && [ -f "$install_package_helper_file" ]; then
         ensure_const_before_if_for_register "$install_package_helper_file" "$invoke_pattern" "if-eqz v3, :" "v3" "1"
     else
         # Fallback to repo-wide search if layout differs
@@ -648,7 +680,7 @@ patch_services() {
         fi
     fi
 
-    if [ -f "$reconcile_package_utils_file" ]; then
+    if [ -n "$reconcile_package_utils_file" ] && [ -f "$reconcile_package_utils_file" ]; then
         patch_reconcile_clinit "$reconcile_package_utils_file"
     else
         warn "ReconcilePackageUtils.smali not found"
@@ -667,6 +699,9 @@ patch_services() {
     grep -R -n --include='*.smali' '^[[:space:]]*\\.method.* compareSignatures' "$decompile_dir" | head -n 1 || true
     grep -R -n --include='*.smali' '^[[:space:]]*\\.method.* matchSignaturesCompat' "$decompile_dir" | head -n 1 || true
 
+    log "[VERIFY] services: checkDowngrade methods now return-void"
+    grep -R -n --include='*.smali' '^[[:space:]]*\.method.* checkDowngrade\(' "$decompile_dir" | head -n 5 || true
+
     log "[VERIFY] services: ReconcilePackageUtils <clinit> toggle lines"
     local rpu_file
     rpu_file=$(find "$decompile_dir" -type f -path "*/com/android/server/pm/ReconcilePackageUtils.smali" | head -n1)
@@ -675,9 +710,13 @@ patch_services() {
         grep -n 'const/4 v0, 0x[01]' "$rpu_file" | head -n 5 || true
     fi
 
-    recompile_jar "$services_path" >/dev/null
-    rm -rf "$decompile_dir" "$WORK_DIR/services"
-    log "Completed services.jar patching"
+    if [ $external_dir_flag -eq 0 ]; then
+        recompile_jar "$services_path" >/dev/null
+        rm -rf "$decompile_dir" "$WORK_DIR/services"
+        log "Completed services.jar patching"
+    else
+        log "Verification completed on existing services decompile dir (no rebuild)"
+    fi
 }
 
 # ----------------------------------------------

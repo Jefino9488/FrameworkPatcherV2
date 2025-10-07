@@ -275,6 +275,57 @@ modify_invoke_custom_methods() {
     fi
 }
 
+# Patch all overloads of a method to return-void across the decompile tree
+patch_return_void_methods_all() {
+    local method_name="$1"
+    local decompile_dir="$2"
+
+    [ -z "$decompile_dir" ] && { err "patch_return_void_methods_all: missing decompile_dir"; return 1; }
+
+    # Find all files containing the method
+    local files
+    files=$(find "$decompile_dir" -type f -name "*.smali" -print0 \
+        | xargs -0 grep -l "^[[:space:]]*\\.method.* ${method_name}\\(" 2>/dev/null || true)
+
+    [ -z "$files" ] && { warn "No occurrences of ${method_name} found in $decompile_dir"; return 0; }
+
+    local file
+    for file in $files; do
+        # Patch each occurrence within the file
+        # We iterate from bottom to top to keep line numbers stable
+        local starts
+        starts=$(grep -n "^[[:space:]]*\\.method.* ${method_name}\\(" "$file" | cut -d: -f1 | sort -nr)
+        [ -z "$starts" ] && continue
+
+        local start end total_lines i line method_head method_head_escaped
+        total_lines=$(wc -l < "$file")
+
+        for start in $starts; do
+            end=0
+            i="$start"
+            while [ "$i" -le "$total_lines" ]; do
+                line=$(sed -n "${i}p" "$file")
+                [[ "$line" == *".end method"* ]] && { end="$i"; break; }
+                i=$((i + 1))
+            done
+            [ "$end" -eq 0 ] && { warn "End not found for ${method_name} in $file (start $start)"; continue; }
+
+            method_head=$(sed -n "${start}p" "$file")
+            method_head_escaped=$(printf "%s\n" "$method_head" | sed 's/\\/\\\\/g')
+
+            sed -i "${start},${end}c\\
+${method_head_escaped}\\
+    .registers 8\\
+    return-void\\
+.end method" "$file"
+        done
+
+        log "Patched all ${method_name} overloads in $(basename "$file") to return-void"
+    done
+
+    return 0
+}
+
 # ------------------------------
 # Magisk module creation
 # ------------------------------
