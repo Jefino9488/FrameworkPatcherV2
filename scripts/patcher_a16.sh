@@ -700,7 +700,7 @@ patch_services() {
     grep -R -n --include='*.smali' '^[[:space:]]*\\.method.* matchSignaturesCompat' "$decompile_dir" | head -n 1 || true
 
     log "[VERIFY] services: checkDowngrade methods now return-void"
-    grep -R -n --include='*.smali' '^[[:space:]]*\.method.* checkDowngrade\(' "$decompile_dir" | head -n 5 || true
+    grep -R -n --include='*.smali' '^[[:space:]]*\.method.*checkDowngrade' "$decompile_dir" | head -n 5 || true
 
     log "[VERIFY] services: ReconcilePackageUtils <clinit> toggle lines"
     local rpu_file

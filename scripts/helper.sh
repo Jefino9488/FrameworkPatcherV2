@@ -285,7 +285,7 @@ patch_return_void_methods_all() {
     # Find all files containing the method
     local files
     files=$(find "$decompile_dir" -type f -name "*.smali" -print0 \
-        | xargs -0 grep -l "^[[:space:]]*\\.method.* ${method_name}\\(" 2>/dev/null || true)
+        | xargs -0 grep -l "^[[:space:]]*\\.method.*${method_name}" 2>/dev/null || true)
 
     [ -z "$files" ] && { warn "No occurrences of ${method_name} found in $decompile_dir"; return 0; }
 
@@ -294,7 +294,7 @@ patch_return_void_methods_all() {
         # Patch each occurrence within the file
         # We iterate from bottom to top to keep line numbers stable
         local starts
-        starts=$(grep -n "^[[:space:]]*\\.method.* ${method_name}\\(" "$file" | cut -d: -f1 | sort -nr)
+        starts=$(grep -n "^[[:space:]]*\\.method.*${method_name}" "$file" | cut -d: -f1 | sort -nr)
         [ -z "$starts" ] && continue
 
         local start end total_lines i line method_head method_head_escaped
