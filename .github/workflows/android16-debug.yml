@@ -1,10 +1,10 @@
-name: Android 16 Debug Patcher (Beta)
+name: Android 16 Framework Patcher
 
 on:
   workflow_dispatch:
     inputs:
       api_level:
-        description: 'Android API level (Android 16 preview is API 36)'
+        description: 'Android API level (Android 16 is API 36)'
         required: true
         default: '36'
         type: string
@@ -46,19 +46,16 @@ on:
         required: true
         default: false
         type: boolean
+      user_id:
+        description: 'Telegram User ID to notify'
+        required: true
+        type: string
 
 jobs:
-  beta-debug:
-    name: Android 16 Patcher (Beta)
+  patch:
+    name: Android 16 Framework Patcher
     runs-on: ubuntu-latest
-    env:
-      BETA_NOTE: "⚠️ Android 16 patching is in beta/testing"
     steps:
-      - name: Display beta notice
-        run: |
-          echo "${BETA_NOTE}"
-          echo "This debug workflow is intended for manual testing only."
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -107,7 +104,7 @@ jobs:
             wget -O miui-services.jar "${{ inputs.miui_services_url }}"
           fi
 
-      - name: Run Android 16 patcher (beta)
+      - name: Run Android 16 patcher
         run: |
           chmod +x scripts/patcher_a16.sh
 
@@ -135,7 +132,7 @@ jobs:
           echo "Generated files:"
           ls -R | grep -E 'patched\.jar$|Framework-Patcher-'
 
-      - name: Upload patched jars (debug)
+      - name: Upload patched jars
         uses: actions/upload-artifact@v4
         with:
           name: android16-patched-jars-${{ github.run_id }}
@@ -146,7 +143,7 @@ jobs:
             miui-services_patched.jar
           retention-days: 7
 
-      - name: Upload Magisk module zip (debug)
+      - name: Upload Magisk module zip
         if: success()
         uses: actions/upload-artifact@v4
         with:
@@ -154,3 +151,52 @@ jobs:
           if-no-files-found: warn
           path: Framework-Patcher-${{ inputs.device_name }}-*.zip
           retention-days: 7
+
+      - name: Send Telegram Notification (Success)
+        if: success()
+        run: |
+          escape_mdv2() {
+            echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
+          }
+
+          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ inputs.device_name }}")
+          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ inputs.version_name }}")
+          API_LEVEL_ESCAPED=$(escape_mdv2 "${{ inputs.api_level }}")
+
+          MESSAGE=$(printf "Android 16 framework patch is ready for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`" \
+            "$DEVICE_NAME_ESCAPED" \
+            "$VERSION_NAME_ESCAPED" \
+            "$API_LEVEL_ESCAPED")
+          
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          
+          REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"Download artifacts\",\"url\":\"$ARTIFACT_URL\"}],[{\"text\":\"Support me\",\"url\":\"https://buymeacoffee.com/jefino\"}]]}"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ inputs.user_id }} \
+            -d text="$MESSAGE" \
+            -d parse_mode="MarkdownV2" \
+            -d reply_markup="$REPLY_MARKUP"
+
+      - name: Send Telegram Notification (Failure)
+        if: failure()
+        run: |
+          escape_mdv2() {
+            echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
+          }
+
+          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ inputs.device_name }}")
+          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ inputs.version_name }}")
+          WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          MESSAGE=$(printf "Android 16 framework patch failed for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n\nPlease check the workflow logs for more details." \
+            "$DEVICE_NAME_ESCAPED" \
+            "$VERSION_NAME_ESCAPED")
+
+          REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"View Workflow Run\",\"url\":\"$WORKFLOW_URL\"}]]}"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ inputs.user_id }} \
+            -d text="$MESSAGE" \
+            -d parse_mode="MarkdownV2" \
+            -d reply_markup="$REPLY_MARKUP"
