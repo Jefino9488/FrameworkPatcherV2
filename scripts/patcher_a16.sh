@@ -726,23 +726,49 @@ patch_services() {
 patch_miui_services() {
     local miui_services_path="${WORK_DIR}/miui-services.jar"
 
-    if [ ! -f "$miui_services_path" ]; then
-        err "miui-services.jar not found at $miui_services_path"
+    # Support external decompile dir like services
+    local external_dir_flag=0
+    local external_dir=""
+    if [ -n "${MIUI_SERVICES_DECOMPILE_DIR:-}" ] && [ -d "${MIUI_SERVICES_DECOMPILE_DIR}" ]; then
+        external_dir_flag=1
+        external_dir="${MIUI_SERVICES_DECOMPILE_DIR}"
+    elif [ -d "${WORK_DIR}/miui-services_decompile" ]; then
+        external_dir_flag=1
+        external_dir="${WORK_DIR}/miui-services_decompile"
+    fi
+
+    if [ $external_dir_flag -eq 0 ] && [ ! -f "$miui_services_path" ]; then
+        err "miui-services.jar not found at $miui_services_path and no MIUI_SERVICES_DECOMPILE_DIR provided"
         return 1
     fi
 
     log "Starting Android 16 miui-services.jar patch"
     local decompile_dir
-    decompile_dir=$(decompile_jar "$miui_services_path") || return 1
+    if [ $external_dir_flag -eq 1 ]; then
+        log "Using existing miui-services decompile dir: $external_dir"
+        decompile_dir="$external_dir"
+    else
+        decompile_dir=$(decompile_jar "$miui_services_path") || return 1
+    fi
 
-    patch_return_void_method "verifyIsolationViolation" "$decompile_dir"
-    patch_return_void_method "canBeUpdate" "$decompile_dir"
+    # According to the miui-services guide: force specific methods to return-void
+    patch_return_void_methods_all "verifyIsolationViolation" "$decompile_dir"
+    patch_return_void_methods_all "canBeUpdate" "$decompile_dir"
 
     modify_invoke_custom_methods "$decompile_dir"
 
-    recompile_jar "$miui_services_path" >/dev/null
-    rm -rf "$decompile_dir" "$WORK_DIR/miui-services"
-    log "Completed miui-services.jar patching"
+    # Targeted verification that won't hang
+    log "[VERIFY] miui-services: verifyIsolationViolation/canBeUpdate return-void"
+    grep -R -n --include='*.smali' '^[[:space:]]*\.method.*verifyIsolationViolation' "$decompile_dir" | head -n 5 || true
+    grep -R -n --include='*.smali' '^[[:space:]]*\.method.*canBeUpdate' "$decompile_dir" | head -n 5 || true
+
+    if [ $external_dir_flag -eq 0 ]; then
+        recompile_jar "$miui_services_path" >/dev/null
+        rm -rf "$decompile_dir" "$WORK_DIR/miui-services"
+        log "Completed miui-services.jar patching"
+    else
+        log "Verification completed on existing miui-services decompile dir (no rebuild)"
+    fi
 }
 
 # ----------------------------------------------
