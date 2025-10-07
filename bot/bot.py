@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from git import Repo
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
 
 from shell import run_shell_cmd
 
@@ -29,6 +29,8 @@ try:
     GITHUB_OWNER = os.environ["GITHUB_OWNER"]
     GITHUB_REPO = os.environ["GITHUB_REPO"]
     WORKFLOW_ID = os.environ["GITHUB_WORKFLOW_ID"]
+    WORKFLOW_ID_A15 = os.getenv("GITHUB_WORKFLOW_ID_A15")
+    WORKFLOW_ID_A16 = os.getenv("GITHUB_WORKFLOW_ID_A16")
     OWNER_ID = int(os.getenv("OWNER_ID", "0"))
 except KeyError as e:
     raise ValueError(f"Missing environment variable: {e}. Please check your .env file.")
@@ -64,9 +66,10 @@ user_states = {}
 
 # --- Conversation States (Constants) ---
 STATE_NONE = 0
-STATE_WAITING_FOR_FILES = 1
-STATE_WAITING_FOR_DEVICE_NAME = 2
-STATE_WAITING_FOR_VERSION_NAME = 3
+STATE_WAITING_FOR_API = 1
+STATE_WAITING_FOR_FILES = 2
+STATE_WAITING_FOR_DEVICE_NAME = 3
+STATE_WAITING_FOR_VERSION_NAME = 4
 
 
 # --- Helper Functions for PixelDrain and Formatting ---
@@ -107,8 +110,19 @@ async def upload_file_stream(file_path: str, pixeldrain_api_key: str) -> tuple:
     return response_data, logs
 
 
-async def trigger_github_workflow_async(links: dict, device_name: str, version_name: str, user_id: int) -> int:
-    url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/actions/workflows/{WORKFLOW_ID}/dispatches"
+def _select_workflow_id(api_level: str) -> str:
+    # Prefer specific workflow IDs if provided, fallback to default WORKFLOW_ID
+    if api_level == "36":
+        return WORKFLOW_ID_A16 or WORKFLOW_ID
+    if api_level == "35":
+        return WORKFLOW_ID_A15 or WORKFLOW_ID
+    return WORKFLOW_ID
+
+
+async def trigger_github_workflow_async(links: dict, device_name: str, version_name: str, api_level: str,
+                                        user_id: int) -> int:
+    workflow_id = _select_workflow_id(api_level)
+    url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/actions/workflows/{workflow_id}/dispatches"
     headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
         "Accept": "application/vnd.github.v3+json"
@@ -116,7 +130,7 @@ async def trigger_github_workflow_async(links: dict, device_name: str, version_n
     data = {
         "ref": "master",
         "inputs": {
-            "api_level": "35",
+            "api_level": api_level,
             "device_name": device_name,
             "version_name": version_name,
             "framework_url": links.get("framework.jar"),
@@ -246,13 +260,42 @@ async def start_command_handler(bot: Client, message: Message):
 async def start_patch_command(bot: Client, message: Message):
     """Initiates the framework patching conversation."""
     user_id = message.from_user.id
-    # Initialize 'files' as a dictionary to store file_name: link pairs
-    user_states[user_id] = {"state": STATE_WAITING_FOR_FILES, "files": {}, "device_name": None, "version_name": None}
+    # Initialize state and prompt for Android version selection
+    user_states[user_id] = {
+        "state": STATE_WAITING_FOR_API,
+        "files": {},
+        "device_name": None,
+        "version_name": None,
+        "api_level": None,
+    }
     await message.reply_text(
-        "Okay, let's start the framework patching process.\n"
-        "Please send all 3 JAR files (framework.jar, services.jar, miui-services.jar).",
-        quote=True
+        "Choose Android version to patch:",
+        reply_markup=InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("Android 15 (API 35)", callback_data="api_35"),
+                    InlineKeyboardButton("Android 16 (API 36)", callback_data="api_36"),
+                ]
+            ]
+        ),
+        quote=True,
     )
+
+
+@Bot.on_callback_query(filters.regex(r"^api_(35|36)$"))
+async def api_selection_handler(bot: Client, query: CallbackQuery):
+    user_id = query.from_user.id
+    if user_id not in user_states or user_states[user_id].get("state") != STATE_WAITING_FOR_API:
+        await query.answer("Not expecting version selection.", show_alert=True)
+        return
+    api_choice = query.data.split("_", 1)[1]
+    user_states[user_id]["api_level"] = api_choice
+    user_states[user_id]["state"] = STATE_WAITING_FOR_FILES
+    await query.message.edit_text(
+        "Okay, let's start the framework patching process.\n"
+        "Please send all 3 JAR files (framework.jar, services.jar, miui-services.jar)."
+    )
+    await query.answer("Version selected.")
 
 
 @Bot.on_message(filters.private & filters.command("cancel"))
@@ -421,8 +464,9 @@ async def handle_text_input(bot: Client, message: Message):
             links = user_states[user_id]["files"]
             device_name = user_states[user_id]["device_name"]
             version_name = user_states[user_id]["version_name"]
+            api_level = user_states[user_id].get("api_level") or "35"
 
-            status = await trigger_github_workflow_async(links, device_name, version_name, user_id)
+            status = await trigger_github_workflow_async(links, device_name, version_name, api_level, user_id)
             triggers.append(datetime.now())
             user_rate_limits[user_id] = triggers
 
