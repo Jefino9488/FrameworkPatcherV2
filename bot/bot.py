@@ -314,8 +314,7 @@ async def upload_file_stream(file_path: str, pixeldrain_api_key: str) -> tuple:
                         pool=10.0
                     ),
                     limits=limits,
-                    follow_redirects=True,
-                    http2=True
+                    follow_redirects=True
             ) as client:
                 with open(file_path, "rb") as file:
                     file_size = os.path.getsize(file_path)
@@ -741,6 +740,16 @@ async def handle_media_upload(bot: Client, message: Message):
         file_path = renamed_file_path
         logs.append(f"Renamed file to {os.path.basename(file_path)}")
 
+        # Initialize user state if not exists
+        if user_id not in user_states:
+            user_states[user_id] = {
+                "state": STATE_WAITING_FOR_FILES,
+                "files": {},
+                "device_name": None,
+                "version_name": None,
+                "api_level": None,
+            }
+        
         received_count = len(user_states[user_id]["files"]) + 1  # +1 since current file will be counted
         required_files = ["framework.jar", "services.jar", "miui-services.jar"]
         missing_files = [f for f in required_files if f not in user_states[user_id]["files"] and f != file_name]
