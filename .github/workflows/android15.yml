@@ -29,8 +29,8 @@ on:
         required: true
         type: string
       user_id:
-        description: 'Telegram User ID to notify'
-        required: true
+        description: 'Telegram User ID to notify (optional)'
+        required: false
         type: string
 
 jobs:
@@ -162,7 +162,7 @@ jobs:
           body: ${{ steps.generate_release_body.outputs.release_body }}
 
       - name: Send Telegram Notification (Success)
-        if: success()
+        if: success() && github.event.inputs.user_id != ''
         run: |
           escape_mdv2() {
             echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
@@ -188,7 +188,7 @@ jobs:
             -d reply_markup="$REPLY_MARKUP"
 
       - name: Send Telegram Notification (Failure)
-        if: failure()
+        if: failure() && github.event.inputs.user_id != ''
         run: |
           escape_mdv2() {
             echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Framework Patcher - Android 15 & 16</title>
+    <link href="styles.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-mobile-alt"></i>
+                <h1>Framework Patcher</h1>
+            </div>
+            <p class="subtitle">Patch Android Framework JARs for Android 15 & 16</p>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="version-selector">
+            <button class="version-btn active" data-version="android15">
+                <i class="fas fa-robot"></i>
+                Android 15
+            </button>
+            <button class="version-btn" data-version="android16">
+                <i class="fas fa-robot"></i>
+                Android 16
+            </button>
+        </div>
+
+        <!-- Android 15 Form -->
+        <div class="form-container active" id="android15-form">
+            <div class="form-header">
+                <h2><i class="fas fa-cog"></i> Android 15 Framework Patcher</h2>
+                <p>Configure and trigger the Android 15 patching workflow</p>
+            </div>
+
+            <form class="patcher-form" id="a15-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="a15-api-level">
+                            <i class="fas fa-code"></i>
+                            API Level
+                        </label>
+                        <input id="a15-api-level" name="api_level" required type="text" value="35">
+                        <small>Android API level (default: 35)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a15-device-name">
+                            <i class="fas fa-mobile-alt"></i>
+                            Device Codename
+                        </label>
+                        <input id="a15-device-name" name="device_name" placeholder="e.g., rothko" required type="text">
+                        <small>Your device's codename</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a15-version-name">
+                            <i class="fas fa-tag"></i>
+                            Version Name
+                        </label>
+                        <input id="a15-version-name" name="version_name" placeholder="e.g., OS2.0.200.33" required
+                               type="text">
+                        <small>MIUI/ROM version</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a15-user-id">
+                            <i class="fab fa-telegram"></i>
+                            Telegram User ID
+                        </label>
+                        <input id="a15-user-id" name="user_id" placeholder="Optional" type="text">
+                        <small>For notifications (optional)</small>
+                    </div>
+                </div>
+
+                <div class="jar-urls">
+                    <h3><i class="fas fa-download"></i> JAR File URLs</h3>
+
+                    <div class="form-group">
+                        <label for="a15-framework-url">
+                            <i class="fas fa-file-archive"></i>
+                            Framework.jar URL
+                        </label>
+                        <input id="a15-framework-url" name="framework_url" placeholder="https://example.com/framework.jar"
+                               required type="url">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a15-services-url">
+                            <i class="fas fa-file-archive"></i>
+                            Services.jar URL
+                        </label>
+                        <input id="a15-services-url" name="services_url" placeholder="https://example.com/services.jar"
+                               required type="url">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a15-miui-services-url">
+                            <i class="fas fa-file-archive"></i>
+                            MIUI Services.jar URL
+                        </label>
+                        <input id="a15-miui-services-url" name="miui_services_url" placeholder="https://example.com/miui-services.jar"
+                               required type="url">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="clearForm('a15-form')" type="button">
+                        <i class="fas fa-eraser"></i>
+                        Clear Form
+                    </button>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-play"></i>
+                        Start Patching
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Android 16 Form -->
+        <div class="form-container" id="android16-form">
+            <div class="form-header">
+                <h2><i class="fas fa-cog"></i> Android 16 Framework Patcher</h2>
+                <p>Configure and trigger the Android 16 patching workflow</p>
+            </div>
+
+            <form class="patcher-form" id="a16-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="a16-api-level">
+                            <i class="fas fa-code"></i>
+                            API Level
+                        </label>
+                        <input id="a16-api-level" name="api_level" required type="text" value="36">
+                        <small>Android API level (default: 36)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a16-device-name">
+                            <i class="fas fa-mobile-alt"></i>
+                            Device Codename
+                        </label>
+                        <input id="a16-device-name" name="device_name" placeholder="e.g., rothko" required type="text">
+                        <small>Your device's codename</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a16-version-name">
+                            <i class="fas fa-tag"></i>
+                            Version Name
+                        </label>
+                        <input id="a16-version-name" name="version_name" placeholder="e.g., OS2.0.200.33" required
+                               type="text">
+                        <small>ROM/firmware version</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a16-user-id">
+                            <i class="fab fa-telegram"></i>
+                            Telegram User ID
+                        </label>
+                        <input id="a16-user-id" name="user_id" placeholder="Optional" type="text">
+                        <small>For notifications (optional)</small>
+                    </div>
+                </div>
+
+                <div class="patch-options">
+                    <h3><i class="fas fa-check-square"></i> Patch Options</h3>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input checked name="patch_framework" type="checkbox">
+                            <span class="checkmark"></span>
+                            Patch framework.jar
+                        </label>
+                        <label class="checkbox-label">
+                            <input checked name="patch_services" type="checkbox">
+                            <span class="checkmark"></span>
+                            Patch services.jar
+                        </label>
+                        <label class="checkbox-label">
+                            <input name="patch_miui_services" type="checkbox">
+                            <span class="checkmark"></span>
+                            Patch miui-services.jar
+                        </label>
+                    </div>
+                </div>
+
+                <div class="jar-urls">
+                    <h3><i class="fas fa-download"></i> JAR File URLs</h3>
+
+                    <div class="form-group">
+                        <label for="a16-framework-url">
+                            <i class="fas fa-file-archive"></i>
+                            Framework.jar URL
+                        </label>
+                        <input id="a16-framework-url" name="framework_url" placeholder="https://example.com/framework.jar"
+                               type="url">
+                        <small>Leave blank if not patching framework.jar</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a16-services-url">
+                            <i class="fas fa-file-archive"></i>
+                            Services.jar URL
+                        </label>
+                        <input id="a16-services-url" name="services_url" placeholder="https://example.com/services.jar"
+                               type="url">
+                        <small>Leave blank if not patching services.jar</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a16-miui-services-url">
+                            <i class="fas fa-file-archive"></i>
+                            MIUI Services.jar URL
+                        </label>
+                        <input id="a16-miui-services-url" name="miui_services_url" placeholder="https://example.com/miui-services.jar"
+                               type="url">
+                        <small>Leave blank if not patching miui-services.jar</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="clearForm('a16-form')" type="button">
+                        <i class="fas fa-eraser"></i>
+                        Clear Form
+                    </button>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-play"></i>
+                        Start Patching
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 Framework Patcher. Built for the Android community.</p>
+            <div class="footer-links">
+                <a href="https://github.com/jefino9488/FrameworkPatcherV2" target="_blank">
+                    <i class="fab fa-github"></i>
+                    GitHub
+                </a>
+                <a href="https://buymeacoffee.com/jefino" target="_blank">
+                    <i class="fas fa-coffee"></i>
+                    Support
+                </a>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal" id="loading-modal">
+    <div class="modal-content">
+        <div class="loading-spinner"></div>
+        <h3>Triggering Workflow...</h3>
+        <p>Please wait while we start the patching process.</p>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal" id="success-modal">
+    <div class="modal-content">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3>Workflow Triggered Successfully!</h3>
+        <p>Your framework patching workflow has been started. Check the GitHub Actions tab for progress.</p>
+        <button class="btn btn-primary" onclick="closeModal('success-modal')">
+            <i class="fas fa-external-link-alt"></i>
+            View Workflow
+        </button>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal" id="error-modal">
+    <div class="modal-content">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3>Error Triggering Workflow</h3>
+        <p id="error-message">Something went wrong. Please try again.</p>
+        <button class="btn btn-secondary" onclick="closeModal('error-modal')">
+            <i class="fas fa-times"></i>
+            Close
+        </button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
