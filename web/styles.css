@@ -183,11 +183,11 @@ body {
 }
 
 /* Section Headers */
-.jar-urls, .patch-options {
+.jar-urls {
     margin-bottom: 2rem;
 }
 
-.jar-urls h3, .patch-options h3 {
+.jar-urls h3 {
     color: #333;
     margin-bottom: 1rem;
     display: flex;
@@ -196,58 +196,8 @@ body {
     font-size: 1.2rem;
 }
 
-.jar-urls h3 i, .patch-options h3 i {
+.jar-urls h3 i {
     color: #667eea;
-}
-
-/* Checkbox Styles */
-.checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    cursor: pointer;
-    padding: 0.75rem;
-    border-radius: 8px;
-    transition: background-color 0.3s ease;
-}
-
-.checkbox-label:hover {
-    background: #f8f9fa;
-}
-
-.checkbox-label input[type="checkbox"] {
-    display: none;
-}
-
-.checkmark {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #e9ecef;
-    border-radius: 4px;
-    position: relative;
-    transition: all 0.3s ease;
-}
-
-.checkbox-label input[type="checkbox"]:checked + .checkmark {
-    background: #667eea;
-    border-color: #667eea;
-}
-
-.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
 }
 
 /* Form Actions */

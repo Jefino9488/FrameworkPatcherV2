@@ -52,32 +52,8 @@ function switchVersion(version) {
 
 // Form initialization
 function initializeForms() {
-    // Android 16 specific: Handle checkbox changes
-    const checkboxes = document.querySelectorAll('#a16-form input[type="checkbox"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function () {
-            toggleUrlInputs(this);
-        });
-    });
-
-    // Initialize URL input states
-    checkboxes.forEach(checkbox => {
-        toggleUrlInputs(checkbox);
-    });
-}
-
-function toggleUrlInputs(checkbox) {
-    const isChecked = checkbox.checked;
-    const inputName = checkbox.name.replace('patch_', '');
-    const urlInput = document.getElementById(`a16-${inputName}-url`);
-
-    if (urlInput) {
-        urlInput.required = isChecked;
-        urlInput.disabled = !isChecked;
-        if (!isChecked) {
-            urlInput.value = '';
-        }
-    }
+    // Both Android 15 and 16 now have the same form structure
+    // No special handling needed for Android 16
 }
 
 // Event listeners
@@ -104,13 +80,6 @@ async function handleFormSubmit(version, form) {
         // Convert FormData to object
         for (let [key, value] of formData.entries()) {
             inputs[key] = value;
-        }
-
-        // Handle Android 16 specific logic
-        if (version === 'android16') {
-            inputs.patch_framework = form.querySelector('input[name="patch_framework"]').checked;
-            inputs.patch_services = form.querySelector('input[name="patch_services"]').checked;
-            inputs.patch_miui_services = form.querySelector('input[name="patch_miui_services"]').checked;
         }
 
         // Remove empty optional fields
@@ -230,19 +199,6 @@ function clearForm(formId) {
     const form = document.getElementById(formId);
     if (form) {
         form.reset();
-
-        // Reset Android 16 checkboxes to defaults
-        if (formId === 'a16-form') {
-            const checkboxes = form.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach((checkbox, index) => {
-                if (index === 2) { // miui_services
-                    checkbox.checked = false;
-                } else {
-                    checkbox.checked = true;
-                }
-                toggleUrlInputs(checkbox);
-            });
-        }
     }
 }
 
@@ -320,10 +276,8 @@ function loadFormData(formId) {
 
         Object.entries(data).forEach(([key, value]) => {
             const input = form.querySelector(`[name="${key}"]`);
-            if (input && input.type !== 'checkbox') {
+            if (input) {
                 input.value = value;
-            } else if (input && input.type === 'checkbox') {
-                input.checked = value === 'on' || value === true;
             }
         });
     }

@@ -170,27 +170,6 @@
                     </div>
                 </div>
 
-                <div class="patch-options">
-                    <h3><i class="fas fa-check-square"></i> Patch Options</h3>
-                    <div class="checkbox-group">
-                        <label class="checkbox-label">
-                            <input checked name="patch_framework" type="checkbox">
-                            <span class="checkmark"></span>
-                            Patch framework.jar
-                        </label>
-                        <label class="checkbox-label">
-                            <input checked name="patch_services" type="checkbox">
-                            <span class="checkmark"></span>
-                            Patch services.jar
-                        </label>
-                        <label class="checkbox-label">
-                            <input name="patch_miui_services" type="checkbox">
-                            <span class="checkmark"></span>
-                            Patch miui-services.jar
-                        </label>
-                    </div>
-                </div>
-
                 <div class="jar-urls">
                     <h3><i class="fas fa-download"></i> JAR File URLs</h3>
 
@@ -200,8 +179,7 @@
                             Framework.jar URL
                         </label>
                         <input id="a16-framework-url" name="framework_url" placeholder="https://example.com/framework.jar"
-                               type="url">
-                        <small>Leave blank if not patching framework.jar</small>
+                               required type="url">
                     </div>
 
                     <div class="form-group">
@@ -210,8 +188,7 @@
                             Services.jar URL
                         </label>
                         <input id="a16-services-url" name="services_url" placeholder="https://example.com/services.jar"
-                               type="url">
-                        <small>Leave blank if not patching services.jar</small>
+                               required type="url">
                     </div>
 
                     <div class="form-group">
@@ -220,8 +197,7 @@
                             MIUI Services.jar URL
                         </label>
                         <input id="a16-miui-services-url" name="miui_services_url" placeholder="https://example.com/miui-services.jar"
-                               type="url">
-                        <small>Leave blank if not patching miui-services.jar</small>
+                               required type="url">
                     </div>
                 </div>
 

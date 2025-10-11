@@ -17,35 +17,17 @@ on:
         required: true
         type: string
       framework_url:
-        description: 'Download URL to framework.jar (leave blank if skipping)'
-        required: false
-        default: ''
+        description: 'URL to framework.jar'
+        required: true
         type: string
       services_url:
-        description: 'Download URL to services.jar (leave blank if skipping)'
-        required: false
-        default: ''
+        description: 'URL to services.jar'
+        required: true
         type: string
       miui_services_url:
-        description: 'Download URL to miui-services.jar (leave blank if skipping)'
-        required: false
-        default: ''
+        description: 'URL to miui-services.jar'
+        required: true
         type: string
-      patch_framework:
-        description: 'Patch framework.jar'
-        required: true
-        default: true
-        type: boolean
-      patch_services:
-        description: 'Patch services.jar'
-        required: true
-        default: true
-        type: boolean
-      patch_miui_services:
-        description: 'Patch miui-services.jar'
-        required: true
-        default: false
-        type: boolean
       user_id:
         description: 'Telegram User ID to notify (optional)'
         required: false
@@ -77,55 +59,20 @@ jobs:
             wget -O tools/apktool.jar https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar
           fi
 
-      - name: Download target JARs
+      - name: Download framework JARs
         run: |
-          set -e
-          if [ "${{ inputs.patch_framework }}" = "true" ]; then
-            if [ -z "${{ inputs.framework_url }}" ]; then
-              echo "framework_url not provided but patch_framework is true" >&2
-              exit 1
-            fi
-            wget -O framework.jar "${{ inputs.framework_url }}"
-          fi
-
-          if [ "${{ inputs.patch_services }}" = "true" ]; then
-            if [ -z "${{ inputs.services_url }}" ]; then
-              echo "services_url not provided but patch_services is true" >&2
-              exit 1
-            fi
-            wget -O services.jar "${{ inputs.services_url }}"
-          fi
-
-          if [ "${{ inputs.patch_miui_services }}" = "true" ]; then
-            if [ -z "${{ inputs.miui_services_url }}" ]; then
-              echo "miui_services_url not provided but patch_miui_services is true" >&2
-              exit 1
-            fi
-            wget -O miui-services.jar "${{ inputs.miui_services_url }}"
-          fi
+          wget -O framework.jar "${{ github.event.inputs.framework_url }}"
+          wget -O services.jar "${{ github.event.inputs.services_url }}"
+          wget -O miui-services.jar "${{ github.event.inputs.miui_services_url }}"
 
       - name: Run Android 16 patcher
         run: |
           chmod +x scripts/patcher_a16.sh
-
-          PATCH_FLAGS=""
-          if [ "${{ inputs.patch_framework }}" = "true" ]; then
-            PATCH_FLAGS="$PATCH_FLAGS --framework"
-          fi
-          if [ "${{ inputs.patch_services }}" = "true" ]; then
-            PATCH_FLAGS="$PATCH_FLAGS --services"
-          fi
-          if [ "${{ inputs.patch_miui_services }}" = "true" ]; then
-            PATCH_FLAGS="$PATCH_FLAGS --miui-services"
-          fi
-
-          echo "Patching with flags: $PATCH_FLAGS"
-
           ./scripts/patcher_a16.sh \
-            "${{ inputs.api_level }}" \
-            "${{ inputs.device_name }}" \
-            "${{ inputs.version_name }}" \
-            $PATCH_FLAGS
+            "${{ github.event.inputs.api_level }}" \
+            "${{ github.event.inputs.device_name }}" \
+            "${{ github.event.inputs.version_name }}" \
+            --framework --services --miui-services
 
       - name: List generated artifacts
         run: |
@@ -136,15 +83,15 @@ jobs:
         id: release_info
         run: |
           # Format version name to be git tag friendly (replace spaces and dots with hyphens)
-          SAFE_VERSION=$(echo "${{ inputs.version_name }}" | sed 's/[. ]/-/g')
-          RELEASE_TAG="${{ inputs.device_name }}_${SAFE_VERSION}"
+          SAFE_VERSION=$(echo "${{ github.event.inputs.version_name }}" | sed 's/[. ]/-/g')
+          RELEASE_TAG="${{ github.event.inputs.device_name }}_${SAFE_VERSION}"
           echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
-          echo "name=Android 16 Framework Patch for ${{ inputs.device_name }} (${{ inputs.version_name }})" >> $GITHUB_OUTPUT
+          echo "name=Android 16 Framework Patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }})" >> $GITHUB_OUTPUT
 
       - name: Find Module ZIP
         id: find_zip
         run: |
-          ZIP_FILE=$(ls Framework-Patcher-${{ inputs.device_name }}*.zip)
+          ZIP_FILE=$(ls Framework-Patcher-${{ github.event.inputs.device_name }}*.zip)
           echo "file_path=${ZIP_FILE}" >> $GITHUB_OUTPUT
 
       - name: Delete Existing Release
@@ -186,24 +133,14 @@ jobs:
       - name: Generate Release Body
         id: generate_release_body
         run: |
-          BODY="Android 16 Framework Patcher for ${{ inputs.device_name }}
-          Version: ${{ inputs.version_name }}
-          Android API: ${{ inputs.api_level }}
+          BODY="Android 16 Framework Patcher for ${{ github.event.inputs.device_name }}
+          Version: ${{ github.event.inputs.version_name }}
+          Android API: ${{ github.event.inputs.api_level }}
 
-          Sources:"
-          if [ "${{ inputs.patch_framework }}" = "true" ]; then
-            BODY="$BODY
-          - Framework: ${{ inputs.framework_url }}"
-          fi
-          if [ "${{ inputs.patch_services }}" = "true" ]; then
-            BODY="$BODY
-          - Services: ${{ inputs.services_url }}"
-          fi
-          if [ "${{ inputs.patch_miui_services }}" = "true" ]; then
-            BODY="$BODY
-          - MIUI Services: ${{ inputs.miui_services_url }}"
-          fi
-          BODY="$BODY
+          Sources:
+          - Framework: ${{ github.event.inputs.framework_url }}
+          - Services: ${{ github.event.inputs.services_url }}
+          - MIUI Services: ${{ github.event.inputs.miui_services_url }}
 
           Build date: $(date +'%Y-%m-%d')
           Build time: $(date +'%H:%M:%S UTC')"
@@ -239,7 +176,7 @@ jobs:
         with:
           name: android16-magisk-module-${{ github.run_id }}
           if-no-files-found: warn
-          path: Framework-Patcher-${{ inputs.device_name }}-*.zip
+          path: Framework-Patcher-${{ github.event.inputs.device_name }}-*.zip
           retention-days: 7
 
       - name: Send Telegram Notification (Success)
@@ -249,9 +186,9 @@ jobs:
             echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
           }
 
-          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ inputs.device_name }}")
-          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ inputs.version_name }}")
-          API_LEVEL_ESCAPED=$(escape_mdv2 "${{ inputs.api_level }}")
+          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.device_name }}")
+          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
+          API_LEVEL_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.api_level }}")
 
           MESSAGE=$(printf "Android 16 framework patch is ready for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`" \
             "$DEVICE_NAME_ESCAPED" \
@@ -263,7 +200,7 @@ jobs:
           REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"Click here to download\",\"url\":\"$RELEASE_URL\"}],[{\"text\":\"Support me\",\"url\":\"https://buymeacoffee.com/jefino\"}]]}"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d chat_id=${{ inputs.user_id }} \
+            -d chat_id=${{ github.event.inputs.user_id }} \
             -d text="$MESSAGE" \
             -d parse_mode="MarkdownV2" \
             -d reply_markup="$REPLY_MARKUP"
@@ -275,8 +212,8 @@ jobs:
             echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
           }
 
-          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ inputs.device_name }}")
-          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ inputs.version_name }}")
+          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.device_name }}")
+          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
           WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
           MESSAGE=$(printf "Android 16 framework patch failed for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n\nPlease check the workflow logs for more details." \
@@ -286,7 +223,7 @@ jobs:
           REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"View Workflow Run\",\"url\":\"$WORKFLOW_URL\"}]]}"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d chat_id=${{ inputs.user_id }} \
+            -d chat_id=${{ github.event.inputs.user_id }} \
             -d text="$MESSAGE" \
             -d parse_mode="MarkdownV2" \
             -d reply_markup="$REPLY_MARKUP"
