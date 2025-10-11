@@ -5,11 +5,42 @@
     box-sizing: border-box;
 }
 
+:root {
+    /* Catppuccin Dark Theme Colors */
+    --bg-primary: #1e1e2e;
+    --bg-secondary: #181825;
+    --bg-tertiary: #11111b;
+    --surface: #313244;
+    --surface-hover: #45475a;
+    --text-primary: #cdd6f4;
+    --text-secondary: #bac2de;
+    --text-muted: #a6adc8;
+    --accent: #cba6f7;
+    --accent-hover: #b4befe;
+    --success: #a6e3a1;
+    --warning: #f9e2af;
+    --error: #f38ba8;
+    --blue: #89b4fa;
+    --pink: #f5c2e7;
+    --mauve: #cba6f7;
+    --lavender: #b4befe;
+    --sapphire: #74c7ec;
+    --sky: #89dceb;
+    --teal: #94e2d5;
+    --green: #a6e3a1;
+    --yellow: #f9e2af;
+    --peach: #fab387;
+    --maroon: #eba0ac;
+    --red: #f38ba8;
+    --flamingo: #f2cdcd;
+    --rosewater: #f5e0dc;
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: var(--text-primary);
+    background: black;
     min-height: 100vh;
 }
 
@@ -23,7 +54,7 @@ body {
 .header {
     text-align: center;
     padding: 3rem 0 2rem;
-    color: white;
+    color: var(--text-primary);
 }
 
 .header-content {
@@ -41,35 +72,40 @@ body {
 
 .logo i {
     font-size: 3rem;
-    color: #ffd700;
+    color: var(--peach);
 }
 
 .logo h1 {
     font-size: 3rem;
     font-weight: 700;
     margin: 0;
+    background: linear-gradient(135deg, var(--lavender) 0%, var(--pink) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .subtitle {
     font-size: 1.2rem;
-    opacity: 0.9;
+    color: var(--text-secondary);
     font-weight: 300;
 }
 
 /* Main Content */
 .main-content {
-    background: white;
+    background: var(--bg-primary);
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     margin-bottom: 2rem;
     overflow: hidden;
+    border: 1px solid var(--surface);
 }
 
 /* Version Selector */
 .version-selector {
     display: flex;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--surface);
 }
 
 .version-btn {
@@ -85,16 +121,18 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    color: var(--text-secondary);
 }
 
 .version-btn:hover {
-    background: #e9ecef;
+    background: var(--surface);
+    color: var(--text-primary);
 }
 
 .version-btn.active {
-    background: white;
-    color: #667eea;
-    border-bottom: 3px solid #667eea;
+    background: var(--bg-primary);
+    color: var(--accent);
+    border-bottom: 3px solid var(--accent);
 }
 
 .version-btn i {
@@ -117,7 +155,7 @@ body {
 }
 
 .form-header h2 {
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
@@ -126,7 +164,7 @@ body {
 }
 
 .form-header p {
-    color: #666;
+    color: var(--text-muted);
     font-size: 1rem;
 }
 
@@ -154,31 +192,37 @@ body {
     gap: 0.5rem;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .form-group label i {
-    color: #667eea;
+    color: var(--accent);
     width: 16px;
 }
 
 .form-group input {
     padding: 0.75rem;
-    border: 2px solid #e9ecef;
+    border: 2px solid var(--surface);
     border-radius: 8px;
     font-size: 1rem;
     transition: border-color 0.3s ease;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .form-group input:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(203, 166, 247, 0.1);
+}
+
+.form-group input::placeholder {
+    color: var(--text-muted);
 }
 
 .form-group small {
     margin-top: 0.25rem;
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.85rem;
 }
 
@@ -188,7 +232,7 @@ body {
 }
 
 .jar-urls h3 {
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
@@ -197,7 +241,7 @@ body {
 }
 
 .jar-urls h3 i {
-    color: #667eea;
+    color: var(--accent);
 }
 
 /* Form Actions */
@@ -223,23 +267,24 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--mauve) 0%, var(--blue) 100%);
+    color: var(--bg-primary);
+    font-weight: 600;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 30px rgba(203, 166, 247, 0.3);
 }
 
 .btn-secondary {
-    background: #f8f9fa;
-    color: #333;
-    border: 2px solid #e9ecef;
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 2px solid var(--surface-hover);
 }
 
 .btn-secondary:hover {
-    background: #e9ecef;
+    background: var(--surface-hover);
     transform: translateY(-1px);
 }
 
@@ -247,7 +292,7 @@ body {
 .footer {
     text-align: center;
     padding: 2rem 0;
-    color: white;
+    color: var(--text-primary);
 }
 
 .footer-content {
@@ -267,16 +312,16 @@ body {
 }
 
 .footer-links a {
-    color: white;
+    color: var(--text-secondary);
     text-decoration: none;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    transition: opacity 0.3s ease;
+    transition: color 0.3s ease;
 }
 
 .footer-links a:hover {
-    opacity: 0.8;
+    color: var(--accent);
 }
 
 /* Modal Styles */
@@ -299,20 +344,21 @@ body {
 }
 
 .modal-content {
-    background: white;
+    background: var(--bg-primary);
     padding: 2rem;
     border-radius: 20px;
     text-align: center;
     max-width: 400px;
     width: 90%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--surface);
 }
 
 .loading-spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
+    border: 4px solid var(--surface);
+    border-top: 4px solid var(--accent);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 1rem;
@@ -333,20 +379,20 @@ body {
 }
 
 .success-icon {
-    color: #28a745;
+    color: var(--success);
 }
 
 .error-icon {
-    color: #dc3545;
+    color: var(--error);
 }
 
 .modal-content h3 {
     margin-bottom: 1rem;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .modal-content p {
-    color: #666;
+    color: var(--text-muted);
     margin-bottom: 1.5rem;
 }
 
