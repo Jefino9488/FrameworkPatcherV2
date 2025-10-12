@@ -2,7 +2,7 @@
 const CONFIG = {
     githubOwner: 'jefino9488',
     githubRepo: 'FrameworkPatcherV2',
-    githubToken: 'ghp_11AVKPXIQ0emw7ct8w4o80_F0zEoSMpUzHMCCrxs8gfc8ZZOPzzYjAIiIPakvBJiaeUE3KA3YGvFj6ChnB', // Your actual PAT from FRAMEWORK_PAT secret
+    // NOTE: Token is handled securely via GitHub Actions - never expose PAT in client-side code!
     workflows: {
         android15: 'trigger-android15',
         android16: 'trigger-android16'
@@ -107,70 +107,109 @@ async function handleFormSubmit(version, form) {
     }
 }
 
-// GitHub API integration using Repository Dispatch
+// Secure workflow trigger using Vercel API endpoint
 async function triggerWorkflow(version, inputs) {
     try {
-        // Wait for Octokit to be available
-        if (!window.Octokit) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            if (!window.Octokit) {
-                throw new Error('Octokit library not loaded. Please refresh the page.');
-            }
-        }
+        console.log('Triggering workflow via Vercel API:', version, inputs);
 
-        const eventType = CONFIG.workflows[version];
-        const octokit = new window.Octokit({
-            auth: CONFIG.githubToken
+        // Call our Vercel serverless function
+        const response = await fetch('/api/trigger-workflow', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                version: version,
+                inputs: inputs
+            })
         });
 
-        // Prepare payload for repository dispatch
-        const payload = {
-            api_level: inputs.api_level,
-            device_name: inputs.device_name,
-            version_name: inputs.version_name,
-            framework_url: inputs.framework_url,
-            services_url: inputs.services_url,
-            miui_services_url: inputs.miui_services_url
-        };
+        const result = await response.json();
 
-        // Add optional user_id if provided
-        if (inputs.user_id) {
-            payload.user_id = inputs.user_id;
-        }
-
-        console.log('Triggering repository dispatch:', version, payload);
-
-        const response = await octokit.request('POST /repos/{owner}/{repo}/dispatches', {
-            owner: CONFIG.githubOwner,
-            repo: CONFIG.githubRepo,
-            event_type: eventType,
-            client_payload: payload
-        });
-
-        if (response.status === 204) {
-            console.log('Repository dispatch triggered successfully');
+        if (response.ok && result.success) {
+            console.log('Workflow triggered successfully via Vercel API');
             return true;
         } else {
-            console.error('Error triggering repository dispatch:', response.status);
-            throw new Error(`GitHub API returned status: ${response.status}`);
+            console.error('Error triggering workflow:', result.error);
+            throw new Error(result.error || 'Failed to trigger workflow');
         }
 
     } catch (error) {
-        console.error('Repository dispatch trigger error:', error);
-
+        console.error('Workflow trigger error:', error);
+        
         // Handle specific error cases
-        if (error.status === 401) {
-            throw new Error('Invalid GitHub Personal Access Token. Please check your token and try again.');
-        } else if (error.status === 403) {
-            throw new Error('Access denied. Make sure your token has the required permissions (repo, workflow).');
-        } else if (error.status === 404) {
-            throw new Error('Repository not found. Please check the repository settings.');
-        } else if (error.message.includes('NetworkError')) {
+        if (error.message.includes('Invalid GitHub token')) {
+            throw new Error('Server configuration error. Please contact the administrator.');
+        } else if (error.message.includes('Access denied')) {
+            throw new Error('Access denied. Please try again later.');
+        } else if (error.message.includes('Workflow not found')) {
+            throw new Error('Workflow not found. Please contact the administrator.');
+        } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
             throw new Error('Network error. Please check your internet connection and try again.');
         } else {
             throw new Error(`Failed to trigger workflow: ${error.message}`);
         }
     }
+}
+
+// Show manual trigger instructions with workflow links
+function showManualTriggerInstructions(version, inputs) {
+    const workflowName = version === 'android15' ? 'Android 15 Framework Patcher' : 'Android 16 Framework Patcher';
+    const workflowUrl = `https://github.com/${CONFIG.githubOwner}/${CONFIG.githubRepo}/actions/workflows/${version}.yml`;
+
+    const parametersHtml = Object.entries(inputs)
+        .filter(([key]) => key !== 'github_pat') // Don't show PAT
+        .map(([key, value]) => {
+            const displayName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            return `<div class="parameter-item">
+                <strong>${displayName}:</strong> 
+                <code class="parameter-value">${value}</code>
+            </div>`;
+        })
+        .join('');
+
+    const instructions = `
+        <div class="workflow-instructions">
+            <h3><i class="fas fa-play-circle"></i> Ready to Trigger ${workflowName}!</h3>
+            <p>Please follow these steps to trigger the workflow manually:</p>
+            
+            <div class="steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div class="step-content">
+                        <p><strong>Go to GitHub Actions</strong></p>
+                        <a href="${workflowUrl}" target="_blank" class="btn btn-primary">
+                            <i class="fab fa-github"></i>
+                            Open ${workflowName}
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div class="step-content">
+                        <p><strong>Click "Run workflow" button</strong></p>
+                        <p class="step-detail">Select the master branch and fill in the parameters below:</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="parameters-section">
+                <h4><i class="fas fa-list"></i> Parameters to Fill:</h4>
+                <div class="parameters">
+                    ${parametersHtml}
+                </div>
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-info-circle"></i>
+                <strong>Note:</strong> The workflow will automatically download your JAR files, patch them, and create a Magisk module for you.
+            </div>
+        </div>
+    `;
+
+    document.getElementById('error-message').innerHTML = instructions;
+    showModal('error-modal');
 }
 
 // Success modal
