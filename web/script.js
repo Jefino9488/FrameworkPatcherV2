@@ -9,10 +9,8 @@ const CONFIG = {
     }
 };
 
-// Initialize Octokit
-const octokit = new Octokit({
-    auth: CONFIG.githubToken,
-});
+// Initialize Octokit (will be done after Octokit is loaded)
+let octokit;
 
 // DOM Elements
 let currentVersion = 'android15';
@@ -21,8 +19,40 @@ const formContainers = document.querySelectorAll('.form-container');
 const a15Form = document.getElementById('a15-form');
 const a16Form = document.getElementById('a16-form');
 
+// Initialize Octokit when available
+function initializeOctokit() {
+    if (window.Octokit && !octokit) {
+        octokit = new window.Octokit({
+            auth: CONFIG.githubToken,
+        });
+        console.log('Octokit initialized successfully');
+    }
+}
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function () {
+    // Try to initialize Octokit immediately
+    initializeOctokit();
+
+    // If not available, poll until it's loaded
+    if (!octokit) {
+        const pollOctokit = setInterval(() => {
+            initializeOctokit();
+            if (octokit) {
+                clearInterval(pollOctokit);
+                console.log('Octokit loaded and initialized');
+            }
+        }, 500);
+
+        // Stop polling after 10 seconds
+        setTimeout(() => {
+            clearInterval(pollOctokit);
+            if (!octokit) {
+                console.error('Octokit failed to load after 10 seconds');
+            }
+        }, 10000);
+    }
+    
     initializeVersionSelector();
     initializeForms();
     setupEventListeners();
@@ -115,6 +145,14 @@ async function handleFormSubmit(version, form) {
 // Direct workflow trigger using Octokit (same as React example)
 async function triggerWorkflow(version, inputs) {
     try {
+        // Check if Octokit is available
+        if (!octokit) {
+            initializeOctokit();
+            if (!octokit) {
+                throw new Error('Octokit library not loaded. Please refresh the page.');
+            }
+        }
+
         const workflowFile = CONFIG.workflows[version];
 
         // Prepare workflow inputs
