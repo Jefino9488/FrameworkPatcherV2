@@ -2,9 +2,10 @@
 const CONFIG = {
     githubOwner: 'jefino9488',
     githubRepo: 'FrameworkPatcherV2',
+    githubToken: 'ghp_11AVKPXIQ0emw7ct8w4o80_F0zEoSMpUzHMCCrxs8gfc8ZZOPzzYjAIiIPakvBJiaeUE3KA3YGvFj6ChnB', // Your actual PAT from FRAMEWORK_PAT secret
     workflows: {
-        android15: 'Android 15 Framework Patcher',
-        android16: 'Android 16 Framework Patcher'
+        android15: 'trigger-android15',
+        android16: 'trigger-android16'
     }
 };
 
@@ -87,12 +88,14 @@ async function handleFormSubmit(version, form) {
             delete inputs.user_id;
         }
 
+        // Validate required fields - no PAT validation needed since we use owner's token
+
         // Trigger GitHub workflow
         const success = await triggerWorkflow(version, inputs);
 
         if (success) {
             hideModal('loading-modal');
-            showModal('success-modal');
+            showSuccessModal();
         } else {
             throw new Error('Failed to trigger workflow');
         }
@@ -104,68 +107,99 @@ async function handleFormSubmit(version, form) {
     }
 }
 
-// GitHub API integration
+// GitHub API integration using Repository Dispatch
 async function triggerWorkflow(version, inputs) {
     try {
-        // For GitHub Pages, we'll use the GitHub API
-        // Note: This requires the repository to be public or proper authentication
+        // Wait for Octokit to be available
+        if (!window.Octokit) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (!window.Octokit) {
+                throw new Error('Octokit library not loaded. Please refresh the page.');
+            }
+        }
 
-        const workflowName = CONFIG.workflows[version];
-        const apiUrl = `https://api.github.com/repos/${CONFIG.githubOwner}/${CONFIG.githubRepo}/actions/workflows/${encodeURIComponent(workflowName)}.yml/dispatches`;
+        const eventType = CONFIG.workflows[version];
+        const octokit = new window.Octokit({
+            auth: CONFIG.githubToken
+        });
 
+        // Prepare payload for repository dispatch
         const payload = {
-            ref: 'main', // or 'master' depending on your default branch
-            inputs: inputs
+            api_level: inputs.api_level,
+            device_name: inputs.device_name,
+            version_name: inputs.version_name,
+            framework_url: inputs.framework_url,
+            services_url: inputs.services_url,
+            miui_services_url: inputs.miui_services_url
         };
 
-        // Since this is a client-side request, we'll simulate the workflow trigger
-        // In a real implementation, you'd need a backend service or GitHub token
-        console.log('Would trigger workflow:', version, inputs);
+        // Add optional user_id if provided
+        if (inputs.user_id) {
+            payload.user_id = inputs.user_id;
+        }
 
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        console.log('Triggering repository dispatch:', version, payload);
 
-        // For demo purposes, we'll show success
-        // In production, you'd handle the actual API response
-        return true;
+        const response = await octokit.request('POST /repos/{owner}/{repo}/dispatches', {
+            owner: CONFIG.githubOwner,
+            repo: CONFIG.githubRepo,
+            event_type: eventType,
+            client_payload: payload
+        });
+
+        if (response.status === 204) {
+            console.log('Repository dispatch triggered successfully');
+            return true;
+        } else {
+            console.error('Error triggering repository dispatch:', response.status);
+            throw new Error(`GitHub API returned status: ${response.status}`);
+        }
 
     } catch (error) {
-        console.error('Workflow trigger error:', error);
-        throw error;
+        console.error('Repository dispatch trigger error:', error);
+
+        // Handle specific error cases
+        if (error.status === 401) {
+            throw new Error('Invalid GitHub Personal Access Token. Please check your token and try again.');
+        } else if (error.status === 403) {
+            throw new Error('Access denied. Make sure your token has the required permissions (repo, workflow).');
+        } else if (error.status === 404) {
+            throw new Error('Repository not found. Please check the repository settings.');
+        } else if (error.message.includes('NetworkError')) {
+            throw new Error('Network error. Please check your internet connection and try again.');
+        } else {
+            throw new Error(`Failed to trigger workflow: ${error.message}`);
+        }
     }
 }
 
-// Alternative method using GitHub's workflow_dispatch API
-async function triggerWorkflowAlternative(version, inputs) {
-    // This would require authentication and CORS handling
-    // For now, we'll provide instructions to the user
-
-    const workflowName = CONFIG.workflows[version];
-    const workflowUrl = `https://github.com/${CONFIG.githubOwner}/${CONFIG.githubRepo}/actions/workflows/${encodeURIComponent(workflowName)}.yml`;
-
-    // Show instructions to manually trigger
-    showManualTriggerInstructions(workflowUrl, inputs);
-    return true;
-}
-
-function showManualTriggerInstructions(workflowUrl, inputs) {
-    const instructions = `
-        <h3>Manual Workflow Trigger Required</h3>
-        <p>Please follow these steps to trigger the workflow manually:</p>
-        <ol>
-            <li>Go to <a href="${workflowUrl}" target="_blank">GitHub Actions</a></li>
-            <li>Click "Run workflow"</li>
-            <li>Fill in the following parameters:</li>
-        </ol>
-        <div class="parameters">
-            ${Object.entries(inputs).map(([key, value]) =>
-        `<p><strong>${key}:</strong> ${value}</p>`
-    ).join('')}
+// Success modal
+function showSuccessModal() {
+    const successMessage = `
+        <div class="success-content">
+            <h3><i class="fas fa-check-circle"></i> Workflow Triggered Successfully!</h3>
+            <p>Your framework patching workflow has been started. The process typically takes 5-10 minutes.</p>
+            
+            <div class="success-actions">
+                <a href="https://github.com/${CONFIG.githubOwner}/${CONFIG.githubRepo}/actions" target="_blank" class="btn btn-primary">
+                    <i class="fas fa-external-link-alt"></i>
+                    View Workflow Progress
+                </a>
+                <a href="https://github.com/${CONFIG.githubOwner}/${CONFIG.githubRepo}/releases" target="_blank" class="btn btn-secondary">
+                    <i class="fas fa-download"></i>
+                    Check Releases
+                </a>
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-info-circle"></i>
+                <strong>Note:</strong> Once complete, your patched framework files and Magisk module will be available in the releases section.
+            </div>
         </div>
     `;
 
-    document.getElementById('error-message').innerHTML = instructions;
-    showModal('error-modal');
+    document.getElementById('error-message').innerHTML = successMessage;
+    showModal('success-modal');
 }
 
 // Modal functions

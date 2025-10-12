@@ -449,4 +449,218 @@ body {
     .modal-content {
         padding: 1.5rem;
     }
+
+    .step {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .parameter-item {
+        text-align: left;
+    }
+}
+
+/* Workflow Instructions Styles */
+.workflow-instructions {
+    text-align: left;
+    max-width: 100%;
+}
+
+.workflow-instructions h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.workflow-instructions h4 {
+    color: #34495e;
+    margin: 1.5rem 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.steps {
+    margin: 1.5rem 0;
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+}
+
+.step-number {
+    background: #3498db;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-content p {
+    margin: 0 0 0.5rem;
+    color: #2c3e50;
+}
+
+.step-detail {
+    color: #7f8c8d !important;
+    font-size: 0.9rem;
+}
+
+.parameters-section {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.parameters {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.parameter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.parameter-item strong {
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.parameter-value {
+    background: #e9ecef;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.85rem;
+    word-break: break-all;
+    color: #495057;
+}
+
+.note {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #e8f4fd;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.note i {
+    color: #3498db;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+.note strong {
+    color: #2c3e50;
+}
+
+.note p {
+    margin: 0;
+    color: #34495e;
+}
+
+/* Success Modal Styles */
+.success-content {
+    text-align: center;
+    max-width: 100%;
+}
+
+.success-content h3 {
+    color: #27ae60;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.success-content p {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.success-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+}
+
+.success-actions .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-width: 160px;
+    justify-content: center;
+}
+
+.success-actions .btn-primary {
+    background: #3498db;
+    color: white;
+    border: none;
+}
+
+.success-actions .btn-primary:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+.success-actions .btn-secondary {
+    background: #95a5a6;
+    color: white;
+    border: none;
+}
+
+.success-actions .btn-secondary:hover {
+    background: #7f8c8d;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+    .success-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .success-actions .btn {
+        width: 100%;
+        max-width: 200px;
+    }
 }
