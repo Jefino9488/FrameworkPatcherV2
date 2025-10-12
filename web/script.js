@@ -2,12 +2,17 @@
 const CONFIG = {
     githubOwner: 'jefino9488',
     githubRepo: 'FrameworkPatcherV2',
-    // NOTE: Token is handled securely via GitHub Actions - never expose PAT in client-side code!
+    githubToken: 'ghp_11AVKPXIQ0emw7ct8w4o80_F0zEoSMpUzHMCCrxs8gfc8ZZOPzzYjAIiIPakvBJiaeUE3KA3YGvFj6ChnB', // Your GitHub PAT
     workflows: {
-        android15: 'trigger-android15',
-        android16: 'trigger-android16'
+        android15: 'android15.yml',
+        android16: 'android16.yml'
     }
 };
+
+// Initialize Octokit
+const octokit = new Octokit({
+    auth: CONFIG.githubToken,
+});
 
 // DOM Elements
 let currentVersion = 'android15';
@@ -107,44 +112,56 @@ async function handleFormSubmit(version, form) {
     }
 }
 
-// Secure workflow trigger using Vercel API endpoint
+// Direct workflow trigger using Octokit (same as React example)
 async function triggerWorkflow(version, inputs) {
     try {
-        console.log('Triggering workflow via Vercel API:', version, inputs);
+        const workflowFile = CONFIG.workflows[version];
 
-        // Call our Vercel serverless function
-        const response = await fetch('/api/trigger-workflow', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                version: version,
-                inputs: inputs
-            })
+        // Prepare workflow inputs
+        const workflowInputs = {
+            api_level: inputs.api_level,
+            device_name: inputs.device_name,
+            version_name: inputs.version_name,
+            framework_url: inputs.framework_url,
+            services_url: inputs.services_url,
+            miui_services_url: inputs.miui_services_url,
+        };
+
+        // Add optional user_id if provided
+        if (inputs.user_id) {
+            workflowInputs.user_id = inputs.user_id;
+        }
+
+        console.log('Triggering workflow:', workflowFile, workflowInputs);
+
+        // Trigger the workflow using Octokit (exact same as React example)
+        const response = await octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
+            owner: CONFIG.githubOwner,
+            repo: CONFIG.githubRepo,
+            workflow_id: workflowFile,
+            ref: 'master',
+            inputs: workflowInputs,
         });
 
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-            console.log('Workflow triggered successfully via Vercel API');
+        if (response.status === 204) {
+            console.log('Workflow triggered successfully');
             return true;
         } else {
-            console.error('Error triggering workflow:', result.error);
-            throw new Error(result.error || 'Failed to trigger workflow');
+            console.error('Error triggering GitHub Action:', response.status);
+            throw new Error(`GitHub API returned status: ${response.status}`);
         }
 
     } catch (error) {
         console.error('Workflow trigger error:', error);
-        
-        // Handle specific error cases
-        if (error.message.includes('Invalid GitHub token')) {
-            throw new Error('Server configuration error. Please contact the administrator.');
-        } else if (error.message.includes('Access denied')) {
-            throw new Error('Access denied. Please try again later.');
-        } else if (error.message.includes('Workflow not found')) {
-            throw new Error('Workflow not found. Please contact the administrator.');
-        } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+
+        // Handle specific GitHub API errors
+        if (error.status === 401) {
+            throw new Error('Invalid GitHub Personal Access Token. Please check your token and try again.');
+        } else if (error.status === 403) {
+            throw new Error('Access denied. Make sure your token has the required permissions (repo, workflow).');
+        } else if (error.status === 404) {
+            throw new Error('Workflow not found. Please check if the workflow file exists.');
+        } else if (error.message.includes('NetworkError')) {
             throw new Error('Network error. Please check your internet connection and try again.');
         } else {
             throw new Error(`Failed to trigger workflow: ${error.message}`);
