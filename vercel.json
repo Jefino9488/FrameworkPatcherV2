@@ -20,7 +20,4 @@
       "dest": "/web/$1"
     }
   ],
-  "env": {
-    "GITHUB_TOKEN": "@github_token"
-  }
 }
