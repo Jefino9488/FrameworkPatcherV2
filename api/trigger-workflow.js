@@ -1,11 +1,6 @@
 import {Octokit} from '@octokit/core';
 
 export default async function handler(req, res) {
-    // Only allow POST requests
-    if (req.method !== 'POST') {
-        return res.status(405).json({error: 'Method not allowed'});
-    }
-
     // Enable CORS for your domain
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -16,11 +11,26 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+        return res.status(405).json({error: 'Method not allowed'});
+    }
+
     try {
+        console.log('API called with method:', req.method);
+        console.log('Request body:', req.body);
+
+        // Check if GitHub token is available
+        if (!process.env.GITHUB_TOKEN) {
+            console.error('GITHUB_TOKEN environment variable not set');
+            return res.status(500).json({error: 'Server configuration error: GITHUB_TOKEN not set'});
+        }
+
         const {version, inputs} = req.body;
 
         // Validate required fields
         if (!version || !inputs) {
+            console.error('Missing required fields:', {version, inputs});
             return res.status(400).json({error: 'Missing required fields: version and inputs'});
         }
 
