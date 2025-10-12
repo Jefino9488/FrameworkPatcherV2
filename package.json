@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Framework Patcher V2 - Android 15 & 16 Framework Patching Website",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'Static site - no build needed'",
