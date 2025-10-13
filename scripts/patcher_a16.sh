@@ -316,21 +316,21 @@ replace_entire_method() {
     local decompile_dir="$2"
     local new_method_body="$3"
     local file
-    
+
     file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l ".method.* $method_signature" 2>/dev/null | head -n 1)
-    
+
     [ -z "$file" ] && {
         warn "Method $method_signature not found"
         return
     }
-    
+
     local start
     start=$(grep -n "^[[:space:]]*\.method.* $method_signature" "$file" | cut -d: -f1 | head -n1)
     [ -z "$start" ] && {
         warn "Method $method_signature start not found"
         return
     }
-    
+
     local total_lines end=0 i="$start"
     total_lines=$(wc -l <"$file")
     while [ "$i" -le "$total_lines" ]; do
@@ -341,22 +341,22 @@ replace_entire_method() {
         }
         i=$((i + 1))
     done
-    
+
     [ "$end" -eq 0 ] && {
         warn "Method $method_signature end not found"
         return
     }
-    
+
     local method_head
     method_head=$(sed -n "${start}p" "$file")
     method_head_escaped=$(printf "%s\n" "$method_head" | sed 's/\\/\\\\/g')
-    
+
     # Replace the entire method with the new body
     sed -i "${start},${end}c\\
 $method_head_escaped\\
 $new_method_body\\
 .end method" "$file"
-    
+
     log "✓ Replaced entire method $method_signature"
 }
 
@@ -542,7 +542,7 @@ PY
 # Apply signature verification bypass patches to framework.jar (Android 16)
 apply_framework_signature_patches() {
     local decompile_dir="$1"
-    
+
     log "Applying signature verification patches to framework.jar (Android 16)..."
 
     local pkg_parser_file
@@ -636,33 +636,33 @@ apply_framework_signature_patches() {
     else
         warn "ParsingPackageUtils.smali not found"
     fi
-    
+
     log "Signature verification patches applied to framework.jar (Android 16)"
 }
 
 # Apply CN notification fix patches to framework.jar (Android 16)
 apply_framework_cn_notification_fix() {
     local decompile_dir="$1"
-    
+
     log "Applying CN notification fix to framework.jar (Android 16)..."
-    
+
     # Note: For Android 16, CN notification fix only applies to miui-services.jar
     # No changes needed in framework.jar for this feature
     log "CN notification fix: No framework.jar patches required for Android 16"
-    
+
     log "CN notification fix applied to framework.jar (Android 16)"
 }
 
 # Apply disable secure flag patches to framework.jar (Android 16)
 apply_framework_disable_secure_flag() {
     local decompile_dir="$1"
-    
+
     log "Applying disable secure flag patches to framework.jar (Android 16)..."
-    
+
     # Note: For Android 16, disable secure flag does not require framework.jar patches
     # Only services.jar and miui-services.jar are affected
     log "Disable secure flag: No framework.jar patches required for Android 16"
-    
+
     log "Disable secure flag patches applied to framework.jar (Android 16)"
 }
 
@@ -674,11 +674,11 @@ patch_framework() {
         err "framework.jar not found at $framework_path"
         return 1
     fi
-    
+
     # Check if any framework features are enabled
-    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] && \
-       [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] && \
-       [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
+    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] &&
+        [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] &&
+        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
         log "No framework features selected, skipping framework.jar"
         return 0
     fi
@@ -686,16 +686,16 @@ patch_framework() {
     log "Starting Android 16 framework.jar patch"
     local decompile_dir
     decompile_dir=$(decompile_jar "$framework_path") || return 1
-    
+
     # Apply feature-specific patches based on flags
     if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 1 ]; then
         apply_framework_signature_patches "$decompile_dir"
     fi
-    
+
     if [ $FEATURE_CN_NOTIFICATION_FIX -eq 1 ]; then
         apply_framework_cn_notification_fix "$decompile_dir"
     fi
-    
+
     if [ $FEATURE_DISABLE_SECURE_FLAG -eq 1 ]; then
         apply_framework_disable_secure_flag "$decompile_dir"
     fi
@@ -715,9 +715,9 @@ patch_framework() {
 # Apply signature verification bypass patches to services.jar (Android 16)
 apply_services_signature_patches() {
     local decompile_dir="$1"
-    
+
     log "Applying signature verification patches to services.jar (Android 16)..."
-    
+
     # Resolve smali files across classes*/ to handle layout differences in CI
     resolve_smali_file() {
         # $1: relative path like com/android/server/pm/PackageManagerServiceUtils.smali
@@ -809,29 +809,29 @@ apply_services_signature_patches() {
         grep -n '^[[:space:]]*\\.method static constructor <clinit>()V' "$rpu_file" || true
         grep -n 'const/4 v0, 0x[01]' "$rpu_file" | head -n 5 || true
     fi
-    
+
     log "Signature verification patches applied to services.jar (Android 16)"
 }
 
 # Apply CN notification fix patches to services.jar (Android 16)
 apply_services_cn_notification_fix() {
     local decompile_dir="$1"
-    
+
     log "Applying CN notification fix to services.jar (Android 16)..."
-    
+
     # Note: For Android 16, CN notification fix only applies to miui-services.jar
     # No changes needed in services.jar for this feature
     log "CN notification fix: No services.jar patches required for Android 16"
-    
+
     log "CN notification fix applied to services.jar (Android 16)"
 }
 
 # Apply disable secure flag patches to services.jar (Android 16)
 apply_services_disable_secure_flag() {
     local decompile_dir="$1"
-    
+
     log "Applying disable secure flag patches to services.jar (Android 16)..."
-    
+
     # Android 16: Patch WindowState.isSecureLocked()
     local file
     file=$(find "$decompile_dir" -type f -path "*/com/android/server/wm/WindowState.smali" | head -n 1)
@@ -843,7 +843,7 @@ apply_services_disable_secure_flag() {
     else
         warn "WindowState.smali not found"
     fi
-    
+
     log "Disable secure flag patches applied to services.jar (Android 16)"
 }
 
@@ -866,11 +866,11 @@ patch_services() {
         err "services.jar not found at $services_path and no SERVICES_DECOMPILE_DIR provided"
         return 1
     fi
-    
+
     # Check if any services features are enabled
-    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] && \
-       [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] && \
-       [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
+    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] &&
+        [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] &&
+        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
         log "No services features selected, skipping services.jar"
         return 0
     fi
@@ -883,16 +883,16 @@ patch_services() {
     else
         decompile_dir=$(decompile_jar "$services_path") || return 1
     fi
-    
+
     # Apply feature-specific patches based on flags
     if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 1 ]; then
         apply_services_signature_patches "$decompile_dir"
     fi
-    
+
     if [ $FEATURE_CN_NOTIFICATION_FIX -eq 1 ]; then
         apply_services_cn_notification_fix "$decompile_dir"
     fi
-    
+
     if [ $FEATURE_DISABLE_SECURE_FLAG -eq 1 ]; then
         apply_services_disable_secure_flag "$decompile_dir"
     fi
@@ -916,9 +916,9 @@ patch_services() {
 # Apply signature verification bypass patches to miui-services.jar (Android 16)
 apply_miui_services_signature_patches() {
     local decompile_dir="$1"
-    
+
     log "Applying signature verification patches to miui-services.jar (Android 16)..."
-    
+
     # According to the miui-services guide: force specific methods to return-void
     patch_return_void_methods_all "verifyIsolationViolation" "$decompile_dir"
     patch_return_void_methods_all "canBeUpdate" "$decompile_dir"
@@ -927,16 +927,16 @@ apply_miui_services_signature_patches() {
     log "[VERIFY] miui-services: verifyIsolationViolation/canBeUpdate return-void"
     grep -R -n --include='*.smali' '^[[:space:]]*\.method.*verifyIsolationViolation' "$decompile_dir" | head -n 5 || true
     grep -R -n --include='*.smali' '^[[:space:]]*\.method.*canBeUpdate' "$decompile_dir" | head -n 5 || true
-    
+
     log "Signature verification patches applied to miui-services.jar (Android 16)"
 }
 
 # Apply CN notification fix patches to miui-services.jar (Android 16)
 apply_miui_services_cn_notification_fix() {
     local decompile_dir="$1"
-    
+
     log "Applying CN notification fix to miui-services.jar (Android 16)..."
-    
+
     # Patch BroadcastQueueModernStubImpl
     local file
     file=$(find "$decompile_dir" -type f -path "*/com/android/server/am/BroadcastQueueModernStubImpl.smali" | head -n 1)
@@ -947,7 +947,7 @@ apply_miui_services_cn_notification_fix() {
     else
         warn "BroadcastQueueModernStubImpl.smali not found"
     fi
-    
+
     # Patch ActivityManagerServiceImpl (has two occurrences: v1 and v4)
     file=$(find "$decompile_dir" -type f -path "*/com/android/server/am/ActivityManagerServiceImpl.smali" | head -n 1)
     if [ -f "$file" ]; then
@@ -958,7 +958,7 @@ apply_miui_services_cn_notification_fix() {
     else
         warn "ActivityManagerServiceImpl.smali not found"
     fi
-    
+
     # Patch ProcessManagerService
     file=$(find "$decompile_dir" -type f -path "*/com/android/server/am/ProcessManagerService.smali" | head -n 1)
     if [ -f "$file" ]; then
@@ -968,7 +968,7 @@ apply_miui_services_cn_notification_fix() {
     else
         warn "ProcessManagerService.smali not found"
     fi
-    
+
     # Patch ProcessSceneCleaner
     # Note: Guide shows find v4 but replace with v0 - implementing as specified
     file=$(find "$decompile_dir" -type f -path "*/com/android/server/am/ProcessSceneCleaner.smali" | head -n 1)
@@ -979,16 +979,16 @@ apply_miui_services_cn_notification_fix() {
     else
         warn "ProcessSceneCleaner.smali not found"
     fi
-    
+
     log "CN notification fix applied to miui-services.jar (Android 16)"
 }
 
 # Apply disable secure flag patches to miui-services.jar (Android 16)
 apply_miui_services_disable_secure_flag() {
     local decompile_dir="$1"
-    
+
     log "Applying disable secure flag patches to miui-services.jar (Android 16)..."
-    
+
     # Android 16: Patch WindowManagerServiceImpl.notAllowCaptureDisplay()
     local file
     file=$(find "$decompile_dir" -type f -path "*/com/android/server/wm/WindowManagerServiceImpl.smali" | head -n 1)
@@ -1000,7 +1000,7 @@ apply_miui_services_disable_secure_flag() {
     else
         warn "WindowManagerServiceImpl.smali not found"
     fi
-    
+
     log "Disable secure flag patches applied to miui-services.jar (Android 16)"
 }
 
@@ -1023,11 +1023,11 @@ patch_miui_services() {
         err "miui-services.jar not found at $miui_services_path and no MIUI_SERVICES_DECOMPILE_DIR provided"
         return 1
     fi
-    
+
     # Check if any miui-services features are enabled
-    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] && \
-       [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] && \
-       [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
+    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] &&
+        [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] &&
+        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
         log "No miui-services features selected, skipping miui-services.jar"
         return 0
     fi
@@ -1040,16 +1040,16 @@ patch_miui_services() {
     else
         decompile_dir=$(decompile_jar "$miui_services_path") || return 1
     fi
-    
+
     # Apply feature-specific patches based on flags
     if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 1 ]; then
         apply_miui_services_signature_patches "$decompile_dir"
     fi
-    
+
     if [ $FEATURE_CN_NOTIFICATION_FIX -eq 1 ]; then
         apply_miui_services_cn_notification_fix "$decompile_dir"
     fi
-    
+
     if [ $FEATURE_DISABLE_SECURE_FLAG -eq 1 ]; then
         apply_miui_services_disable_secure_flag "$decompile_dir"
     fi
@@ -1085,7 +1085,7 @@ create_modules() {
 
 main() {
     if [ $# -lt 3 ]; then
-        cat << EOF
+        cat <<EOF
 Usage: $0 <api_level> <device_name> <version_name> [JAR_OPTIONS] [FEATURE_OPTIONS]
 
 JAR OPTIONS (specify which JARs to patch):
@@ -1163,9 +1163,9 @@ EOF
     fi
 
     # If no feature specified, default to signature verification (backward compatibility)
-    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] && \
-       [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] && \
-       [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
+    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] &&
+        [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] &&
+        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
         FEATURE_DISABLE_SIGNATURE_VERIFICATION=1
         log "No feature specified, defaulting to --disable-signature-verification"
     fi
