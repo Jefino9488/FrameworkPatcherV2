@@ -48,7 +48,8 @@ start_timer() {
 }
 
 end_timer() {
-    local TIMER_END=$(date +%s)
+    local TIMER_END
+    TIMER_END=$(date +%s)
     local duration=$((TIMER_END - TIMER_START))
     log "Operation completed in ${duration}s"
 }
@@ -395,7 +396,7 @@ ${method_head_escaped}\\
 # Module creation using MMT-Extended template
 # ------------------------------
 create_module() {
-    local api_level="$1"
+    # local api_level="$1"  # Currently unused but kept for future use
     local device_name="$2"
     local version_name="$3"
 
@@ -432,15 +433,17 @@ create_module() {
         sed -i "/^updateJson=/d" "$module_prop"
 
         # Add universal compatibility properties
-        echo "minMagisk=20400" >>"$module_prop"
-        echo "ksu=1" >>"$module_prop"
-        echo "minKsu=10904" >>"$module_prop"
-        echo "sufs=1" >>"$module_prop"
-        echo "minSufs=10000" >>"$module_prop"
-        echo "minApi=34" >>"$module_prop"
-        echo "maxApi=34" >>"$module_prop"
-        echo "requireReboot=true" >>"$module_prop"
-        echo "support=https://t.me/Jefino9488" >>"$module_prop"
+        {
+            echo "minMagisk=20400"
+            echo "ksu=1"
+            echo "minKsu=10904"
+            echo "sufs=1"
+            echo "minSufs=10000"
+            echo "minApi=34"
+            echo "maxApi=34"
+            echo "requireReboot=true"
+            echo "support=https://t.me/Jefino9488"
+        } >>"$module_prop"
     fi
 
     # Update customize.sh with framework replacements
