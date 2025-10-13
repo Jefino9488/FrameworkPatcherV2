@@ -130,7 +130,19 @@ async function triggerWorkflow(version, inputs) {
             })
         });
 
-        const result = await response.json();
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        const responseText = await response.text();
+        console.log('Response text:', responseText);
+        
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('Failed to parse JSON:', parseError);
+            throw new Error(`Invalid response from server: ${responseText.substring(0, 100)}...`);
+        }
 
         if (response.ok && result.success) {
             console.log('Workflow triggered successfully via API');
