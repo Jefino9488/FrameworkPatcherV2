@@ -65,6 +65,17 @@ export default async function handler(req, res) {
         if (inputs.user_id) {
             workflowInputs.user_id = inputs.user_id;
         }
+        
+        // Add feature flags (default to 'true' for signature bypass if not specified)
+        workflowInputs.enable_signature_bypass = inputs.enable_signature_bypass !== undefined 
+            ? String(inputs.enable_signature_bypass) 
+            : 'true';
+        workflowInputs.enable_cn_notification_fix = inputs.enable_cn_notification_fix !== undefined 
+            ? String(inputs.enable_cn_notification_fix) 
+            : 'false';
+        workflowInputs.enable_disable_secure_flag = inputs.enable_disable_secure_flag !== undefined 
+            ? String(inputs.enable_disable_secure_flag) 
+            : 'false';
 
         console.log(`Triggering ${workflowFile} workflow for ${inputs.device_name}`);
 
