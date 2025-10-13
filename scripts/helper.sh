@@ -326,19 +326,34 @@ ${method_head_escaped}\\
 }
 
 # ------------------------------
-# Magisk module creation
+# Multi-module creation (Magisk, KSU, SUFS)
 # ------------------------------
-create_magisk_module() {
+create_module() {
     local api_level="$1"
     local device_name="$2"
     local version_name="$3"
+    local module_type="${4:-magisk}"  # Default to magisk if not specified
 
-    log "Creating Magisk module for $device_name (v$version_name)"
+    log "Creating $module_type module for $device_name (v$version_name)"
+
+    # Determine template directory based on module type
+    local template_dir
+    case "$module_type" in
+        "ksu")
+            template_dir="ksu_module"
+            ;;
+        "sufs")
+            template_dir="sufs_module"
+            ;;
+        "magisk"|*)
+            template_dir="magisk_module"
+            ;;
+    esac
 
     local build_dir="build_module"
     rm -rf "$build_dir"
-    cp -r "$MAGISK_TEMPLATE_DIR" "$build_dir" || {
-        err "Magisk template not found: $MAGISK_TEMPLATE_DIR"
+    cp -r "$template_dir" "$build_dir" || {
+        err "$module_type template not found: $template_dir"
         return 1
     }
 
@@ -359,7 +374,7 @@ create_magisk_module() {
 
     local safe_version
     safe_version=$(printf "%s" "$version_name" | sed 's/[. ]/-/g')
-    local zip_name="Framework-Patcher-${device_name}-${safe_version}.zip"
+    local zip_name="Framework-Patcher-${device_name}-${safe_version}-${module_type}.zip"
 
     if command -v 7z >/dev/null 2>&1; then
         (cd "$build_dir" && 7z a -tzip "../$zip_name" "*" > /dev/null) || {
@@ -376,8 +391,13 @@ create_magisk_module() {
         return 1
     fi
 
-    log "Created Magisk module: $zip_name"
+    log "Created $module_type module: $zip_name"
     echo "$zip_name"
+}
+
+# Legacy function for backward compatibility
+create_magisk_module() {
+    create_module "$1" "$2" "$3" "magisk"
 }
 
 # ------------------------------

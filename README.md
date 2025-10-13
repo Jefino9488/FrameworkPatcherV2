@@ -5,12 +5,12 @@ through the bot, which triggers a GitHub Actions workflow to create patched Magi
 
 ## Features
 
-- Support only for Android 15 (A15) at the moment
+- Support for Android 15 (A15) and Android 16 (A16)
 - Patching of `framework.jar`, `services.jar`, and `miui-services.jar`
 - Automatic decompilation and recompilation of JAR files
 - Telegram-based interface for easy file submission
 - Automated framework patching using GitHub Actions
-- Magisk module generation
+- **Multi-module support**: Generates modules for Magisk, KernelSU (KSU), and SUFS
 - PixelDrain integration for file hosting
 - Telegram notifications for build status
 - Support for multiple Android versions (A13,A14) will be added in the future
@@ -28,7 +28,10 @@ through the bot, which triggers a GitHub Actions workflow to create patched Magi
 4. Provide device codename (e.g., `rothko`)
 5. Provide ROM version (e.g., `OS2.0.200.33`)
 6. The bot will trigger the patching process and notify you when complete
-7. Download the Magisk module from the GitHub release
+7. Download your preferred module type from the GitHub release:
+    - **Magisk Module**: Traditional root solution (most compatible)
+    - **KernelSU Module (KSU)**: Kernel-based root solution (better security)
+    - **SUFS Module**: Alternative root solution
 
 ### Commands:
 
@@ -84,9 +87,34 @@ through the bot, which triggers a GitHub Actions workflow to create patched Magi
     - Decompiles using baksmali
     - Applies patches using Python scripts
     - Recompiles using smali
-    - Creates Magisk module
-    - Publishes GitHub release
+   - Creates modules for all supported root solutions (Magisk, KSU, SUFS)
+   - Publishes GitHub release with all module types
 5. User receives Telegram notification with download link
+
+## Module Types
+
+The Framework Patcher V2 generates modules for three different root solutions:
+
+### Magisk Module
+
+- **Compatibility**: Most Android devices with Magisk installed
+- **Installation**: Flash via Magisk Manager or custom recovery
+- **Features**: Traditional systemless root solution
+- **File naming**: `Framework-Patcher-{device}-{version}-magisk.zip`
+
+### KernelSU Module (KSU)
+
+- **Compatibility**: Devices with KernelSU kernel installed
+- **Installation**: Flash via KernelSU Manager
+- **Features**: Kernel-based root solution with enhanced security
+- **File naming**: `Framework-Patcher-{device}-{version}-ksu.zip`
+
+### SUFS Module
+
+- **Compatibility**: Devices with SUFS root solution
+- **Installation**: Flash via SUFS Manager
+- **Features**: Alternative root solution with different architecture
+- **File naming**: `Framework-Patcher-{device}-{version}-sufs.zip`
 
 ## Support
 

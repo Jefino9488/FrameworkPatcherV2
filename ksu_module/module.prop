@@ -1,0 +1,12 @@
+id=mod_frameworks_ksu
+name=Framework Patch V2 (KSU)
+version=1.0
+versionCode=1
+author=Jᴇғɪɴᴏ ⚝
+description=This module replaces frameworks with patched frameworks for KernelSU. Patched using jefino9488.github.io/FrameworkPatcherV2
+support=https://t.me/Jefino9488
+ksu=1
+minKsu=10904
+minApi=34
+maxApi=34
+requireReboot=true

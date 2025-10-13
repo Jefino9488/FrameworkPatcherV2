@@ -772,6 +772,87 @@ patch_miui_services() {
 }
 
 # ----------------------------------------------
+# Multi-module creation (Magisk, KSU, SUFS)
+# ----------------------------------------------
+
+create_modules() {
+    local api_level="$1"
+    local device_name="$2"
+    local version_name="$3"
+    local module_types="${4:-magisk}"  # Default to magisk if not specified
+
+    log "Creating modules for: $module_types"
+
+    # Split module types if multiple are specified
+    IFS=',' read -ra MODULE_TYPES <<< "$module_types"
+    
+    for module_type in "${MODULE_TYPES[@]}"; do
+        module_type=$(echo "$module_type" | tr -d ' ')  # Remove any whitespace
+        
+        log "Creating $module_type module..."
+        
+        local build_dir="build_module"
+        if [ -d "$build_dir" ]; then
+            rm -rf "$build_dir"
+        fi
+
+        # Determine template directory based on module type
+        local template_dir
+        case "$module_type" in
+            "ksu")
+                template_dir="ksu_module"
+                ;;
+            "sufs")
+                template_dir="sufs_module"
+                ;;
+            "magisk"|*)
+                template_dir="magisk_module"
+                ;;
+        esac
+
+        # Copy template
+        cp -r "$template_dir" "$build_dir"
+
+        # Create required directories
+        mkdir -p "$build_dir/system/framework"
+        mkdir -p "$build_dir/system/system_ext/framework"
+
+        # Move patched files to correct locations
+        if [ -f "framework_patched.jar" ]; then
+            cp "framework_patched.jar" "$build_dir/system/framework/framework.jar"
+        fi
+        if [ -f "services_patched.jar" ]; then
+            cp "services_patched.jar" "$build_dir/system/framework/services.jar"
+        fi
+        if [ -f "miui-services_patched.jar" ]; then
+            cp "miui-services_patched.jar" "$build_dir/system/system_ext/framework/miui-services.jar"
+        fi
+
+        # Update module.prop
+        local module_prop="$build_dir/module.prop"
+        if [ -f "$module_prop" ]; then
+            sed -i "s/^version=.*/version=$version_name/" "$module_prop"
+            sed -i "s/^versionCode=.*/versionCode=$version_name/" "$module_prop"
+        fi
+
+        # Create module zip with sanitized version name
+        local safe_version=$(echo "$version_name" | sed 's/[. ]/-/g')
+        local zip_name="Framework-Patcher-$device_name-$safe_version-$module_type.zip"
+
+        if command -v 7z >/dev/null 2>&1; then
+            (cd "$build_dir" && 7z a -tzip "../$zip_name" "*" > /dev/null)
+        elif command -v zip >/dev/null 2>&1; then
+            (cd "$build_dir" && zip -r "../$zip_name" . > /dev/null)
+        else
+            log "No archiver found (7z or zip). Install one to create module archive."
+            return 1
+        fi
+
+        log "Created $module_type module: $zip_name"
+    done
+}
+
+# ----------------------------------------------
 # Main entrypoint
 # ----------------------------------------------
 
@@ -830,7 +911,8 @@ main() {
         patch_miui_services
     fi
 
-    create_magisk_module "$api_level" "$device_name" "$version_name"
+    # Create modules for all supported types by default
+    create_modules "$api_level" "$device_name" "$version_name" "magisk,ksu,sufs"
 
     log "Android 16 patching completed successfully"
 }

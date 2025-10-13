@@ -88,11 +88,24 @@ jobs:
           echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
           echo "name=Android 16 Framework Patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }})" >> $GITHUB_OUTPUT
 
-      - name: Find Module ZIP
-        id: find_zip
+      - name: Find Module ZIPs
+        id: find_zips
         run: |
-          ZIP_FILE=$(ls Framework-Patcher-${{ github.event.inputs.device_name }}*.zip)
-          echo "file_path=${ZIP_FILE}" >> $GITHUB_OUTPUT
+          # Find all generated module ZIPs
+          ZIP_FILES=$(ls Framework-Patcher-${{ github.event.inputs.device_name }}*.zip 2>/dev/null || echo "")
+          if [ -z "$ZIP_FILES" ]; then
+            echo "No module ZIPs found!"
+            exit 1
+          fi
+          
+          # Convert to JSON array for GitHub Actions
+          echo "zip_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$ZIP_FILES" | tr '\n' ' ' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Count files
+          FILE_COUNT=$(echo "$ZIP_FILES" | wc -w)
+          echo "file_count=${FILE_COUNT}" >> $GITHUB_OUTPUT
 
       - name: Delete Existing Release
         uses: actions/github-script@v6
@@ -137,6 +150,11 @@ jobs:
           Version: ${{ github.event.inputs.version_name }}
           Android API: ${{ github.event.inputs.api_level }}
 
+          Available Module Types:
+          - Magisk Module (Traditional root solution)
+          - KernelSU Module (KSU - Kernel-based root solution)
+          - SUFS Module (Alternative root solution)
+
           Sources:
           - Framework: ${{ github.event.inputs.framework_url }}
           - Services: ${{ github.event.inputs.services_url }}
@@ -156,7 +174,7 @@ jobs:
         with:
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.name }}
-          files: ${{ steps.find_zip.outputs.file_path }}
+          files: ${{ steps.find_zips.outputs.zip_files }}
           body: ${{ steps.generate_release_body.outputs.release_body }}
 
       - name: Upload patched jars
@@ -170,13 +188,13 @@ jobs:
             miui-services_patched.jar
           retention-days: 7
 
-      - name: Upload Magisk module zip
+      - name: Upload all module zips
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: android16-magisk-module-${{ github.run_id }}
+          name: android16-all-modules-${{ github.run_id }}
           if-no-files-found: warn
-          path: Framework-Patcher-${{ github.event.inputs.device_name }}-*.zip
+          path: Framework-Patcher-${{ github.event.inputs.device_name }}*.zip
           retention-days: 7
 
       - name: Send Telegram Notification (Success)
@@ -190,7 +208,7 @@ jobs:
           VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
           API_LEVEL_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.api_level }}")
 
-          MESSAGE=$(printf "Android 16 framework patch is ready for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`" \
+          MESSAGE=$(printf "Android 16 framework patch is ready for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`\n\nAvailable modules: Magisk, KernelSU (KSU), SUFS" \
             "$DEVICE_NAME_ESCAPED" \
             "$VERSION_NAME_ESCAPED" \
             "$API_LEVEL_ESCAPED")

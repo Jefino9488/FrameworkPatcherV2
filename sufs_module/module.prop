@@ -1,0 +1,12 @@
+id=mod_frameworks_sufs
+name=Framework Patch V2 (SUFS)
+version=1.0
+versionCode=1
+author=Jᴇғɪɴᴏ ⚝
+description=This module replaces frameworks with patched frameworks for SUFS. Patched using jefino9488.github.io/FrameworkPatcherV2
+support=https://t.me/Jefino9488
+sufs=1
+minSufs=10000
+minApi=34
+maxApi=34
+requireReboot=true
