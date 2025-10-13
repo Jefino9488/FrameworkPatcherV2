@@ -3,7 +3,7 @@
 # Framework Patcher Bot - Deployment Script
 # This script helps deploy the new bot version with auto-update capabilities
 
-set -e  # Exit on any error
+set -e # Exit on any error
 
 echo "🚀 Framework Patcher Bot Deployment Script"
 echo "=========================================="
@@ -46,20 +46,20 @@ if [ ! -f "$BOT_DIR/bot.py" ]; then
 fi
 
 # Check if git is available
-if ! command -v git &> /dev/null; then
+if ! command -v git &>/dev/null; then
     print_error "Git is not installed or not in PATH"
     exit 1
 fi
 
 # Check if python is available
-if ! command -v python &> /dev/null && ! command -v python3 &> /dev/null; then
+if ! command -v python &>/dev/null && ! command -v python3 &>/dev/null; then
     print_error "Python is not installed or not in PATH"
     exit 1
 fi
 
 # Use python3 if python is not available
 PYTHON_CMD="python"
-if ! command -v python &> /dev/null; then
+if ! command -v python &>/dev/null; then
     PYTHON_CMD="python3"
 fi
 
@@ -73,7 +73,7 @@ if [ -n "$BOT_PIDS" ]; then
     print_status "Stopping bot processes..."
     pkill -f "bot.py" || true
     sleep 3
-    
+
     # Check if processes are still running
     REMAINING_PIDS=$(pgrep -f "bot.py" || true)
     if [ -n "$REMAINING_PIDS" ]; then
@@ -109,11 +109,11 @@ git fetch origin master
 COMMITS_AHEAD=$(git rev-list --count HEAD..origin/master 2>/dev/null || echo "0")
 if [ "$COMMITS_AHEAD" -gt 0 ]; then
     print_status "Found $COMMITS_AHEAD new commits"
-    
+
     # Show recent commits
     print_status "Recent commits:"
     git log --oneline HEAD..origin/master | head -5
-    
+
     # Reset to match remote
     print_status "Resetting to match remote repository..."
     git reset --hard origin/master
@@ -149,7 +149,7 @@ cd "$BOT_DIR"
 
 # Create startup script
 STARTUP_SCRIPT="/tmp/start_bot.sh"
-cat > "$STARTUP_SCRIPT" << EOF
+cat >"$STARTUP_SCRIPT" <<EOF
 #!/bin/bash
 cd "$BOT_DIR"
 export PYTHONPATH="$SCRIPT_DIR:\$PYTHONPATH"
@@ -170,19 +170,19 @@ sleep 3
 # Check if bot started successfully
 if [ -f "bot.pid" ]; then
     BOT_PID=$(cat bot.pid)
-    if ps -p "$BOT_PID" > /dev/null 2>&1; then
+    if ps -p "$BOT_PID" >/dev/null 2>&1; then
         print_success "Bot started successfully with PID: $BOT_PID"
-        
+
         # Show recent log output
         if [ -f "bot.log" ]; then
             print_status "Recent bot output:"
             tail -10 bot.log
         fi
-        
+
         print_success "Deployment completed successfully!"
         print_status "Bot is now running with auto-update capabilities"
         print_status "Available commands: /update, /force_update, /restart, /status, /deploy"
-        
+
     else
         print_error "Bot failed to start (PID file exists but process not running)"
         if [ -f "bot.log" ]; then

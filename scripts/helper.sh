@@ -19,7 +19,7 @@ init_env() {
     : "${TOOLS_DIR:=${PWD}/tools}"
     : "${WORK_DIR:=${PWD}}"
     : "${BACKUP_DIR:=${WORK_DIR}/backup}"
-    : "${MAGISK_TEMPLATE_DIR:=magisk_module}"   # template dir for create_magisk_module
+    : "${MAGISK_TEMPLATE_DIR:=magisk_module}" # template dir for create_magisk_module
     mkdir -p "$BACKUP_DIR"
 }
 
@@ -28,9 +28,30 @@ init_env() {
 # ------------------------------
 # Logging helpers
 # ------------------------------
-log()  { printf "%s\n" "[INFO] $*" >&2; }
+# Enhanced logging functions
+log() { printf "%s\n" "[INFO] $*" >&2; }
 warn() { printf "%s\n" "[WARN] $*" >&2; }
-err()  { printf "%s\n" "[ERROR] $*" >&2; }
+err() { printf "%s\n" "[ERROR] $*" >&2; }
+
+# Progress indicator
+show_progress() {
+    local current="$1"
+    local total="$2"
+    local description="$3"
+    local percent=$((current * 100 / total))
+    printf "\r[%3d%%] %s" "$percent" "$description" >&2
+}
+
+# Timing functions
+start_timer() {
+    TIMER_START=$(date +%s)
+}
+
+end_timer() {
+    local TIMER_END=$(date +%s)
+    local duration=$((TIMER_END - TIMER_START))
+    log "Operation completed in ${duration}s"
+}
 
 # ------------------------------
 # Tool checks
@@ -111,7 +132,7 @@ decompile_jar() {
 }
 
 recompile_jar() {
-    local jar_file="$1"      # original jar file path (used only for name)
+    local jar_file="$1" # original jar file path (used only for name)
     local base_name
     base_name=$(basename "$jar_file" .jar)
     local output_dir="${WORK_DIR}/${base_name}_decompile"
@@ -139,10 +160,10 @@ find_smali_method_file() {
     local decompile_dir="$1"
     local method="$2"
     # returns first match (stdout)
-    find "$decompile_dir" -type f -name "*.smali" -print0 \
-      | xargs -0 grep -l -- ".method" 2>/dev/null \
-      | xargs -r -I{} sh -c "grep -q \"[[:space:]]*\\.method.*${method}\" \"{}\" && printf '%s\n' \"{}\"" \
-      | head -n1
+    find "$decompile_dir" -type f -name "*.smali" -print0 |
+        xargs -0 grep -l -- ".method" 2>/dev/null |
+        xargs -r -I{} sh -c "grep -q \"[[:space:]]*\\.method.*${method}\" \"{}\" && printf '%s\n' \"{}\"" |
+        head -n1
 }
 
 # ------------------------------
@@ -150,29 +171,44 @@ find_smali_method_file() {
 # ------------------------------
 add_static_return_patch() {
     local method="$1"
-    local ret_val="$2"           # expect hex nibble w/o 0x OR decimal (we assume hex nibble for const/4 usage)
+    local ret_val="$2" # expect hex nibble w/o 0x OR decimal (we assume hex nibble for const/4 usage)
     local decompile_dir="$3"
     local file
 
     [ -z "$method" ] || true
-    [ -z "$decompile_dir" ] && { err "add_static_return_patch: missing decompile_dir"; return 1; }
+    [ -z "$decompile_dir" ] && {
+        err "add_static_return_patch: missing decompile_dir"
+        return 1
+    }
 
     file=$(find_smali_method_file "$decompile_dir" "$method")
-    [ -z "$file" ] && { warn "Method $method not found in $decompile_dir"; return 0; }
+    [ -z "$file" ] && {
+        warn "Method $method not found in $decompile_dir"
+        return 0
+    }
 
     local start
     start=$(grep -n "^[[:space:]]*\.method.* ${method}" "$file" | cut -d: -f1 | head -n1)
-    [ -z "$start" ] && { warn "Method $method start not found"; return 0; }
+    [ -z "$start" ] && {
+        warn "Method $method start not found"
+        return 0
+    }
 
     local total_lines end=0 i="$start" line
-    total_lines=$(wc -l < "$file")
+    total_lines=$(wc -l <"$file")
     while [ "$i" -le "$total_lines" ]; do
         line=$(sed -n "${i}p" "$file")
-        [[ "$line" == *".end method"* ]] && { end="$i"; break; }
+        [[ "$line" == *".end method"* ]] && {
+            end="$i"
+            break
+        }
         i=$((i + 1))
     done
 
-    [ "$end" -eq 0 ] && { warn "End not found for $method in $file"; return 0; }
+    [ "$end" -eq 0 ] && {
+        warn "End not found for $method in $file"
+        return 0
+    }
 
     local method_head
     method_head=$(sed -n "${start}p" "$file")
@@ -194,24 +230,39 @@ patch_return_void_method() {
     local decompile_dir="$2"
     local file
 
-    [ -z "$decompile_dir" ] && { err "patch_return_void_method: missing decompile_dir"; return 1; }
+    [ -z "$decompile_dir" ] && {
+        err "patch_return_void_method: missing decompile_dir"
+        return 1
+    }
 
     file=$(find_smali_method_file "$decompile_dir" "$method")
-    [ -z "$file" ] && { warn "Method $method not found in $decompile_dir"; return 0; }
+    [ -z "$file" ] && {
+        warn "Method $method not found in $decompile_dir"
+        return 0
+    }
 
     local start
     start=$(grep -n "^[[:space:]]*\.method.* ${method}" "$file" | cut -d: -f1 | head -n1)
-    [ -z "$start" ] && { warn "Method $method start not found"; return 0; }
+    [ -z "$start" ] && {
+        warn "Method $method start not found"
+        return 0
+    }
 
     local total_lines end=0 i="$start" line
-    total_lines=$(wc -l < "$file")
+    total_lines=$(wc -l <"$file")
     while [ "$i" -le "$total_lines" ]; do
         line=$(sed -n "${i}p" "$file")
-        [[ "$line" == *".end method"* ]] && { end="$i"; break; }
+        [[ "$line" == *".end method"* ]] && {
+            end="$i"
+            break
+        }
         i=$((i + 1))
     done
 
-    [ "$end" -eq 0 ] && { warn "Method $method end not found"; return 0; }
+    [ "$end" -eq 0 ] && {
+        warn "Method $method end not found"
+        return 0
+    }
 
     local method_head
     method_head=$(sed -n "${start}p" "$file")
@@ -234,7 +285,10 @@ modify_invoke_custom_methods() {
     local smali_files
     smali_files=$(find "$decompile_dir" -type f -name "*.smali" -print0 2>/dev/null | xargs -0 grep -l "invoke-custom" 2>/dev/null || true)
 
-    [ -z "$smali_files" ] && { log "No invoke-custom found"; return 0; }
+    [ -z "$smali_files" ] && {
+        log "No invoke-custom found"
+        return 0
+    }
 
     local count=0
     for smali_file in $smali_files; do
@@ -280,13 +334,19 @@ patch_return_void_methods_all() {
     local method_name="$1"
     local decompile_dir="$2"
 
-    [ -z "$decompile_dir" ] && { err "patch_return_void_methods_all: missing decompile_dir"; return 1; }
+    [ -z "$decompile_dir" ] && {
+        err "patch_return_void_methods_all: missing decompile_dir"
+        return 1
+    }
 
     # Find all files containing the method
     local files
     files=$(find "$decompile_dir" -type f -name "*.smali" -exec grep -l "^[[:space:]]*\\.method.*${method_name}" {} + 2>/dev/null || true)
 
-    [ -z "$files" ] && { warn "No occurrences of ${method_name} found in $decompile_dir"; return 0; }
+    [ -z "$files" ] && {
+        warn "No occurrences of ${method_name} found in $decompile_dir"
+        return 0
+    }
 
     local file
     for file in $files; do
@@ -297,17 +357,23 @@ patch_return_void_methods_all() {
         [ -z "$starts" ] && continue
 
         local start end total_lines i line method_head method_head_escaped
-        total_lines=$(wc -l < "$file")
+        total_lines=$(wc -l <"$file")
 
         for start in $starts; do
             end=0
             i="$start"
             while [ "$i" -le "$total_lines" ]; do
                 line=$(sed -n "${i}p" "$file")
-                [[ "$line" == *".end method"* ]] && { end="$i"; break; }
+                [[ "$line" == *".end method"* ]] && {
+                    end="$i"
+                    break
+                }
                 i=$((i + 1))
             done
-            [ "$end" -eq 0 ] && { warn "End not found for ${method_name} in $file (start $start)"; continue; }
+            [ "$end" -eq 0 ] && {
+                warn "End not found for ${method_name} in $file (start $start)"
+                continue
+            }
 
             method_head=$(sed -n "${start}p" "$file")
             method_head_escaped=$(printf "%s\n" "$method_head" | sed 's/\\/\\\\/g')
@@ -337,12 +403,19 @@ create_module() {
 
     local build_dir="build_module"
     rm -rf "$build_dir"
-    
+
     # Copy MMT-Extended template
     cp -r "templates/mmt-extended" "$build_dir" || {
         err "MMT-Extended template not found: templates/mmt-extended"
         return 1
     }
+
+    # Clean up unnecessary files from MMT-Extended template
+    rm -f "$build_dir/.git" "$build_dir/.gitignore" "$build_dir/.gitattributes"
+    rm -f "$build_dir/README.md" "$build_dir/changelog.md" "$build_dir/LICENSE"
+    rm -f "$build_dir/update.json" "$build_dir/install.zip"
+    rm -rf "$build_dir/common/addon" "$build_dir/zygisk"
+    rm -f "$build_dir/system/placeholder" "$build_dir/common/addon/placeholder" "$build_dir/zygisk/placeholder"
 
     # Update module.prop for universal compatibility
     local module_prop="$build_dir/module.prop"
@@ -354,17 +427,20 @@ create_module() {
         sed -i "s/^versionCode=.*/versionCode=$version_name/" "$module_prop"
         sed -i "s/^author=.*/author=Jᴇғɪɴᴏ ⚝/" "$module_prop"
         sed -i "s/^description=.*/description=Framework patcher compatible with Magisk, KernelSU (KSU), and SUFS. Patched using jefino9488.github.io\/FrameworkPatcherV2/" "$module_prop"
-        
+
+        # Remove updateJson line
+        sed -i "/^updateJson=/d" "$module_prop"
+
         # Add universal compatibility properties
-        echo "minMagisk=20400" >> "$module_prop"
-        echo "ksu=1" >> "$module_prop"
-        echo "minKsu=10904" >> "$module_prop"
-        echo "sufs=1" >> "$module_prop"
-        echo "minSufs=10000" >> "$module_prop"
-        echo "minApi=34" >> "$module_prop"
-        echo "maxApi=34" >> "$module_prop"
-        echo "requireReboot=true" >> "$module_prop"
-        echo "support=https://t.me/Jefino9488" >> "$module_prop"
+        echo "minMagisk=20400" >>"$module_prop"
+        echo "ksu=1" >>"$module_prop"
+        echo "minKsu=10904" >>"$module_prop"
+        echo "sufs=1" >>"$module_prop"
+        echo "minSufs=10000" >>"$module_prop"
+        echo "minApi=34" >>"$module_prop"
+        echo "maxApi=34" >>"$module_prop"
+        echo "requireReboot=true" >>"$module_prop"
+        echo "support=https://t.me/Jefino9488" >>"$module_prop"
     fi
 
     # Update customize.sh with framework replacements
@@ -393,12 +469,12 @@ REPLACE="\
     local zip_name="Framework-Patcher-${device_name}-${safe_version}.zip"
 
     if command -v 7z >/dev/null 2>&1; then
-        (cd "$build_dir" && 7z a -tzip "../$zip_name" "*" > /dev/null) || {
+        (cd "$build_dir" && 7z a -tzip "../$zip_name" "*" >/dev/null) || {
             err "7z failed to create $zip_name"
             return 1
         }
     elif command -v zip >/dev/null 2>&1; then
-        (cd "$build_dir" && zip -r "../$zip_name" . > /dev/null) || {
+        (cd "$build_dir" && zip -r "../$zip_name" . >/dev/null) || {
             err "zip failed to create $zip_name"
             return 1
         }

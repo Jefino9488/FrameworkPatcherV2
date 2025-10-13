@@ -1,3 +1,5 @@
+# Framework Patcher V2 - Git Ignore
+
 # Dependencies
 node_modules/
 npm-debug.log*
@@ -82,4 +84,61 @@ jspm_packages/
 
 # TernJS port file
 .tern-port
+
+# Framework Patcher specific
+# Temporary files
+*.tmp
+*.temp
+
+# Build artifacts
+build_module/
+*_decompile/
+*_patched.jar
+Framework-Patcher-*.zip
+
+# Backup files
+backup/
+*.bak
+*.backup
+
+# Test files
+test_*.jar
+dummy_*.jar
+
+# Large files (except tools)
+*.jar
+!tools/apktool.jar
+
+# Session files
+*.session
 /bot/FrameworkPatcherBot.session
+
+# Temporary directories
+tmp/
+temp/
+
+# Python (if any Python scripts are added)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/

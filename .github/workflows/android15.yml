@@ -42,18 +42,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Verify MMT-Extended submodule
-        run: |
-          if [ ! -d "templates/mmt-extended" ]; then
-            echo "❌ MMT-Extended submodule not found!"
-            echo "Available templates:"
-            ls -la templates/ || echo "No templates directory"
-            exit 1
-          fi
-          echo "✅ MMT-Extended submodule found"
-          echo "Template contents:"
-          ls -la templates/mmt-extended/
-
       - name: Install dependencies
         run: |
           sudo apt-get update

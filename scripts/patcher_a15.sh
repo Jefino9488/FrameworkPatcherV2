@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Set up environment variables for GitHub workflow
 TOOLS_DIR="$(pwd)/tools"
 WORK_DIR="$(pwd)"
@@ -30,8 +29,6 @@ decompile_jar() {
     cp -r "$BACKUP_DIR/$base_name/META-INF" "$output_dir/unknown/" 2>/dev/null
 }
 
-
-
 # Function to recompile JAR file
 recompile_jar() {
     local jar_file="$1"
@@ -59,17 +56,26 @@ add_static_return_patch() {
 
     local start
     start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n1)
-    [ -z "$start" ] && { echo "Method $method not found"; return; }
+    [ -z "$start" ] && {
+        echo "Method $method not found"
+        return
+    }
 
     local total_lines end=0 i="$start"
-    total_lines=$(wc -l < "$file")
+    total_lines=$(wc -l <"$file")
     while [ "$i" -le "$total_lines" ]; do
         line=$(sed -n "${i}p" "$file")
-        [[ "$line" == *".end method"* ]] && { end="$i"; break; }
+        [[ "$line" == *".end method"* ]] && {
+            end="$i"
+            break
+        }
         i=$((i + 1))
     done
 
-    [ "$end" -eq 0 ] && { echo "End not found for $method"; return; }
+    [ "$end" -eq 0 ] && {
+        echo "End not found for $method"
+        return
+    }
 
     local method_head
     method_head=$(sed -n "${start}p" "$file")
@@ -92,21 +98,33 @@ patch_return_void_method() {
     local file
 
     file=$(find "$decompile_dir" -type f -name "*.smali" | xargs grep -l ".method.* $method" 2>/dev/null | head -n 1)
-    [ -z "$file" ] && { echo "Method $method not found"; return; }
+    [ -z "$file" ] && {
+        echo "Method $method not found"
+        return
+    }
 
     local start
     start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n1)
-    [ -z "$start" ] && { echo "Method $method start not found"; return; }
+    [ -z "$start" ] && {
+        echo "Method $method start not found"
+        return
+    }
 
     local total_lines end=0 i="$start"
-    total_lines=$(wc -l < "$file")
+    total_lines=$(wc -l <"$file")
     while [ "$i" -le "$total_lines" ]; do
         line=$(sed -n "${i}p" "$file")
-        [[ "$line" == *".end method"* ]] && { end="$i"; break; }
+        [[ "$line" == *".end method"* ]] && {
+            end="$i"
+            break
+        }
         i=$((i + 1))
     done
 
-    [ "$end" -eq 0 ] && { echo "Method $method end not found"; return; }
+    [ "$end" -eq 0 ] && {
+        echo "Method $method end not found"
+        return
+    }
 
     local method_head
     method_head=$(sed -n "${start}p" "$file")
@@ -129,7 +147,10 @@ modify_invoke_custom_methods() {
     local smali_files
     smali_files=$(grep -rl "invoke-custom" "$decompile_dir" --include="*.smali" 2>/dev/null)
 
-    [ -z "$smali_files" ] && { echo "No invoke-custom found"; return; }
+    [ -z "$smali_files" ] && {
+        echo "No invoke-custom found"
+        return
+    }
 
     for smali_file in $smali_files; do
         echo "Modifying: $smali_file"
@@ -536,10 +557,13 @@ checkCapabilityRecover(Landroid/content/pm/PackageParser\$SigningDetails;I)Z"
         if [ -n "$starts" ]; then
             for start in $starts; do
                 local total_lines end=0 i="$start"
-                total_lines=$(wc -l < "$file")
+                total_lines=$(wc -l <"$file")
                 while [ "$i" -le "$total_lines" ]; do
                     line=$(sed -n "${i}p" "$file")
-                    [[ "$line" == *".end method"* ]] && { end="$i"; break; }
+                    [[ "$line" == *".end method"* ]] && {
+                        end="$i"
+                        break
+                    }
                     i=$((i + 1))
                 done
 

@@ -12,12 +12,19 @@ create_module() {
 
     local build_dir="build_module"
     rm -rf "$build_dir"
-    
+
     # Copy MMT-Extended template
     cp -r "templates/mmt-extended" "$build_dir" || {
         err "MMT-Extended template not found: templates/mmt-extended"
         return 1
     }
+
+    # Clean up unnecessary files from MMT-Extended template
+    rm -f "$build_dir/.git" "$build_dir/.gitignore" "$build_dir/.gitattributes"
+    rm -f "$build_dir/README.md" "$build_dir/changelog.md" "$build_dir/LICENSE"
+    rm -f "$build_dir/update.json" "$build_dir/install.zip"
+    rm -rf "$build_dir/common/addon" "$build_dir/zygisk"
+    rm -f "$build_dir/system/placeholder" "$build_dir/common/addon/placeholder" "$build_dir/zygisk/placeholder"
 
     # Update module.prop for universal compatibility
     local module_prop="$build_dir/module.prop"
@@ -29,17 +36,20 @@ create_module() {
         sed -i "s/^versionCode=.*/versionCode=$version_name/" "$module_prop"
         sed -i "s/^author=.*/author=Jᴇғɪɴᴏ ⚝/" "$module_prop"
         sed -i "s/^description=.*/description=Framework patcher compatible with Magisk, KernelSU (KSU), and SUFS. Patched using jefino9488.github.io\/FrameworkPatcherV2/" "$module_prop"
-        
+
+        # Remove updateJson line
+        sed -i "/^updateJson=/d" "$module_prop"
+
         # Add universal compatibility properties
-        echo "minMagisk=20400" >> "$module_prop"
-        echo "ksu=1" >> "$module_prop"
-        echo "minKsu=10904" >> "$module_prop"
-        echo "sufs=1" >> "$module_prop"
-        echo "minSufs=10000" >> "$module_prop"
-        echo "minApi=34" >> "$module_prop"
-        echo "maxApi=34" >> "$module_prop"
-        echo "requireReboot=true" >> "$module_prop"
-        echo "support=https://t.me/Jefino9488" >> "$module_prop"
+        echo "minMagisk=20400" >>"$module_prop"
+        echo "ksu=1" >>"$module_prop"
+        echo "minKsu=10904" >>"$module_prop"
+        echo "sufs=1" >>"$module_prop"
+        echo "minSufs=10000" >>"$module_prop"
+        echo "minApi=34" >>"$module_prop"
+        echo "maxApi=34" >>"$module_prop"
+        echo "requireReboot=true" >>"$module_prop"
+        echo "support=https://t.me/Jefino9488" >>"$module_prop"
     fi
 
     # Update customize.sh with framework replacements
@@ -68,12 +78,12 @@ REPLACE="\
     local zip_name="Framework-Patcher-${device_name}-${safe_version}.zip"
 
     if command -v 7z >/dev/null 2>&1; then
-        (cd "$build_dir" && 7z a -tzip "../$zip_name" "*" > /dev/null) || {
+        (cd "$build_dir" && 7z a -tzip "../$zip_name" "*" >/dev/null) || {
             err "7z failed to create $zip_name"
             return 1
         }
     elif command -v zip >/dev/null 2>&1; then
-        (cd "$build_dir" && zip -r "../$zip_name" . > /dev/null) || {
+        (cd "$build_dir" && zip -r "../$zip_name" . >/dev/null) || {
             err "zip failed to create $zip_name"
             return 1
         }

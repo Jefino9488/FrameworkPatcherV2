@@ -15,7 +15,7 @@ insert_line_before_all() {
     local pattern="$2"
     local new_line="$3"
 
-    python3 - <<'PY' "$file" "$pattern" "$new_line"
+    python3 - "$file" "$pattern" "$new_line" <<'PY'
 from pathlib import Path
 import re
 import sys
@@ -81,7 +81,7 @@ insert_const_before_condition_near_string() {
     local register="$4"
     local value="$5"
 
-    python3 - <<'PY' "$file" "$search_string" "$condition_prefix" "$register" "$value"
+    python3 - "$file" "$search_string" "$condition_prefix" "$register" "$value" <<'PY'
 from pathlib import Path
 import re
 import sys
@@ -145,7 +145,7 @@ replace_move_result_after_invoke() {
     local invoke_pattern="$2"
     local replacement="$3"
 
-    python3 - <<'PY' "$file" "$invoke_pattern" "$replacement"
+    python3 - "$file" "$invoke_pattern" "$replacement" <<'PY'
 from pathlib import Path
 import re
 import sys
@@ -224,7 +224,7 @@ force_methods_return_const() {
         return 0
     fi
 
-    python3 - <<'PY' "$file" "$method_substring" "$ret_val"
+    python3 - "$file" "$method_substring" "$ret_val" <<'PY'
 from pathlib import Path
 import sys
 
@@ -306,7 +306,7 @@ PY
 replace_if_block_in_strict_jar_file() {
     local file="$1"
 
-    python3 - <<'PY' "$file"
+    python3 - "$file" <<'PY'
 from pathlib import Path
 import re
 import sys
@@ -369,7 +369,7 @@ PY
 patch_reconcile_clinit() {
     local file="$1"
 
-    python3 - <<'PY' "$file"
+    python3 - "$file" <<'PY'
 from pathlib import Path
 import sys
 
@@ -420,7 +420,7 @@ ensure_const_before_if_for_register() {
     local register="$4"
     local value="$5"
 
-    python3 - <<'PY' "$file" "$invoke_pattern" "$condition_prefix" "$register" "$value"
+    python3 - "$file" "$invoke_pattern" "$condition_prefix" "$register" "$value" <<'PY'
 from pathlib import Path
 import re
 import sys
@@ -632,7 +632,10 @@ patch_services() {
         local cand
         for d in "$decompile_dir/classes" "$decompile_dir/classes2" "$decompile_dir/classes3" "$decompile_dir/classes4"; do
             cand="$d/$rel"
-            [ -f "$cand" ] && { printf "%s\n" "$cand"; return 0; }
+            [ -f "$cand" ] && {
+                printf "%s\n" "$cand"
+                return 0
+            }
         done
         # fallback to find to be safe
         find "$decompile_dir" -type f -path "*/$rel" | head -n1
@@ -691,8 +694,8 @@ patch_services() {
     # Emit robust verification logs for CI (avoid brittle hardcoded file paths)
     log "[VERIFY] services: locating isLeavingSharedUser invoke (context)"
     grep -R -n --include='*.smali' \
-      'invoke-interface {p5}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z' \
-      "$decompile_dir" | head -n 1 || true
+        'invoke-interface {p5}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z' \
+        "$decompile_dir" | head -n 1 || true
 
     log "[VERIFY] services: verifySignatures/compareSignatures/matchSignaturesCompat presence"
     grep -R -n --include='*.smali' '^[[:space:]]*\\.method.* verifySignatures' "$decompile_dir" | head -n 1 || true
