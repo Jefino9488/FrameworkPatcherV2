@@ -2,15 +2,14 @@
 const CONFIG = {
     githubOwner: 'jefino9488',
     githubRepo: 'FrameworkPatcherV2',
-    githubToken: 'ghp_11AVKPXIQ0emw7ct8w4o80_F0zEoSMpUzHMCCrxs8gfc8ZZOPzzYjAIiIPakvBJiaeUE3KA3YGvFj6ChnB', // Your GitHub PAT
+    // Token is now handled server-side via API route
     workflows: {
         android15: 'android15.yml',
         android16: 'android16.yml'
     }
 };
 
-// Initialize Octokit (will be done after Octokit is loaded)
-let octokit;
+// No longer need Octokit - using secure API route instead
 
 // DOM Elements
 let currentVersion = 'android15';
@@ -19,39 +18,11 @@ const formContainers = document.querySelectorAll('.form-container');
 const a15Form = document.getElementById('a15-form');
 const a16Form = document.getElementById('a16-form');
 
-// Initialize Octokit when available
-function initializeOctokit() {
-    if (window.Octokit && !octokit) {
-        octokit = new window.Octokit({
-            auth: CONFIG.githubToken,
-        });
-        console.log('Octokit initialized successfully');
-    }
-}
+// Octokit initialization no longer needed - using secure API route
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function () {
-    // Try to initialize Octokit immediately
-    initializeOctokit();
-
-    // If not available, poll until it's loaded
-    if (!octokit) {
-        const pollOctokit = setInterval(() => {
-            initializeOctokit();
-            if (octokit) {
-                clearInterval(pollOctokit);
-                console.log('Octokit loaded and initialized');
-            }
-        }, 500);
-
-        // Stop polling after 10 seconds
-        setTimeout(() => {
-            clearInterval(pollOctokit);
-            if (!octokit) {
-                console.error('Octokit failed to load after 10 seconds');
-            }
-        }, 10000);
-    }
+    console.log('Framework Patcher initialized - using secure API route');
     
     initializeVersionSelector();
     initializeForms();
@@ -142,64 +113,38 @@ async function handleFormSubmit(version, form) {
     }
 }
 
-// Direct workflow trigger using Octokit (same as React example)
+// Trigger workflow via secure API route
 async function triggerWorkflow(version, inputs) {
     try {
-        // Check if Octokit is available
-        if (!octokit) {
-            initializeOctokit();
-            if (!octokit) {
-                throw new Error('Octokit library not loaded. Please refresh the page.');
-            }
-        }
+        console.log('Triggering workflow via API route:', version, inputs);
 
-        const workflowFile = CONFIG.workflows[version];
-
-        // Prepare workflow inputs
-        const workflowInputs = {
-            api_level: inputs.api_level,
-            device_name: inputs.device_name,
-            version_name: inputs.version_name,
-            framework_url: inputs.framework_url,
-            services_url: inputs.services_url,
-            miui_services_url: inputs.miui_services_url,
-        };
-
-        // Add optional user_id if provided
-        if (inputs.user_id) {
-            workflowInputs.user_id = inputs.user_id;
-        }
-
-        console.log('Triggering workflow:', workflowFile, workflowInputs);
-
-        // Trigger the workflow using Octokit (exact same as React example)
-        const response = await octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
-            owner: CONFIG.githubOwner,
-            repo: CONFIG.githubRepo,
-            workflow_id: workflowFile,
-            ref: 'master',
-            inputs: workflowInputs,
+        // Call our secure API route instead of direct GitHub API
+        const response = await fetch('/api/trigger-workflow', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                version: version,
+                inputs: inputs
+            })
         });
 
-        if (response.status === 204) {
-            console.log('Workflow triggered successfully');
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            console.log('Workflow triggered successfully via API');
             return true;
         } else {
-            console.error('Error triggering GitHub Action:', response.status);
-            throw new Error(`GitHub API returned status: ${response.status}`);
+            console.error('API route error:', result);
+            throw new Error(result.error || 'Failed to trigger workflow');
         }
 
     } catch (error) {
         console.error('Workflow trigger error:', error);
 
-        // Handle specific GitHub API errors
-        if (error.status === 401) {
-            throw new Error('Invalid GitHub Personal Access Token. Please check your token and try again.');
-        } else if (error.status === 403) {
-            throw new Error('Access denied. Make sure your token has the required permissions (repo, workflow).');
-        } else if (error.status === 404) {
-            throw new Error('Workflow not found. Please check if the workflow file exists.');
-        } else if (error.message.includes('NetworkError')) {
+        // Handle specific error types
+        if (error.message.includes('fetch')) {
             throw new Error('Network error. Please check your internet connection and try again.');
         } else {
             throw new Error(`Failed to trigger workflow: ${error.message}`);
