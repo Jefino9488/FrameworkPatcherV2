@@ -6,7 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "dev": "vercel dev",
-    "build": "node scripts/build.js",
+    "build": "echo 'No build step needed - using static files'",
     "start": "vercel dev"
   },
   "dependencies": {},
