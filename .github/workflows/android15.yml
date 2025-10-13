@@ -39,10 +39,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
-      - name: Setup environment
+      - name: Verify MMT-Extended submodule
         run: |
-          mkdir -p {framework,services,miui_services,tools}_decompile
+          if [ ! -d "templates/mmt-extended" ]; then
+            echo "❌ MMT-Extended submodule not found!"
+            echo "Available templates:"
+            ls -la templates/ || echo "No templates directory"
+            exit 1
+          fi
+          echo "✅ MMT-Extended submodule found"
+          echo "Template contents:"
+          ls -la templates/mmt-extended/
 
       - name: Install dependencies
         run: |
@@ -81,14 +91,19 @@ jobs:
             "${{ github.event.inputs.version_name }}" \
             --framework --services --miui-services
 
-      - name: Set Release Info
-        id: release_info
+      - name: Verify module creation
         run: |
-          # Format version name to be git tag friendly (replace spaces and dots with hyphens)
-          SAFE_VERSION=$(echo "${{ github.event.inputs.version_name }}" | sed 's/[. ]/-/g')
-          RELEASE_TAG="${{ github.event.inputs.device_name }}_${SAFE_VERSION}"
-          echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
-          echo "name=Framework Patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }})" >> $GITHUB_OUTPUT
+          echo "Checking if module was created properly..."
+          MODULE_FILE=$(ls Framework-Patcher-${{ github.event.inputs.device_name }}*.zip 2>/dev/null || echo "")
+          if [ -z "$MODULE_FILE" ]; then
+            echo "❌ No module ZIP found!"
+            exit 1
+          fi
+          echo "✅ Module ZIP found: $MODULE_FILE"
+          echo "Module contents:"
+          unzip -l "$MODULE_FILE" | head -20
+          echo "Checking for MMT-Extended files:"
+          unzip -l "$MODULE_FILE" | grep -E "(module\.prop|customize\.sh|common/functions\.sh|META-INF)" || echo "❌ Missing MMT-Extended files"
 
       - name: Find Module ZIP
         id: find_zip

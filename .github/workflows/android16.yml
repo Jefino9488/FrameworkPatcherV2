@@ -40,12 +40,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          submodules: recursive
+
+      - name: Verify MMT-Extended submodule
+        run: |
+          if [ ! -d "templates/mmt-extended" ]; then
+            echo "❌ MMT-Extended submodule not found!"
+            echo "Available templates:"
+            ls -la templates/ || echo "No templates directory"
+            exit 1
+          fi
+          echo "✅ MMT-Extended submodule found"
+          echo "Template contents:"
+          ls -la templates/mmt-extended/
 
       - name: Install system dependencies
         run: |
@@ -74,10 +82,19 @@ jobs:
             "${{ github.event.inputs.version_name }}" \
             --framework --services --miui-services
 
-      - name: List generated artifacts
+      - name: Verify module creation
         run: |
-          echo "Generated files:"
-          ls -R | grep -E 'patched\.jar$|Framework-Patcher-'
+          echo "Checking if module was created properly..."
+          MODULE_FILE=$(ls Framework-Patcher-${{ github.event.inputs.device_name }}*.zip 2>/dev/null || echo "")
+          if [ -z "$MODULE_FILE" ]; then
+            echo "❌ No module ZIP found!"
+            exit 1
+          fi
+          echo "✅ Module ZIP found: $MODULE_FILE"
+          echo "Module contents:"
+          unzip -l "$MODULE_FILE" | head -20
+          echo "Checking for MMT-Extended files:"
+          unzip -l "$MODULE_FILE" | grep -E "(module\.prop|customize\.sh|common/functions\.sh|META-INF)" || echo "❌ Missing MMT-Extended files"
 
       - name: Set Release Info
         id: release_info
