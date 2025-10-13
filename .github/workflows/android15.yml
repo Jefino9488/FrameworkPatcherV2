@@ -93,6 +93,15 @@ jobs:
           echo "Checking for MMT-Extended files:"
           unzip -l "$MODULE_FILE" | grep -E "(module\.prop|customize\.sh|common/functions\.sh|META-INF)" || echo "❌ Missing MMT-Extended files"
 
+      - name: Set Release Info
+        id: release_info
+        run: |
+          # Format version name to be git tag friendly (replace spaces and dots with hyphens)
+          SAFE_VERSION=$(echo "${{ github.event.inputs.version_name }}" | sed 's/[. ]/-/g')
+          RELEASE_TAG="${{ github.event.inputs.device_name }}_${SAFE_VERSION}"
+          echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "name=Android 15 Framework Patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }})" >> $GITHUB_OUTPUT
+
       - name: Find Module ZIP
         id: find_zip
         run: |
@@ -144,7 +153,7 @@ jobs:
       - name: Generate Release Body
         id: generate_release_body
         run: |
-          BODY="Framework Patcher for ${{ github.event.inputs.device_name }}
+          BODY="Android 15 Framework Patcher for ${{ github.event.inputs.device_name }}
           Version: ${{ github.event.inputs.version_name }}
           Android API: ${{ github.event.inputs.api_level }}
 
@@ -186,7 +195,7 @@ jobs:
           VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
           API_LEVEL_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.api_level }}")
 
-          MESSAGE=$(printf "Framework patch is ready for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`\n\nModule compatible with Magisk, KSU, and SUFS" \
+          MESSAGE=$(printf "Android 15 framework patch is ready for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`\n\nModule compatible with Magisk, KSU, and SUFS" \
             "$DEVICE_NAME_ESCAPED" \
             "$VERSION_NAME_ESCAPED" \
             "$API_LEVEL_ESCAPED")
@@ -212,7 +221,7 @@ jobs:
           VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
           WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
-          MESSAGE=$(printf "Framework patch failed for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n\nPlease check the workflow logs for more details." \
+          MESSAGE=$(printf "Android 15 framework patch failed for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n\nPlease check the workflow logs for more details." \
             "$DEVICE_NAME_ESCAPED" \
             "$VERSION_NAME_ESCAPED")
 
