@@ -153,7 +153,7 @@ replace_entire_method() {
     local method_signature="$1"
     local decompile_dir="$2"
     local new_method_body="$3"
-    local specific_class="$4"  # Optional: specific class name to search in
+    local specific_class="$4" # Optional: specific class name to search in
     local file
 
     # If specific class provided, search in that class file
