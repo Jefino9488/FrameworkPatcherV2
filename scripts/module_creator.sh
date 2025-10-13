@@ -19,15 +19,6 @@ create_module() {
         return 1
     }
 
-    # Create required directories
-    mkdir -p "$build_dir/system/framework"
-    mkdir -p "$build_dir/system/system_ext/framework"
-
-    # Copy patched files
-    [ -f "framework_patched.jar" ] && cp "framework_patched.jar" "$build_dir/system/framework/framework.jar"
-    [ -f "services_patched.jar" ] && cp "services_patched.jar" "$build_dir/system/framework/services.jar"
-    [ -f "miui-services_patched.jar" ] && cp "miui-services_patched.jar" "$build_dir/system/system_ext/framework/miui-services.jar"
-
     # Update module.prop for universal compatibility
     local module_prop="$build_dir/module.prop"
     if [ -f "$module_prop" ]; then
@@ -54,12 +45,23 @@ create_module() {
     # Update customize.sh with framework replacements
     local customize_sh="$build_dir/customize.sh"
     if [ -f "$customize_sh" ]; then
-        # Add framework replacements
-        sed -i '/^REPLACE="/a\
+        # Replace the empty REPLACE section with our framework files
+        sed -i '/^REPLACE="/,/^"/c\
+REPLACE="\
 /system/framework/framework.jar\
 /system/framework/services.jar\
-/system/system_ext/framework/miui-services.jar' "$customize_sh"
+/system/system_ext/framework/miui-services.jar\
+"' "$customize_sh"
     fi
+
+    # Create required directories and copy patched files
+    mkdir -p "$build_dir/system/framework"
+    mkdir -p "$build_dir/system/system_ext/framework"
+
+    # Copy patched files
+    [ -f "framework_patched.jar" ] && cp "framework_patched.jar" "$build_dir/system/framework/framework.jar"
+    [ -f "services_patched.jar" ] && cp "services_patched.jar" "$build_dir/system/framework/services.jar"
+    [ -f "miui-services_patched.jar" ] && cp "miui-services_patched.jar" "$build_dir/system/system_ext/framework/miui-services.jar"
 
     # Create module zip
     local safe_version=$(printf "%s" "$version_name" | sed 's/[. ]/-/g')
