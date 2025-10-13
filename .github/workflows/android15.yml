@@ -32,6 +32,21 @@ on:
         description: 'Telegram User ID to notify (optional)'
         required: false
         type: string
+      enable_signature_bypass:
+        description: 'Enable signature verification bypass'
+        required: false
+        type: boolean
+        default: true
+      enable_cn_notification_fix:
+        description: 'Enable CN notification fix'
+        required: false
+        type: boolean
+        default: false
+      enable_disable_secure_flag:
+        description: 'Enable disable secure flag'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   patch:
@@ -73,11 +88,29 @@ jobs:
       - name: Patch JARs and Create Module
         run: |
           chmod +x scripts/patcher_a15.sh
+          
+          # Build feature flags
+          FEATURE_FLAGS=""
+          if [ "${{ github.event.inputs.enable_signature_bypass }}" = "true" ]; then
+            FEATURE_FLAGS="$FEATURE_FLAGS --disable-signature-verification"
+          fi
+          if [ "${{ github.event.inputs.enable_cn_notification_fix }}" = "true" ]; then
+            FEATURE_FLAGS="$FEATURE_FLAGS --cn-notification-fix"
+          fi
+          if [ "${{ github.event.inputs.enable_disable_secure_flag }}" = "true" ]; then
+            FEATURE_FLAGS="$FEATURE_FLAGS --disable-secure-flag"
+          fi
+          
+          # If no features selected, default to signature bypass for backward compatibility
+          if [ -z "$FEATURE_FLAGS" ]; then
+            FEATURE_FLAGS="--disable-signature-verification"
+          fi
+          
           ./scripts/patcher_a15.sh \
             ${{ github.event.inputs.api_level }} \
             "${{ github.event.inputs.device_name }}" \
             "${{ github.event.inputs.version_name }}" \
-            --framework --services --miui-services
+            --framework --services --miui-services $FEATURE_FLAGS
 
       - name: Verify module creation
         run: |
@@ -153,6 +186,21 @@ jobs:
       - name: Generate Release Body
         id: generate_release_body
         run: |
+          # Build features list
+          FEATURES=""
+          if [ "${{ github.event.inputs.enable_signature_bypass }}" = "true" ]; then
+            FEATURES="$FEATURES\n  ✓ Signature Verification Bypass"
+          fi
+          if [ "${{ github.event.inputs.enable_cn_notification_fix }}" = "true" ]; then
+            FEATURES="$FEATURES\n  ✓ CN Notification Fix"
+          fi
+          if [ "${{ github.event.inputs.enable_disable_secure_flag }}" = "true" ]; then
+            FEATURES="$FEATURES\n  ✓ Disable Secure Flag"
+          fi
+          if [ -z "$FEATURES" ]; then
+            FEATURES="\n  ✓ Signature Verification Bypass (default)"
+          fi
+          
           BODY="Android 15 Framework Patcher for ${{ github.event.inputs.device_name }}
           Version: ${{ github.event.inputs.version_name }}
           Android API: ${{ github.event.inputs.api_level }}
@@ -161,6 +209,8 @@ jobs:
           - Automatically detects and works with your installed root solution
           - Single module for all root types
           - No need to choose between different module versions
+
+          Features Applied:$FEATURES
 
           Sources:
           - Framework: ${{ github.event.inputs.framework_url }}
