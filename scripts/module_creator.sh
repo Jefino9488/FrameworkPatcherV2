@@ -41,15 +41,17 @@ create_module() {
         sed -i "/^updateJson=/d" "$module_prop"
 
         # Add universal compatibility properties
-        echo "minMagisk=20400" >>"$module_prop"
-        echo "ksu=1" >>"$module_prop"
-        echo "minKsu=10904" >>"$module_prop"
-        echo "sufs=1" >>"$module_prop"
-        echo "minSufs=10000" >>"$module_prop"
-        echo "minApi=34" >>"$module_prop"
-        echo "maxApi=34" >>"$module_prop"
-        echo "requireReboot=true" >>"$module_prop"
-        echo "support=https://t.me/Jefino9488" >>"$module_prop"
+        {
+            echo "minMagisk=20400"
+            echo "ksu=1"
+            echo "minKsu=10904"
+            echo "sufs=1"
+            echo "minSufs=10000"
+            echo "minApi=34"
+            echo "maxApi=34"
+            echo "requireReboot=true"
+            echo "support=https://t.me/Jefino9488"
+        } >>"$module_prop"
     fi
 
     # Update customize.sh with framework replacements
@@ -74,7 +76,8 @@ REPLACE="\
     [ -f "miui-services_patched.jar" ] && cp "miui-services_patched.jar" "$build_dir/system/system_ext/framework/miui-services.jar"
 
     # Create module zip
-    local safe_version=$(printf "%s" "$version_name" | sed 's/[. ]/-/g')
+    local safe_version
+    safe_version=$(printf "%s" "$version_name" | sed 's/[. ]/-/g')
     local zip_name="Framework-Patcher-${device_name}-${safe_version}.zip"
 
     if command -v 7z >/dev/null 2>&1; then
