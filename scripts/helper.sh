@@ -326,37 +326,25 @@ ${method_head_escaped}\\
 }
 
 # ------------------------------
-# Multi-module creation (Magisk, KSU, SUFS)
+# Module creation using MMT-Extended template
 # ------------------------------
 create_module() {
     local api_level="$1"
     local device_name="$2"
     local version_name="$3"
-    local module_type="${4:-magisk}"  # Default to magisk if not specified
 
-    log "Creating $module_type module for $device_name (v$version_name)"
-
-    # Determine template directory based on module type
-    local template_dir
-    case "$module_type" in
-        "ksu")
-            template_dir="ksu_module"
-            ;;
-        "sufs")
-            template_dir="sufs_module"
-            ;;
-        "magisk"|*)
-            template_dir="magisk_module"
-            ;;
-    esac
+    log "Creating module using MMT-Extended for $device_name (v$version_name)"
 
     local build_dir="build_module"
     rm -rf "$build_dir"
-    cp -r "$template_dir" "$build_dir" || {
-        err "$module_type template not found: $template_dir"
+    
+    # Copy MMT-Extended template
+    cp -r "templates/mmt-extended" "$build_dir" || {
+        err "MMT-Extended template not found: templates/mmt-extended"
         return 1
     }
 
+    # Create required directories
     mkdir -p "$build_dir/system/framework"
     mkdir -p "$build_dir/system/system_ext/framework"
 
@@ -365,16 +353,42 @@ create_module() {
     [ -f "services_patched.jar" ] && cp "services_patched.jar" "$build_dir/system/framework/services.jar"
     [ -f "miui-services_patched.jar" ] && cp "miui-services_patched.jar" "$build_dir/system/system_ext/framework/miui-services.jar"
 
-    # edit module.prop if exists
+    # Update module.prop for universal compatibility
     local module_prop="$build_dir/module.prop"
     if [ -f "$module_prop" ]; then
-        sed -i "s/^version=.*/version=$version_name/" "$module_prop" || true
-        sed -i "s/^versionCode=.*/versionCode=$version_name/" "$module_prop" || true
+        # Update basic properties
+        sed -i "s/^id=.*/id=mod_frameworks/" "$module_prop"
+        sed -i "s/^name=.*/name=Framework Patch V2/" "$module_prop"
+        sed -i "s/^version=.*/version=$version_name/" "$module_prop"
+        sed -i "s/^versionCode=.*/versionCode=$version_name/" "$module_prop"
+        sed -i "s/^author=.*/author=Jᴇғɪɴᴏ ⚝/" "$module_prop"
+        sed -i "s/^description=.*/description=Framework patcher compatible with Magisk, KernelSU (KSU), and SUFS. Patched using jefino9488.github.io\/FrameworkPatcherV2/" "$module_prop"
+        
+        # Add universal compatibility properties
+        echo "minMagisk=20400" >> "$module_prop"
+        echo "ksu=1" >> "$module_prop"
+        echo "minKsu=10904" >> "$module_prop"
+        echo "sufs=1" >> "$module_prop"
+        echo "minSufs=10000" >> "$module_prop"
+        echo "minApi=34" >> "$module_prop"
+        echo "maxApi=34" >> "$module_prop"
+        echo "requireReboot=true" >> "$module_prop"
+        echo "support=https://t.me/Jefino9488" >> "$module_prop"
+    fi
+
+    # Update customize.sh with framework replacements
+    local customize_sh="$build_dir/customize.sh"
+    if [ -f "$customize_sh" ]; then
+        # Add framework replacements
+        sed -i '/^REPLACE="/a\
+/system/framework/framework.jar\
+/system/framework/services.jar\
+/system/system_ext/framework/miui-services.jar' "$customize_sh"
     fi
 
     local safe_version
     safe_version=$(printf "%s" "$version_name" | sed 's/[. ]/-/g')
-    local zip_name="Framework-Patcher-${device_name}-${safe_version}-${module_type}.zip"
+    local zip_name="Framework-Patcher-${device_name}-${safe_version}.zip"
 
     if command -v 7z >/dev/null 2>&1; then
         (cd "$build_dir" && 7z a -tzip "../$zip_name" "*" > /dev/null) || {
@@ -391,7 +405,7 @@ create_module() {
         return 1
     fi
 
-    log "Created $module_type module: $zip_name"
+    log "Created module: $zip_name"
     echo "$zip_name"
 }
 

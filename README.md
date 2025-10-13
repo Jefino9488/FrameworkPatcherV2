@@ -10,7 +10,8 @@ through the bot, which triggers a GitHub Actions workflow to create patched Magi
 - Automatic decompilation and recompilation of JAR files
 - Telegram-based interface for easy file submission
 - Automated framework patching using GitHub Actions
-- **Multi-module support**: Generates modules for Magisk, KernelSU (KSU), and SUFS
+- **Multi-platform module support**: Generates a single module compatible with Magisk, KernelSU (KSU), and SUFS using
+  MMT-Extended template
 - PixelDrain integration for file hosting
 - Telegram notifications for build status
 - Support for multiple Android versions (A13,A14) will be added in the future
@@ -28,10 +29,7 @@ through the bot, which triggers a GitHub Actions workflow to create patched Magi
 4. Provide device codename (e.g., `rothko`)
 5. Provide ROM version (e.g., `OS2.0.200.33`)
 6. The bot will trigger the patching process and notify you when complete
-7. Download your preferred module type from the GitHub release:
-    - **Magisk Module**: Traditional root solution (most compatible)
-    - **KernelSU Module (KSU)**: Kernel-based root solution (better security)
-    - **SUFS Module**: Alternative root solution
+7. Download the module from the GitHub release - it works with Magisk, KSU, and SUFS automatically
 
 ### Commands:
 
@@ -87,34 +85,52 @@ through the bot, which triggers a GitHub Actions workflow to create patched Magi
     - Decompiles using baksmali
     - Applies patches using Python scripts
     - Recompiles using smali
-   - Creates modules for all supported root solutions (Magisk, KSU, SUFS)
-   - Publishes GitHub release with all module types
+   - Creates a single module compatible with all root solutions using MMT-Extended template
+   - Publishes GitHub release with the module
 5. User receives Telegram notification with download link
 
-## Module Types
+## Module
 
-The Framework Patcher V2 generates modules for three different root solutions:
+The Framework Patcher V2 generates a **single module** using
+the [MMT-Extended](https://github.com/Zackptg5/MMT-Extended) template that automatically works with all root solutions:
 
-### Magisk Module
+### Multi-Platform Compatibility
 
-- **Compatibility**: Most Android devices with Magisk installed
-- **Installation**: Flash via Magisk Manager or custom recovery
-- **Features**: Traditional systemless root solution
-- **File naming**: `Framework-Patcher-{device}-{version}-magisk.zip`
+- **Magisk**: Traditional root solution (most compatible)
+- **KernelSU (KSU)**: Kernel-based root solution (better security)
+- **SUFS**: Alternative root solution
 
-### KernelSU Module (KSU)
+### Key Benefits
 
-- **Compatibility**: Devices with KernelSU kernel installed
-- **Installation**: Flash via KernelSU Manager
-- **Features**: Kernel-based root solution with enhanced security
-- **File naming**: `Framework-Patcher-{device}-{version}-ksu.zip`
+- **Single Download**: No need to choose between different module versions
+- **Automatic Detection**: Module automatically detects your installed root solution
+- **Multi-Platform Installation**: Works with any supported root manager
+- **Simplified Maintenance**: One module to maintain instead of multiple versions
 
-### SUFS Module
+### File Naming
 
-- **Compatibility**: Devices with SUFS root solution
-- **Installation**: Flash via SUFS Manager
-- **Features**: Alternative root solution with different architecture
-- **File naming**: `Framework-Patcher-{device}-{version}-sufs.zip`
+- **Module**: `Framework-Patcher-{device}-{version}.zip`
+
+### Installation
+
+Simply flash the module through your preferred root manager:
+
+- **Magisk Manager**: Install as ZIP
+- **KernelSU Manager**: Install as ZIP
+- **SUFS Manager**: Install as ZIP
+
+## Template Integration
+
+This project uses [MMT-Extended](https://github.com/Zackptg5/MMT-Extended) as a submodule for module creation.
+MMT-Extended provides:
+
+- **Multi-Platform Template**: Single template that works for both Magisk and KSU
+- **Advanced Features**: Extended functionality beyond basic templates
+- **KSU Support**: Built-in KernelSU compatibility
+- **Well-Maintained**: Actively maintained by Zackptg5
+- **GPL-2.0 License**: Compatible with this project
+
+The template is automatically configured for multi-platform compatibility during the build process.
 
 ## Support
 
@@ -130,6 +146,7 @@ For support contact: [@Jefino9488](https://t.me/Jefino9488)
 * [smali/baksmali](https://github.com/JesusFreke/smali) — DEX disassembler/assembler
 * [7-Zip](https://www.7-zip.org/) — File archiving utility
 * [CorePatch](https://github.com/LSPosed/CorePatch) — LSPosed module
+* [MMT-Extended](https://github.com/Zackptg5/MMT-Extended) — Unified Magisk/KSU module template
 
 **Services**
 

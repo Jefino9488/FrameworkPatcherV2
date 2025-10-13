@@ -712,75 +712,17 @@ patch_miui_services() {
     echo "Miui-services.jar patching completed."
 }
 
-# Function to create modules (Magisk, KSU, SUFS)
+# Source the module creator
+source "$(dirname "$0")/module_creator.sh"
+
+# Function to create module using MMT-Extended template
 create_modules() {
     local api_level="$1"
     local device_name="$2"
     local version_name="$3"
-    local module_types="${4:-magisk}"  # Default to magisk if not specified
 
-    echo "Creating modules for: $module_types"
-
-    # Split module types if multiple are specified
-    IFS=',' read -ra MODULE_TYPES <<< "$module_types"
-    
-    for module_type in "${MODULE_TYPES[@]}"; do
-        module_type=$(echo "$module_type" | tr -d ' ')  # Remove any whitespace
-        
-        echo "Creating $module_type module..."
-        
-        local build_dir="build_module"
-        if [ -d "$build_dir" ]; then
-            rm -rf "$build_dir"
-        fi
-
-        # Determine template directory based on module type
-        local template_dir
-        case "$module_type" in
-            "ksu")
-                template_dir="ksu_module"
-                ;;
-            "sufs")
-                template_dir="sufs_module"
-                ;;
-            "magisk"|*)
-                template_dir="magisk_module"
-                ;;
-        esac
-
-        # Copy template
-        cp -r "$template_dir" "$build_dir"
-
-        # Create required directories
-        mkdir -p "$build_dir/system/framework"
-        mkdir -p "$build_dir/system/system_ext/framework"
-
-        # Move patched files to correct locations
-        if [ -f "framework_patched.jar" ]; then
-            cp "framework_patched.jar" "$build_dir/system/framework/framework.jar"
-        fi
-        if [ -f "services_patched.jar" ]; then
-            cp "services_patched.jar" "$build_dir/system/framework/services.jar"
-        fi
-        if [ -f "miui-services_patched.jar" ]; then
-            cp "miui-services_patched.jar" "$build_dir/system/system_ext/framework/miui-services.jar"
-        fi
-
-        # Update module.prop
-        local module_prop="$build_dir/module.prop"
-        if [ -f "$module_prop" ]; then
-            sed -i "s/^version=.*/version=$version_name/" "$module_prop"
-            sed -i "s/^versionCode=.*/versionCode=$version_name/" "$module_prop"
-        fi
-
-        # Create module zip with sanitized version name
-        local safe_version=$(echo "$version_name" | sed 's/[. ]/-/g')
-        local zip_name="Framework-Patcher-$device_name-$safe_version-$module_type.zip"
-
-        (cd "$build_dir" && 7z a -tzip "../$zip_name" "*" > /dev/null)
-
-        echo "Created $module_type module: $zip_name"
-    done
+    echo "Creating module using MMT-Extended template"
+    create_all_modules "$api_level" "$device_name" "$version_name"
 }
 
 # Legacy function for backward compatibility
@@ -792,8 +734,8 @@ create_magisk_module() {
 main() {
     # Check for required arguments
     if [ $# -lt 3 ]; then
-        echo "Usage: $0 <api_level> <device_name> <version_name> [--framework] [--services] [--miui-services] [--module-types <types>]"
-        echo "Module types: magisk,ksu,sufs (comma-separated, default: magisk)"
+        echo "Usage: $0 <api_level> <device_name> <version_name> [--framework] [--services] [--miui-services]"
+        echo "Creates a single module compatible with Magisk, KSU, and SUFS"
         exit 1
     fi
 
@@ -807,7 +749,6 @@ main() {
     PATCH_FRAMEWORK=0
     PATCH_SERVICES=0
     PATCH_MIUI_SERVICES=0
-    MODULE_TYPES="magisk"  # Default module type
 
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -819,10 +760,6 @@ main() {
                 ;;
             --miui-services)
                 PATCH_MIUI_SERVICES=1
-                ;;
-            --module-types)
-                shift
-                MODULE_TYPES="$1"
                 ;;
             *)
                 echo "Unknown option: $1"
@@ -845,8 +782,8 @@ main() {
         patch_miui_services
     fi
 
-    # Create modules for specified types
-    create_modules "$API_LEVEL" "$DEVICE_NAME" "$VERSION_NAME" "$MODULE_TYPES"
+    # Create module
+    create_modules "$API_LEVEL" "$DEVICE_NAME" "$VERSION_NAME"
 
     echo "All patching completed successfully!"
 }
