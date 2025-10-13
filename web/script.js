@@ -88,6 +88,12 @@ async function handleFormSubmit(version, form) {
         for (let [key, value] of formData.entries()) {
             inputs[key] = value;
         }
+        
+        // Handle checkboxes (they only appear in FormData if checked)
+        // Set all feature flags to false first, then set to true if checked
+        inputs.enable_signature_bypass = formData.has('enable_signature_bypass') ? 'true' : 'false';
+        inputs.enable_cn_notification_fix = formData.has('enable_cn_notification_fix') ? 'true' : 'false';
+        inputs.enable_disable_secure_flag = formData.has('enable_disable_secure_flag') ? 'true' : 'false';
 
         // Remove empty optional fields
         if (!inputs.user_id || inputs.user_id.trim() === '') {
