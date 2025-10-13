@@ -75,9 +75,10 @@ update_in_progress = False
 # --- Conversation States (Constants) ---
 STATE_NONE = 0
 STATE_WAITING_FOR_API = 1
-STATE_WAITING_FOR_FILES = 2
-STATE_WAITING_FOR_DEVICE_NAME = 3
-STATE_WAITING_FOR_VERSION_NAME = 4
+STATE_WAITING_FOR_FEATURES = 2
+STATE_WAITING_FOR_FILES = 3
+STATE_WAITING_FOR_DEVICE_NAME = 4
+STATE_WAITING_FOR_VERSION_NAME = 5
 
 
 # --- Connection Health Monitoring ---
@@ -399,7 +400,7 @@ def _select_workflow_id(api_level: str) -> str:
 
 
 async def trigger_github_workflow_async(links: dict, device_name: str, version_name: str, api_level: str,
-                                        user_id: int) -> int:
+                                        user_id: int, features: dict = None) -> int:
     """Trigger GitHub workflow with improved error handling and retry logic."""
     workflow_id = _select_workflow_id(api_level)
     url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/actions/workflows/{workflow_id}/dispatches"
@@ -410,6 +411,14 @@ async def trigger_github_workflow_async(links: dict, device_name: str, version_n
         "User-Agent": "FrameworkPatcherBot/1.0"
     }
 
+    # Default features if not provided
+    if features is None:
+        features = {
+            "enable_signature_bypass": True,
+            "enable_cn_notification_fix": False,
+            "enable_disable_secure_flag": False
+        }
+    
     data = {
         "ref": "master",
         "inputs": {
@@ -419,7 +428,10 @@ async def trigger_github_workflow_async(links: dict, device_name: str, version_n
             "framework_url": links.get("framework.jar"),
             "services_url": links.get("services.jar"),
             "miui_services_url": links.get("miui-services.jar"),
-            "user_id": str(user_id)
+            "user_id": str(user_id),
+            "enable_signature_bypass": str(features.get("enable_signature_bypass", True)).lower(),
+            "enable_cn_notification_fix": str(features.get("enable_cn_notification_fix", False)).lower(),
+            "enable_disable_secure_flag": str(features.get("enable_disable_secure_flag", False)).lower()
         }
     }
 
@@ -619,14 +631,20 @@ async def start_patch_command(bot: Client, message: Message):
         "device_name": None,
         "version_name": None,
         "api_level": None,
+        "features": {
+            "enable_signature_bypass": False,
+            "enable_cn_notification_fix": False,
+            "enable_disable_secure_flag": False
+        }
     }
     await message.reply_text(
-        "Choose Android version to patch:",
+        "🚀 Let's start the framework patching process!\n\n"
+        "First, choose Android version to patch:",
         reply_markup=InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("Android 15 (API 35)", callback_data="api_35"),
-                    InlineKeyboardButton("Android 16 (API 36)", callback_data="api_36"),
+                    InlineKeyboardButton("📱 Android 15 (API 35)", callback_data="api_35"),
+                    InlineKeyboardButton("📱 Android 16 (API 36)", callback_data="api_36"),
                 ]
             ]
         ),
@@ -642,12 +660,99 @@ async def api_selection_handler(bot: Client, query: CallbackQuery):
         return
     api_choice = query.data.split("_", 1)[1]
     user_states[user_id]["api_level"] = api_choice
-    user_states[user_id]["state"] = STATE_WAITING_FOR_FILES
+    user_states[user_id]["state"] = STATE_WAITING_FOR_FEATURES
+    
     await query.message.edit_text(
-        "Okay, let's start the framework patching process.\n"
-        "Please send all 3 JAR files (framework.jar, services.jar, miui-services.jar)."
+        f"✅ Android {'15' if api_choice == '35' else '16'} selected!\n\n"
+        "Now, choose which features to apply:",
+        reply_markup=InlineKeyboardMarkup(
+            [
+                [InlineKeyboardButton("✓ Disable Signature Verification", callback_data="feature_signature")],
+                [InlineKeyboardButton("☐ CN Notification Fix", callback_data="feature_cn_notif")],
+                [InlineKeyboardButton("☐ Disable Secure Flag", callback_data="feature_secure_flag")],
+                [InlineKeyboardButton("➡️ Continue with selected features", callback_data="features_done")]
+            ]
+        )
     )
     await query.answer("Version selected.")
+
+
+@Bot.on_callback_query(filters.regex(r"^feature_(signature|cn_notif|secure_flag)$"))
+async def feature_toggle_handler(bot: Client, query: CallbackQuery):
+    """Handles toggling features on/off."""
+    user_id = query.from_user.id
+    if user_id not in user_states or user_states[user_id].get("state") != STATE_WAITING_FOR_FEATURES:
+        await query.answer("Not expecting feature selection.", show_alert=True)
+        return
+    
+    feature_map = {
+        "feature_signature": "enable_signature_bypass",
+        "feature_cn_notif": "enable_cn_notification_fix",
+        "feature_secure_flag": "enable_disable_secure_flag"
+    }
+    
+    feature_key = feature_map.get(query.data)
+    if feature_key:
+        # Toggle feature
+        user_states[user_id]["features"][feature_key] = not user_states[user_id]["features"][feature_key]
+    
+    # Update button display
+    features = user_states[user_id]["features"]
+    buttons = [
+        [InlineKeyboardButton(
+            f"{'✓' if features['enable_signature_bypass'] else '☐'} Disable Signature Verification",
+            callback_data="feature_signature"
+        )],
+        [InlineKeyboardButton(
+            f"{'✓' if features['enable_cn_notification_fix'] else '☐'} CN Notification Fix",
+            callback_data="feature_cn_notif"
+        )],
+        [InlineKeyboardButton(
+            f"{'✓' if features['enable_disable_secure_flag'] else '☐'} Disable Secure Flag",
+            callback_data="feature_secure_flag"
+        )],
+        [InlineKeyboardButton("➡️ Continue with selected features", callback_data="features_done")]
+    ]
+    
+    await query.message.edit_reply_markup(InlineKeyboardMarkup(buttons))
+    await query.answer(f"Feature {'enabled' if user_states[user_id]['features'][feature_key] else 'disabled'}")
+
+
+@Bot.on_callback_query(filters.regex(r"^features_done$"))
+async def features_done_handler(bot: Client, query: CallbackQuery):
+    """Handles when user is done selecting features."""
+    user_id = query.from_user.id
+    if user_id not in user_states or user_states[user_id].get("state") != STATE_WAITING_FOR_FEATURES:
+        await query.answer("Not expecting feature confirmation.", show_alert=True)
+        return
+    
+    features = user_states[user_id]["features"]
+    
+    # Check if at least one feature is selected
+    if not any(features.values()):
+        await query.answer("⚠️ Please select at least one feature!", show_alert=True)
+        return
+    
+    # Build features summary
+    selected_features = []
+    if features["enable_signature_bypass"]:
+        selected_features.append("✓ Signature Verification Bypass")
+    if features["enable_cn_notification_fix"]:
+        selected_features.append("✓ CN Notification Fix")
+    if features["enable_disable_secure_flag"]:
+        selected_features.append("✓ Disable Secure Flag")
+    
+    features_text = "\n".join(selected_features)
+    
+    user_states[user_id]["state"] = STATE_WAITING_FOR_FILES
+    await query.message.edit_text(
+        f"✅ Features selected:\n\n{features_text}\n\n"
+        "Now, please send all 3 JAR files:\n"
+        "• framework.jar\n"
+        "• services.jar\n"
+        "• miui-services.jar"
+    )
+    await query.answer("Features confirmed!")
 
 
 @Bot.on_message(filters.private & filters.command("cancel"))
@@ -748,6 +853,11 @@ async def handle_media_upload(bot: Client, message: Message):
                 "device_name": None,
                 "version_name": None,
                 "api_level": None,
+                "features": {
+                    "enable_signature_bypass": True,
+                    "enable_cn_notification_fix": False,
+                    "enable_disable_secure_flag": False
+                }
             }
         
         received_count = len(user_states[user_id]["files"]) + 1  # +1 since current file will be counted
@@ -848,13 +958,34 @@ async def handle_text_input(bot: Client, message: Message):
             device_name = user_states[user_id]["device_name"]
             version_name = user_states[user_id]["version_name"]
             api_level = user_states[user_id].get("api_level") or "35"
+            features = user_states[user_id].get("features", {
+                "enable_signature_bypass": True,
+                "enable_cn_notification_fix": False,
+                "enable_disable_secure_flag": False
+            })
 
-            status = await trigger_github_workflow_async(links, device_name, version_name, api_level, user_id)
+            status = await trigger_github_workflow_async(links, device_name, version_name, api_level, user_id, features)
             triggers.append(datetime.now())
             user_rate_limits[user_id] = triggers
+            
+            # Build features summary for confirmation
+            selected_features = []
+            if features.get("enable_signature_bypass"):
+                selected_features.append("✓ Signature Verification Bypass")
+            if features.get("enable_cn_notification_fix"):
+                selected_features.append("✓ CN Notification Fix")
+            if features.get("enable_disable_secure_flag"):
+                selected_features.append("✓ Disable Secure Flag")
+            
+            features_summary = "\n".join(selected_features) if selected_features else "Default features"
 
             await message.reply_text(
-                f"Workflow triggered successfully (status {status}). You will receive a notification when the process is complete.",
+                f"✅ Workflow triggered successfully!\n\n"
+                f"**Device:** {device_name}\n"
+                f"**Version:** {version_name}\n"
+                f"**Android API:** {api_level}\n\n"
+                f"**Features Applied:**\n{features_summary}\n\n"
+                f"You will receive a notification when the process is complete.",
                 quote=True
             )
         except httpx.HTTPStatusError as e:
