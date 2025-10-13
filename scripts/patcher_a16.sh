@@ -315,23 +315,39 @@ replace_entire_method() {
     local method_signature="$1"
     local decompile_dir="$2"
     local new_method_body="$3"
+    local specific_class="$4"  # Optional: specific class name to search in
     local file
 
-    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l ".method.* $method_signature" 2>/dev/null | head -n 1)
+    # If specific class provided, search in that class file
+    if [ -n "$specific_class" ]; then
+        file=$(find "$decompile_dir" -type f -path "*/${specific_class}.smali" | head -n 1)
+        if [ -z "$file" ]; then
+            warn "Class file $specific_class.smali not found"
+            return 0
+        fi
+        # Verify method exists in this file
+        if ! grep -q "\.method.* ${method_signature}" "$file" 2>/dev/null; then
+            warn "Method $method_signature not found in $specific_class"
+            return 0
+        fi
+    else
+        # Search across all smali files
+        file=$(find "$decompile_dir" -type f -name "*.smali" -exec grep -l "\.method.* ${method_signature}" {} + 2>/dev/null | head -n 1)
+    fi
 
     [ -z "$file" ] && {
-        warn "Method $method_signature not found"
-        return
+        warn "Method $method_signature not found in decompile directory"
+        return 0
     }
 
     local start
-    start=$(grep -n "^[[:space:]]*\.method.* $method_signature" "$file" | cut -d: -f1 | head -n1)
+    start=$(grep -n "^[[:space:]]*\.method.* ${method_signature}" "$file" | cut -d: -f1 | head -n1)
     [ -z "$start" ] && {
-        warn "Method $method_signature start not found"
-        return
+        warn "Method $method_signature start not found in $(basename "$file")"
+        return 0
     }
 
-    local total_lines end=0 i="$start"
+    local total_lines end=0 i="$start" line
     total_lines=$(wc -l <"$file")
     while [ "$i" -le "$total_lines" ]; do
         line=$(sed -n "${i}p" "$file")
@@ -343,8 +359,8 @@ replace_entire_method() {
     done
 
     [ "$end" -eq 0 ] && {
-        warn "Method $method_signature end not found"
-        return
+        warn "Method $method_signature end not found in $(basename "$file")"
+        return 0
     }
 
     local method_head
@@ -357,7 +373,8 @@ $method_head_escaped\\
 $new_method_body\\
 .end method" "$file"
 
-    log "✓ Replaced entire method $method_signature"
+    log "✓ Replaced entire method $method_signature in $(basename "$file")"
+    return 0
 }
 
 replace_if_block_in_strict_jar_file() {
@@ -833,16 +850,9 @@ apply_services_disable_secure_flag() {
     log "Applying disable secure flag patches to services.jar (Android 16)..."
 
     # Android 16: Patch WindowState.isSecureLocked()
-    local file
-    file=$(find "$decompile_dir" -type f -path "*/com/android/server/wm/WindowState.smali" | head -n 1)
-    if [ -f "$file" ]; then
-        log "Patching WindowState.isSecureLocked()..."
-        local method_body="    .registers 6\n\n    const/4 v0, 0x0\n\n    return v0"
-        replace_entire_method "isSecureLocked()Z" "$decompile_dir" "$method_body"
-        log "✓ Patched WindowState.isSecureLocked()"
-    else
-        warn "WindowState.smali not found"
-    fi
+    log "Patching WindowState.isSecureLocked()..."
+    local method_body="    .registers 6\n\n    const/4 v0, 0x0\n\n    return v0"
+    replace_entire_method "isSecureLocked()Z" "$decompile_dir" "$method_body" "com/android/server/wm/WindowState"
 
     log "Disable secure flag patches applied to services.jar (Android 16)"
 }
@@ -990,16 +1000,9 @@ apply_miui_services_disable_secure_flag() {
     log "Applying disable secure flag patches to miui-services.jar (Android 16)..."
 
     # Android 16: Patch WindowManagerServiceImpl.notAllowCaptureDisplay()
-    local file
-    file=$(find "$decompile_dir" -type f -path "*/com/android/server/wm/WindowManagerServiceImpl.smali" | head -n 1)
-    if [ -f "$file" ]; then
-        log "Patching WindowManagerServiceImpl.notAllowCaptureDisplay()..."
-        local method_body="    .registers 9\n\n    const/4 v0, 0x0\n\n    return v0"
-        replace_entire_method "notAllowCaptureDisplay(Lcom/android/server/wm/RootWindowContainer;I)Z" "$decompile_dir" "$method_body"
-        log "✓ Patched WindowManagerServiceImpl.notAllowCaptureDisplay()"
-    else
-        warn "WindowManagerServiceImpl.smali not found"
-    fi
+    log "Patching WindowManagerServiceImpl.notAllowCaptureDisplay()..."
+    local method_body="    .registers 9\n\n    const/4 v0, 0x0\n\n    return v0"
+    replace_entire_method "notAllowCaptureDisplay(Lcom/android/server/wm/RootWindowContainer;I)Z" "$decompile_dir" "$method_body" "com/android/server/wm/WindowManagerServiceImpl"
 
     log "Disable secure flag patches applied to miui-services.jar (Android 16)"
 }
