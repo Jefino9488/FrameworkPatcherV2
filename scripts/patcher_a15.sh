@@ -11,7 +11,8 @@ mkdir -p "$BACKUP_DIR"
 # Function to decompile JAR file
 decompile_jar() {
     local jar_file="$1"
-    local base_name="$(basename "$jar_file" .jar)"
+    local base_name
+    base_name="$(basename "$jar_file" .jar)"
     local output_dir="$WORK_DIR/${base_name}_decompile"
 
     echo "Decompiling $jar_file with apktool..."
@@ -32,7 +33,8 @@ decompile_jar() {
 # Function to recompile JAR file
 recompile_jar() {
     local jar_file="$1"
-    local base_name="$(basename "$jar_file" .jar)"
+    local base_name
+    base_name="$(basename "$jar_file" .jar)"
     local output_dir="$WORK_DIR/${base_name}_decompile"
     local patched_jar="${base_name}_patched.jar"
 
@@ -50,7 +52,7 @@ add_static_return_patch() {
     local decompile_dir="$3"
     local file
 
-    file=$(find "$decompile_dir" -type f -name "*.smali" | xargs grep -l ".method.* $method" 2>/dev/null | head -n 1)
+    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l ".method.* $method" 2>/dev/null | head -n 1)
 
     [ -z "$file" ] && return
 
@@ -97,7 +99,7 @@ patch_return_void_method() {
     local decompile_dir="$2"
     local file
 
-    file=$(find "$decompile_dir" -type f -name "*.smali" | xargs grep -l ".method.* $method" 2>/dev/null | head -n 1)
+    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l ".method.* $method" 2>/dev/null | head -n 1)
     [ -z "$file" ] && {
         echo "Method $method not found"
         return
@@ -237,7 +239,7 @@ ${indent}const/4 v4, 0x0" "$file"
     # Patch invoke unsafeGetCertsWithoutVerification
     echo "Patching invoke-static call for unsafeGetCertsWithoutVerification..."
     local file
-    file=$(find "$decompile_dir" -type f -name "*.smali" | xargs grep -l "ApkSignatureVerifier;->unsafeGetCertsWithoutVerification" | head -n 1)
+    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l "ApkSignatureVerifier;->unsafeGetCertsWithoutVerification" | head -n 1)
     if [ -f "$file" ]; then
         local pattern="ApkSignatureVerifier;->unsafeGetCertsWithoutVerification"
         local line_numbers
@@ -450,14 +452,14 @@ ${indent}const/4 v4, 0x0" "$file"
                 # Check if already patched
                 local next_line
                 next_line=$(sed -n "$((insert_line + 1))p" "$file")
-                echo "$next_line" | grep -q "const/4 v5, 0x1" && {
+                if echo "$next_line" | grep -q "const/4 v5, 0x1"; then
                     echo "Already patched at line $((insert_line + 1))"
-                } || {
+                else
                     # Insert after move-result v5
                     sed -i "$((insert_line + 1))i\\
     const/4 v5, 0x1" "$file"
                     echo "Correctly patched const/4 v5, 0x1 after move-result v5 at line $((insert_line + 1))"
-                }
+                fi
             else
                 echo "move-result v5 not found"
             fi
@@ -480,7 +482,7 @@ ${indent}const/4 v4, 0x0" "$file"
             local i=$((start_line + 1))
             local if_line=""
             local cond_label=""
-            local cond_line=""
+            # local cond_line=""  # Currently unused but kept for future use
             local line=""
 
             while [ "$i" -le "$((start_line + 20))" ]; do
@@ -492,7 +494,7 @@ ${indent}const/4 v4, 0x0" "$file"
 
                 if [ -z "$cond_label" ] && echo "$line" | grep -qE '^[[:space:]]*:cond_[0-9a-zA-Z_]+'; then
                     cond_label=$(echo "$line" | grep -oE ':cond_[0-9a-zA-Z_]+')
-                    cond_line=$i
+                    # cond_line=$i  # Currently unused but kept for future use
                 fi
 
                 if [ -n "$if_line" ] && [ -n "$cond_label" ]; then
