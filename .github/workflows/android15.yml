@@ -73,17 +73,25 @@ jobs:
 
       - name: Download framework JARs
         run: |
-          # Smart download function that handles Google Drive links
+          # Smart download function that handles Google Drive and PixelDrain links
           download_file() {
             url=$1
             output=$2
             echo "Downloading $output from $url"
+            
             if echo "$url" | grep -q "drive.google.com"; then
               echo "Detected Google Drive link, using gdown..."
               gdown --fuzzy -O "$output" "$url"
+            elif echo "$url" | grep -q "pixeldrain.com"; then
+              echo "Detected PixelDrain link, converting to API URL..."
+              # Extract file ID from PixelDrain URL
+              file_id=$(echo "$url" | sed -n 's|.*pixeldrain.com/u/\([^/?]*\).*|\1|p')
+              api_url="https://pixeldrain.com/api/file/${file_id}"
+              echo "Using PixelDrain API: $api_url"
+              wget -O "$output" "$api_url"
             else
-              echo "Using curl for direct download..."
-              curl -L -C - -o "$output" "$url"
+              echo "Using wget for direct download..."
+              wget -O "$output" "$url"
             fi
           }
           
