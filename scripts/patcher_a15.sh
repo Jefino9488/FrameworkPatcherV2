@@ -950,10 +950,10 @@ apply_services_disable_secure_flag() {
 
     echo "Applying disable secure flag patches to services.jar..."
 
-    # Android 15: Patch WindowManagerServiceStub.isSecureLocked()
-    echo "Patching WindowManagerServiceStub.isSecureLocked()..."
+    # Android 15: Patch WindowState.isSecureLocked()
+    echo "Patching WindowState.isSecureLocked()..."
     local method_body="    .registers 6\n\n    const/4 v0, 0x0\n\n    return v0"
-    replace_entire_method "isSecureLocked()Z" "$decompile_dir" "$method_body" "com/android/server/wm/WindowManagerServiceStub"
+    replace_entire_method "isSecureLocked()Z" "$decompile_dir" "$method_body" "com/android/server/wm/WindowState"
 
     echo "Disable secure flag patches applied to services.jar"
 }
