@@ -180,64 +180,45 @@ jobs:
           # Build features list
           FEATURES=""
           if [ "${{ github.event.inputs.enable_signature_bypass }}" = "true" ]; then
-            FEATURES="${FEATURES}- ✅ Signature Verification Bypass
+            FEATURES="${FEATURES}- Signature Verification Bypass
           "
           fi
           if [ "${{ github.event.inputs.enable_cn_notification_fix }}" = "true" ]; then
-            FEATURES="${FEATURES}- ✅ CN Notification Fix
+            FEATURES="${FEATURES}- CN Notification Fix
           "
           fi
           if [ "${{ github.event.inputs.enable_disable_secure_flag }}" = "true" ]; then
-            FEATURES="${FEATURES}- ✅ Disable Secure Flag
+            FEATURES="${FEATURES}- Disable Secure Flag
           "
           fi
           if [ -z "$FEATURES" ]; then
-            FEATURES="- ✅ Signature Verification Bypass (default)
+            FEATURES="- Signature Verification Bypass (default)
           "
           fi
           
-          # Create release body with proper formatting
+          # Create release body
           cat > /tmp/release_body.md << 'RELEASE_EOF'
-          ## 📱 Android 16 Framework Patcher
+          Android 16 Framework Patcher for ${{ github.event.inputs.device_name }}
           
-          **Device:** ${{ github.event.inputs.device_name }}  
-          **Version:** ${{ github.event.inputs.version_name }}  
-          **Android API:** ${{ github.event.inputs.api_level }}
+          Device: ${{ github.event.inputs.device_name }}
+          Version: ${{ github.event.inputs.version_name }}
+          Android API: ${{ github.event.inputs.api_level }}
           
-          ---
+          Important: This module is built specifically for ${{ github.event.inputs.device_name }} running ${{ github.event.inputs.version_name }}. Installing on other devices or ROM versions may cause boot loops or system issues.
           
-          ## 🔧 Module Information
+          Compatible with Magisk, KernelSU, and SUFS (auto-detects your root solution)
           
-          **⚠️ Important:** This module is specifically built for **${{ github.event.inputs.device_name }}** running **${{ github.event.inputs.version_name }}**. Do not install on other devices or ROM versions as it may cause boot loops or system instability.
-          
-          This module is compatible with:
-          - ✅ **Magisk** - Universal systemless interface
-          - ✅ **KernelSU (KSU)** - Kernel-based root solution
-          - ✅ **SUFS** - System-as-root file system
-          
-          The module automatically detects your installed root solution. No configuration needed!
-          
-          ---
-          
-          ## ⚡ Features Applied
-          
+          Features:
           FEATURES_PLACEHOLDER
           
-          ---
+          Source files:
+          - Framework: ${{ github.event.inputs.framework_url }}
+          - Services: ${{ github.event.inputs.services_url }}
+          - MIUI Services: ${{ github.event.inputs.miui_services_url }}
           
-          ## 📦 Source Files
-          
-          - **Framework:** [${{ github.event.inputs.framework_url }}](${{ github.event.inputs.framework_url }})
-          - **Services:** [${{ github.event.inputs.services_url }}](${{ github.event.inputs.services_url }})
-          - **MIUI Services:** [${{ github.event.inputs.miui_services_url }}](${{ github.event.inputs.miui_services_url }})
-          
-          ---
-          
-          ## 📅 Build Information
-          
-          - **Build Date:** $(date +'%Y-%m-%d')
-          - **Build Time:** $(date +'%H:%M:%S UTC')
-          - **Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          Built: $(date +'%Y-%m-%d %H:%M:%S UTC')
+          Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          Changelog: https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md
           RELEASE_EOF
           
           # Replace features placeholder with actual features
