@@ -102,7 +102,7 @@ add_static_return_patch() {
     local decompile_dir="$3"
     local file
 
-    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l ".method.* $method" 2>/dev/null | head -n 1)
+    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 2>/dev/null | xargs -0 -r grep -l ".method.* $method" 2>/dev/null | head -n 1)
 
     [ -z "$file" ] && return
 
@@ -149,7 +149,7 @@ patch_return_void_method() {
     local decompile_dir="$2"
     local file
 
-    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l ".method.* $method" 2>/dev/null | head -n 1)
+    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 2>/dev/null | xargs -0 -r grep -l ".method.* $method" 2>/dev/null | head -n 1)
     [ -z "$file" ] && {
         echo "Method $method not found"
         return
@@ -264,39 +264,52 @@ modify_invoke_custom_methods() {
     echo "Checking for invoke-custom..."
 
     local smali_files
-    smali_files=$(grep -rl "invoke-custom" "$decompile_dir" --include="*.smali" 2>/dev/null)
+    # Find files containing invoke-custom, checking each file exists before processing
+    smali_files=$(find "$decompile_dir" -type f -name "*.smali" 2>/dev/null | while read -r f; do
+        if [ -f "$f" ] && grep -q "invoke-custom" "$f" 2>/dev/null; then
+            echo "$f"
+        fi
+    done)
 
     [ -z "$smali_files" ] && {
         echo "No invoke-custom found"
         return
     }
 
-    for smali_file in $smali_files; do
-        echo "Modifying: $smali_file"
+    local count=0
+    while IFS= read -r smali_file; do
+        # Skip if file doesn't exist
+        [ ! -f "$smali_file" ] && continue
+
+        count=$((count + 1))
 
         sed -i "/.method.*equals(/,/^.end method$/ {
             /^    .registers/c\    .registers 2
             /^    invoke-custom/d
             /^    move-result/d
             /^    return/c\    const/4 v0, 0x0\n\n    return v0
-        }" "$smali_file"
+        }" "$smali_file" 2>/dev/null || true
 
         sed -i "/.method.*hashCode(/,/^.end method$/ {
             /^    .registers/c\    .registers 2
             /^    invoke-custom/d
             /^    move-result/d
             /^    return/c\    const/4 v0, 0x0\n\n    return v0
-        }" "$smali_file"
+        }" "$smali_file" 2>/dev/null || true
 
         sed -i "/.method.*toString(/,/^.end method$/ {
             s/^[[:space:]]*\.registers.*/    .registers 1/
             /^    invoke-custom/d
             /^    move-result.*/d
             /^    return.*/c\    const/4 v0, 0x0\n\n    return-object v0
-        }" "$smali_file"
-    done
+        }" "$smali_file" 2>/dev/null || true
+    done <<<"$smali_files"
 
-    echo "invoke-custom patch done"
+    if [ "$count" -gt 0 ]; then
+        echo "[INFO] Modified $count files with invoke-custom"
+    else
+        echo "No invoke-custom found"
+    fi
 }
 
 # ============================================
@@ -352,7 +365,7 @@ ${indent}const/4 v4, 0x0" "$file"
     # Patch invoke unsafeGetCertsWithoutVerification
     echo "Patching invoke-static call for unsafeGetCertsWithoutVerification..."
     local file
-    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l "ApkSignatureVerifier;->unsafeGetCertsWithoutVerification" | head -n 1)
+    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 2>/dev/null | xargs -0 -r grep -l "ApkSignatureVerifier;->unsafeGetCertsWithoutVerification" 2>/dev/null | head -n 1)
     if [ -f "$file" ]; then
         local pattern="ApkSignatureVerifier;->unsafeGetCertsWithoutVerification"
         local line_numbers
@@ -586,10 +599,10 @@ ${indent}const/4 v4, 0x0" "$file"
     # Patch strictjar findEntry removal
     echo "Patching StrictJarFile..."
     local file
-    file=$(find "$decompile_dir" -type f -name "StrictJarFile.smali" | head -n 1)
+    file=$(find "$decompile_dir" -type f -name "StrictJarFile.smali" 2>/dev/null | head -n 1)
     if [ -f "$file" ]; then
         local start_line
-        start_line=$(grep -n '\-\>findEntry(Ljava/lang/String;)Ljava/util/zip/ZipEntry;' "$file" | cut -d: -f1 | head -n 1)
+        start_line=$(grep -n '\-\>findEntry(Ljava/lang/String;)Ljava/util/zip/ZipEntry;' "$file" 2>/dev/null | cut -d: -f1 | head -n 1)
 
         if [ -n "$start_line" ]; then
             local i=$((start_line + 1))
