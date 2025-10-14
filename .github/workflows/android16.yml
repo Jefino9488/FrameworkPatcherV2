@@ -208,6 +208,8 @@ jobs:
           
           ## 🔧 Module Information
           
+          **⚠️ Important:** This module is specifically built for **${{ github.event.inputs.device_name }}** running **${{ github.event.inputs.version_name }}**. Do not install on other devices or ROM versions as it may cause boot loops or system instability.
+          
           This module is compatible with:
           - ✅ **Magisk** - Universal systemless interface
           - ✅ **KernelSU (KSU)** - Kernel-based root solution
