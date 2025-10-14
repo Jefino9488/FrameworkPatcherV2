@@ -95,21 +95,22 @@ recompile_jar() {
     echo "Created patched JAR: $patched_jar"
 }
 
-# Function to add static return patch
-add_static_return_patch() {
+# Function to patch method with direct file path (no searching)
+patch_method_in_file() {
     local method="$1"
     local ret_val="$2"
-    local decompile_dir="$3"
-    local file
+    local file="$3"
 
-    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 2>/dev/null | xargs -0 -r grep -l ".method.* $method" 2>/dev/null | head -n 1)
-
-    [ -z "$file" ] && return
+    # Check if file exists
+    if [ ! -f "$file" ]; then
+        echo "⚠ File not found: $(basename "$file")"
+        return
+    fi
 
     local start
     start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n1)
     [ -z "$start" ] && {
-        echo "Method $method not found"
+        echo "⚠ Method $method not found in $(basename "$file")"
         return
     }
 
@@ -125,7 +126,7 @@ add_static_return_patch() {
     done
 
     [ "$end" -eq 0 ] && {
-        echo "End not found for $method"
+        echo "⚠ End not found for $method"
         return
     }
 
@@ -140,25 +141,40 @@ $method_head_escaped\\
     return v0\\
 .end method" "$file"
 
-    echo "Patched $method to return $ret_val"
+    echo "✓ Patched $method to return $ret_val in $(basename "$file")"
 }
 
-# Function to patch return-void method
-patch_return_void_method() {
+# Function to add static return patch (legacy - searches for file)
+add_static_return_patch() {
     local method="$1"
-    local decompile_dir="$2"
+    local ret_val="$2"
+    local decompile_dir="$3"
     local file
 
-    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 2>/dev/null | xargs -0 -r grep -l ".method.* $method" 2>/dev/null | head -n 1)
-    [ -z "$file" ] && {
-        echo "Method $method not found"
+    # Simple working approach from old script
+    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l ".method.* $method" 2>/dev/null | head -n 1)
+
+    [ -z "$file" ] && return
+
+    # Call the new function with found file
+    patch_method_in_file "$method" "$ret_val" "$file"
+}
+
+# Function to patch return-void method with direct file path
+patch_return_void_in_file() {
+    local method="$1"
+    local file="$2"
+
+    # Check if file exists
+    if [ ! -f "$file" ]; then
+        echo "⚠ File not found: $(basename "$file")"
         return
-    }
+    fi
 
     local start
     start=$(grep -n "^[[:space:]]*\.method.* $method" "$file" | cut -d: -f1 | head -n1)
     [ -z "$start" ] && {
-        echo "Method $method start not found"
+        echo "⚠ Method $method not found in $(basename "$file")"
         return
     }
 
@@ -174,7 +190,7 @@ patch_return_void_method() {
     done
 
     [ "$end" -eq 0 ] && {
-        echo "Method $method end not found"
+        echo "⚠ Method $method end not found"
         return
     }
 
@@ -188,7 +204,24 @@ $method_head_escaped\\
     return-void\\
 .end method" "$file"
 
-    echo "Patched $method → return-void"
+    echo "✓ Patched $method → return-void in $(basename "$file")"
+}
+
+# Function to patch return-void method (legacy - searches for file)
+patch_return_void_method() {
+    local method="$1"
+    local decompile_dir="$2"
+    local file
+
+    # Simple working approach from old script
+    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l ".method.* $method" 2>/dev/null | head -n 1)
+    [ -z "$file" ] && {
+        echo "Method $method not found"
+        return
+    }
+
+    # Call the new function with found file
+    patch_return_void_in_file "$method" "$file"
 }
 
 # Function to replace an entire method with a custom implementation
@@ -263,13 +296,9 @@ modify_invoke_custom_methods() {
     local decompile_dir="$1"
     echo "Checking for invoke-custom..."
 
+    # Simple working approach from old script
     local smali_files
-    # Find files containing invoke-custom, checking each file exists before processing
-    smali_files=$(find "$decompile_dir" -type f -name "*.smali" 2>/dev/null | while read -r f; do
-        if [ -f "$f" ] && grep -q "invoke-custom" "$f" 2>/dev/null; then
-            echo "$f"
-        fi
-    done)
+    smali_files=$(grep -rl "invoke-custom" "$decompile_dir" --include="*.smali" 2>/dev/null)
 
     [ -z "$smali_files" ] && {
         echo "No invoke-custom found"
@@ -277,39 +306,35 @@ modify_invoke_custom_methods() {
     }
 
     local count=0
-    while IFS= read -r smali_file; do
-        # Skip if file doesn't exist
-        [ ! -f "$smali_file" ] && continue
-
+    for smali_file in $smali_files; do
         count=$((count + 1))
 
+        # Patch equals method
         sed -i "/.method.*equals(/,/^.end method$/ {
             /^    .registers/c\    .registers 2
             /^    invoke-custom/d
             /^    move-result/d
             /^    return/c\    const/4 v0, 0x0\n\n    return v0
-        }" "$smali_file" 2>/dev/null || true
+        }" "$smali_file"
 
+        # Patch hashCode method
         sed -i "/.method.*hashCode(/,/^.end method$/ {
             /^    .registers/c\    .registers 2
             /^    invoke-custom/d
             /^    move-result/d
             /^    return/c\    const/4 v0, 0x0\n\n    return v0
-        }" "$smali_file" 2>/dev/null || true
+        }" "$smali_file"
 
+        # Patch toString method
         sed -i "/.method.*toString(/,/^.end method$/ {
             s/^[[:space:]]*\.registers.*/    .registers 1/
             /^    invoke-custom/d
             /^    move-result.*/d
             /^    return.*/c\    const/4 v0, 0x0\n\n    return-object v0
-        }" "$smali_file" 2>/dev/null || true
-    done <<<"$smali_files"
+        }" "$smali_file"
+    done
 
-    if [ "$count" -gt 0 ]; then
-        echo "[INFO] Modified $count files with invoke-custom"
-    else
-        echo "No invoke-custom found"
-    fi
+    echo "[INFO] Modified $count files with invoke-custom"
 }
 
 # ============================================
@@ -365,7 +390,7 @@ ${indent}const/4 v4, 0x0" "$file"
     # Patch invoke unsafeGetCertsWithoutVerification
     echo "Patching invoke-static call for unsafeGetCertsWithoutVerification..."
     local file
-    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 2>/dev/null | xargs -0 -r grep -l "ApkSignatureVerifier;->unsafeGetCertsWithoutVerification" 2>/dev/null | head -n 1)
+    file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l "ApkSignatureVerifier;->unsafeGetCertsWithoutVerification" 2>/dev/null | head -n 1)
     if [ -f "$file" ]; then
         local pattern="ApkSignatureVerifier;->unsafeGetCertsWithoutVerification"
         local line_numbers
@@ -599,10 +624,10 @@ ${indent}const/4 v4, 0x0" "$file"
     # Patch strictjar findEntry removal
     echo "Patching StrictJarFile..."
     local file
-    file=$(find "$decompile_dir" -type f -name "StrictJarFile.smali" 2>/dev/null | head -n 1)
+    file=$(find "$decompile_dir" -type f -name "StrictJarFile.smali" | head -n 1)
     if [ -f "$file" ]; then
         local start_line
-        start_line=$(grep -n '\-\>findEntry(Ljava/lang/String;)Ljava/util/zip/ZipEntry;' "$file" 2>/dev/null | cut -d: -f1 | head -n 1)
+        start_line=$(grep -n '\-\>findEntry(Ljava/lang/String;)Ljava/util/zip/ZipEntry;' "$file" | cut -d: -f1 | head -n 1)
 
         if [ -n "$start_line" ]; then
             local i=$((start_line + 1))
@@ -653,21 +678,27 @@ ${indent}const/4 v4, 0x0" "$file"
         echo "StrictJarFile.smali not found."
     fi
 
-    # Add static return patches
-    add_static_return_patch "verifyMessageDigest" 1 "$decompile_dir"
-    add_static_return_patch "hasAncestorOrSelf" 1 "$decompile_dir"
-    add_static_return_patch "getMinimumSignatureSchemeVersionForTargetSdk" 0 "$decompile_dir"
+    # Patch static methods with hardcoded paths (faster and no errors)
+    echo "Patching verifyMessageDigest..."
+    patch_method_in_file "verifyMessageDigest" 1 "$decompile_dir/smali_classes4/android/util/jar/StrictJarVerifier.smali"
 
-    # Patch checkCapability variants
+    echo "Patching hasAncestorOrSelf..."
+    patch_method_in_file "hasAncestorOrSelf" 1 "$decompile_dir/smali/android/content/pm/SigningDetails.smali"
+
+    echo "Patching getMinimumSignatureSchemeVersionForTargetSdk..."
+    patch_method_in_file "getMinimumSignatureSchemeVersionForTargetSdk" 0 "$decompile_dir/smali_classes4/android/util/apk/ApkSignatureVerifier.smali"
+
+    # Patch checkCapability variants in SigningDetails
     echo "Patching checkCapability variants..."
-    methods="\
-checkCapability(Landroid/content/pm/SigningDetails;I)Z \
-checkCapability(Landroid/content/pm/PackageParser\$SigningDetails;I)Z \
-checkCapability(Ljava/lang/String;I)Z \
-checkCapabilityRecover(Landroid/content/pm/SigningDetails;I)Z \
-checkCapabilityRecover(Landroid/content/pm/PackageParser\$SigningDetails;I)Z"
-    for method in $methods; do
-        add_static_return_patch "$method" 1 "$decompile_dir"
+    for file in "$decompile_dir/smali/android/content/pm/SigningDetails.smali" \
+        "$decompile_dir/smali/android/content/pm/PackageParser\$SigningDetails.smali"; do
+        if [ -f "$file" ]; then
+            patch_method_in_file "checkCapability(Landroid/content/pm/SigningDetails;I)Z" 1 "$file"
+            patch_method_in_file "checkCapability(Landroid/content/pm/PackageParser\$SigningDetails;I)Z" 1 "$file"
+            patch_method_in_file "checkCapability(Ljava/lang/String;I)Z" 1 "$file"
+            patch_method_in_file "checkCapabilityRecover(Landroid/content/pm/SigningDetails;I)Z" 1 "$file"
+            patch_method_in_file "checkCapabilityRecover(Landroid/content/pm/PackageParser\$SigningDetails;I)Z" 1 "$file"
+        fi
     done
 
     # Patch checkCapability String in SigningDetails
@@ -801,8 +832,9 @@ apply_services_signature_patches() {
 
     echo "Applying signature verification patches to services.jar..."
 
-    # Apply patches
-    patch_return_void_method "checkDowngrade" "$decompile_dir"
+    # Patch methods with hardcoded paths (faster and no errors)
+    echo "Patching checkDowngrade..."
+    patch_return_void_in_file "checkDowngrade" "$decompile_dir/smali_classes2/com/android/server/pm/PackageManagerServiceUtils.smali"
 
     # Patch service InstallPackageHelper equals
     echo "Patching equals() result in InstallPackageHelper..."
@@ -883,11 +915,18 @@ ${indent}const/4 v12, 0x1" "$file"
         echo "ReconcilePackageUtils.smali not found in services jar"
     fi
 
-    # Add static return patches
-    add_static_return_patch "shouldCheckUpgradeKeySetLocked" 0 "$decompile_dir"
-    add_static_return_patch "verifySignatures" 0 "$decompile_dir"
-    add_static_return_patch "matchSignaturesCompat" 1 "$decompile_dir"
-    add_static_return_patch "compareSignatures" 0 "$decompile_dir"
+    # Patch static methods with hardcoded paths
+    echo "Patching shouldCheckUpgradeKeySetLocked..."
+    patch_method_in_file "shouldCheckUpgradeKeySetLocked" 0 "$decompile_dir/smali_classes2/com/android/server/pm/KeySetManagerService.smali"
+
+    echo "Patching verifySignatures..."
+    patch_method_in_file "verifySignatures" 0 "$decompile_dir/smali_classes2/com/android/server/pm/PackageManagerServiceUtils.smali"
+
+    echo "Patching matchSignaturesCompat..."
+    patch_method_in_file "matchSignaturesCompat" 1 "$decompile_dir/smali_classes2/com/android/server/pm/PackageManagerServiceUtils.smali"
+
+    echo "Patching compareSignatures..."
+    patch_method_in_file "compareSignatures" 0 "$decompile_dir/smali_classes2/com/android/server/pm/PackageManagerServiceUtils.smali"
 
     echo "Signature verification patches applied to services.jar"
 }
@@ -972,9 +1011,12 @@ apply_miui_services_signature_patches() {
 
     echo "Applying signature verification patches to miui-services.jar..."
 
-    # Apply patches
-    patch_return_void_method "canBeUpdate" "$decompile_dir"
-    patch_return_void_method "verifyIsolationViolation" "$decompile_dir"
+    # Patch methods with hardcoded paths (faster and no errors)
+    echo "Patching canBeUpdate..."
+    patch_return_void_in_file "canBeUpdate" "$decompile_dir/smali/com/android/server/pm/PackageManagerServiceImpl.smali"
+
+    echo "Patching verifyIsolationViolation..."
+    patch_return_void_in_file "verifyIsolationViolation" "$decompile_dir/smali/com/android/server/pm/PackageManagerServiceImpl.smali"
 
     echo "Signature verification patches applied to miui-services.jar"
 }
