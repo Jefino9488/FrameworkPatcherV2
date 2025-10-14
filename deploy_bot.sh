@@ -171,7 +171,7 @@ cd "$BOT_DIR"
 
 if [ -f "requirements.txt" ]; then
     print_status "Installing requirements from: $BOT_DIR/requirements.txt"
-    
+
     # Upgrade pip first
     print_status "Upgrading pip..."
     if [[ "$PIP_CMD" == *"-m pip"* ]]; then
@@ -181,7 +181,7 @@ if [ -f "requirements.txt" ]; then
         # Using pip directly
         $PIP_CMD install --upgrade pip --user 2>/dev/null || $PIP_CMD install --upgrade pip
     fi
-    
+
     # Install requirements
     print_status "Installing requirements..."
     if [[ "$PIP_CMD" == *"-m pip"* ]]; then
@@ -189,7 +189,7 @@ if [ -f "requirements.txt" ]; then
     else
         $PIP_CMD install -r requirements.txt --user 2>/dev/null || $PIP_CMD install -r requirements.txt
     fi
-    
+
     print_success "Dependencies installed successfully"
 else
     print_error "requirements.txt not found at: $BOT_DIR/requirements.txt"

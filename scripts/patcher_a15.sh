@@ -23,13 +23,13 @@ decompile_jar() {
     local output_dir="$WORK_DIR/${base_name}_decompile"
 
     echo "Decompiling $jar_file with apktool..."
-    
+
     # Validate JAR file before processing
     if [ ! -f "$jar_file" ]; then
         echo "❌ Error: JAR file $jar_file not found!"
         exit 1
     fi
-    
+
     # Check if JAR file is valid ZIP
     if ! unzip -t "$jar_file" >/dev/null 2>&1; then
         echo "❌ Error: $jar_file is corrupted or not a valid ZIP file!"
@@ -68,14 +68,14 @@ recompile_jar() {
     local patched_jar="${base_name}_patched.jar"
 
     echo "Recompiling $jar_file with apktool..."
-    
+
     # Check if decompiled directory exists
     if [ ! -d "$output_dir" ]; then
         echo "❌ Error: Decompiled directory $output_dir not found!"
         echo "This means the decompilation step failed."
         exit 1
     fi
-    
+
     # Check if apktool.yml exists (required for recompilation)
     if [ ! -f "$output_dir/apktool.yml" ]; then
         echo "⚠️ Warning: apktool.yml not found in $output_dir"
