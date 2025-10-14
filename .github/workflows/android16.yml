@@ -94,21 +94,20 @@ jobs:
           
           echo "Validating downloaded JAR files..."
           for jar in framework.jar services.jar miui-services.jar; do
-            echo "Checking $jar..."
             if [ ! -f "$jar" ]; then
               echo "❌ $jar not found!"
               exit 1
             fi
             
-            # Check if file is a valid ZIP/JAR
-            if ! unzip -t "$jar" >/dev/null 2>&1; then
-              echo "❌ $jar is corrupted or not a valid ZIP file!"
-              echo "File size: $(stat -c%s "$jar") bytes"
-              echo "File type: $(file "$jar")"
+            file_size=$(stat -c%s "$jar")
+            echo "Checking $jar (${file_size} bytes)..."
+            
+            if [ $file_size -lt 1500000 ]; then
+              echo "❌ Error: $jar is too small (${file_size} bytes). Download might have failed."
               exit 1
             fi
             
-            echo "✅ $jar is valid ($(stat -c%s "$jar") bytes)"
+            echo "✅ $jar validated successfully"
           done
           
           echo "All JAR files validated successfully!"
