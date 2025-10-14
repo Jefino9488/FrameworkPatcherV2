@@ -51,19 +51,61 @@ if ! command -v git &>/dev/null; then
     exit 1
 fi
 
-# Check if python is available
-if ! command -v python &>/dev/null && ! command -v python3 &>/dev/null; then
+# Detect if running in a container
+IS_CONTAINER=false
+if [ -f "/.dockerenv" ] || [ -n "$CONTAINER" ] || [ -n "$KUBERNETES_SERVICE_HOST" ]; then
+    IS_CONTAINER=true
+    print_status "Container environment detected"
+fi
+
+# Detect Python command (support container-specific versions)
+PYTHON_CMD=""
+PIP_CMD=""
+
+# Try different Python versions (prefer newer versions in containers)
+for python_ver in python3.12 python3.11 python3.10 python3 python; do
+    if command -v "$python_ver" &>/dev/null; then
+        PYTHON_CMD="$python_ver"
+        print_status "Found Python: $python_ver"
+        break
+    fi
+done
+
+if [ -z "$PYTHON_CMD" ]; then
     print_error "Python is not installed or not in PATH"
+    print_error "Tried: python3.12, python3.11, python3.10, python3, python"
     exit 1
 fi
 
-# Use python3 if python is not available
-PYTHON_CMD="python"
-if ! command -v python &>/dev/null; then
-    PYTHON_CMD="python3"
+# Detect pip command (support container-specific versions)
+for pip_ver in pip3.12 pip3.11 pip3.10 pip3 pip; do
+    if command -v "$pip_ver" &>/dev/null; then
+        PIP_CMD="$pip_ver"
+        print_status "Found pip: $pip_ver"
+        break
+    fi
+done
+
+# Fallback: use python -m pip if pip not found
+if [ -z "$PIP_CMD" ]; then
+    print_warning "pip command not found, will use '$PYTHON_CMD -m pip'"
+    PIP_CMD="$PYTHON_CMD -m pip"
 fi
 
-print_status "Using Python command: $PYTHON_CMD"
+print_status "Using Python: $PYTHON_CMD"
+print_status "Using pip: $PIP_CMD"
+
+# Show Python version
+PYTHON_VERSION=$($PYTHON_CMD --version 2>&1)
+print_success "Python version: $PYTHON_VERSION"
+
+# Show environment summary
+if [ "$IS_CONTAINER" = true ]; then
+    print_success "Environment: Docker/Pterodactyl Container"
+else
+    print_success "Environment: Standard Host"
+fi
+echo ""
 
 # Step 1: Stop existing bot processes
 print_status "Stopping existing bot processes..."
@@ -128,12 +170,33 @@ print_status "Installing/updating Python dependencies..."
 cd "$BOT_DIR"
 
 if [ -f "requirements.txt" ]; then
-    print_status "Installing requirements from requirements.txt..."
-    $PYTHON_CMD -m pip install --upgrade pip
-    $PYTHON_CMD -m pip install -r requirements.txt
+    print_status "Installing requirements from: $BOT_DIR/requirements.txt"
+    
+    # Upgrade pip first
+    print_status "Upgrading pip..."
+    if [[ "$PIP_CMD" == *"-m pip"* ]]; then
+        # Using python -m pip
+        $PIP_CMD install --upgrade pip --user 2>/dev/null || $PIP_CMD install --upgrade pip
+    else
+        # Using pip directly
+        $PIP_CMD install --upgrade pip --user 2>/dev/null || $PIP_CMD install --upgrade pip
+    fi
+    
+    # Install requirements
+    print_status "Installing requirements..."
+    if [[ "$PIP_CMD" == *"-m pip"* ]]; then
+        $PIP_CMD install -r requirements.txt --user 2>/dev/null || $PIP_CMD install -r requirements.txt
+    else
+        $PIP_CMD install -r requirements.txt --user 2>/dev/null || $PIP_CMD install -r requirements.txt
+    fi
+    
     print_success "Dependencies installed successfully"
 else
-    print_warning "requirements.txt not found, skipping dependency installation"
+    print_error "requirements.txt not found at: $BOT_DIR/requirements.txt"
+    print_error "Current directory: $(pwd)"
+    print_error "Directory contents:"
+    ls -la "$BOT_DIR"
+    exit 1
 fi
 
 # Step 5: Create log directory
