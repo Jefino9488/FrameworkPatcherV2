@@ -7,7 +7,7 @@
 
 **Advanced Android Framework Patching System with Multi-Platform Support**
 
-[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Support](#support)
+[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [DeepWiki](https://deepwiki.com/Jefino9488/FrameworkPatcherV2) • [Support](#support)
 
 </div>
 
@@ -154,7 +154,15 @@ cp /path/to/miui-services.jar .
 
 ## Documentation
 
-Complete documentation is available in the `docs/` directory:
+**Comprehensive Documentation:** [https://deepwiki.com/Jefino9488/FrameworkPatcherV2](https://deepwiki.com/Jefino9488/FrameworkPatcherV2)
+
+The DeepWiki provides a complete, searchable documentation hub with:
+- Interactive navigation through all system components
+- Architectural diagrams and data flow visualizations  
+- Cross-referenced component relationships
+- Detailed implementation guides
+
+Additional documentation is available in the `docs/` directory:
 
 | Document | Description |
 |----------|-------------|

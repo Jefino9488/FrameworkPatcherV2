@@ -206,7 +206,7 @@ jobs:
           
           Important: This module is built specifically for ${{ github.event.inputs.device_name }} running ${{ github.event.inputs.version_name }}. Installing on other devices or ROM versions may cause boot loops or system issues.
           
-          Compatible with Magisk, KernelSU, and SUFS (auto-detects your root solution)
+          Compatible with Magisk, KernelSU, and SUFS
           
           Features:
           FEATURES_PLACEHOLDER
