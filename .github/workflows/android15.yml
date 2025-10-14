@@ -202,38 +202,70 @@ jobs:
           # Build features list
           FEATURES=""
           if [ "${{ github.event.inputs.enable_signature_bypass }}" = "true" ]; then
-            FEATURES="$FEATURES\n  ✓ Signature Verification Bypass"
+            FEATURES="${FEATURES}- ✅ Signature Verification Bypass
+          "
           fi
           if [ "${{ github.event.inputs.enable_cn_notification_fix }}" = "true" ]; then
-            FEATURES="$FEATURES\n  ✓ CN Notification Fix"
+            FEATURES="${FEATURES}- ✅ CN Notification Fix
+          "
           fi
           if [ "${{ github.event.inputs.enable_disable_secure_flag }}" = "true" ]; then
-            FEATURES="$FEATURES\n  ✓ Disable Secure Flag"
+            FEATURES="${FEATURES}- ✅ Disable Secure Flag
+          "
           fi
           if [ -z "$FEATURES" ]; then
-            FEATURES="\n  ✓ Signature Verification Bypass (default)"
+            FEATURES="- ✅ Signature Verification Bypass (default)
+          "
           fi
           
-          BODY="Android 15 Framework Patcher for ${{ github.event.inputs.device_name }}
-          Version: ${{ github.event.inputs.version_name }}
-          Android API: ${{ github.event.inputs.api_level }}
-
-          Module: Compatible with Magisk, KernelSU (KSU), and SUFS
-          - Automatically detects and works with your installed root solution
-          - Single module for all root types
-          - No need to choose between different module versions
-
-          Features Applied:$FEATURES
-
-          Sources:
-          - Framework: ${{ github.event.inputs.framework_url }}
-          - Services: ${{ github.event.inputs.services_url }}
-          - MIUI Services: ${{ github.event.inputs.miui_services_url }}
-
-          Build date: $(date +'%Y-%m-%d')
-          Build time: $(date +'%H:%M:%S UTC')"
+          # Create release body with proper formatting
+          cat > /tmp/release_body.md << 'RELEASE_EOF'
+          ## 📱 Android 15 Framework Patcher
+          
+          **Device:** ${{ github.event.inputs.device_name }}  
+          **Version:** ${{ github.event.inputs.version_name }}  
+          **Android API:** ${{ github.event.inputs.api_level }}
+          
+          ---
+          
+          ## 🔧 Module Information
+          
+          This module is compatible with:
+          - ✅ **Magisk** - Universal systemless interface
+          - ✅ **KernelSU (KSU)** - Kernel-based root solution
+          - ✅ **SUFS** - System-as-root file system
+          
+          The module automatically detects your installed root solution. No configuration needed!
+          
+          ---
+          
+          ## ⚡ Features Applied
+          
+          FEATURES_PLACEHOLDER
+          
+          ---
+          
+          ## 📦 Source Files
+          
+          - **Framework:** [${{ github.event.inputs.framework_url }}](${{ github.event.inputs.framework_url }})
+          - **Services:** [${{ github.event.inputs.services_url }}](${{ github.event.inputs.services_url }})
+          - **MIUI Services:** [${{ github.event.inputs.miui_services_url }}](${{ github.event.inputs.miui_services_url }})
+          
+          ---
+          
+          ## 📅 Build Information
+          
+          - **Build Date:** $(date +'%Y-%m-%d')
+          - **Build Time:** $(date +'%H:%M:%S UTC')
+          - **Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          RELEASE_EOF
+          
+          # Replace features placeholder with actual features
+          sed -i "s|FEATURES_PLACEHOLDER|${FEATURES}|g" /tmp/release_body.md
+          
+          # Output to GitHub
           echo "release_body<<EOF" >> $GITHUB_OUTPUT
-          echo "$BODY" >> $GITHUB_OUTPUT
+          cat /tmp/release_body.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
