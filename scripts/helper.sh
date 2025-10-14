@@ -326,7 +326,7 @@ modify_invoke_custom_methods() {
             /^    move-result.*/d
             /^    return.*/c\\    const/4 v0, 0x0\\n\\n    return-object v0
         }" "$smali_file" 2>/dev/null || true
-    done <<< "$smali_files"
+    done <<<"$smali_files"
 
     if [ "$count" -gt 0 ]; then
         log "Modified $count files with invoke-custom"
