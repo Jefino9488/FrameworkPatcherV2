@@ -3,6 +3,10 @@
 # Module Creator using MMT-Extended
 # This script creates a module that works with Magisk, KSU, and SUFS
 
+# Source helper functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/helper.sh"
+
 create_module() {
     local api_level="$1"
     local device_name="$2"

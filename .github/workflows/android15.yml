@@ -72,9 +72,31 @@ jobs:
 
       - name: Download framework JARs
         run: |
+          echo "Downloading JAR files..."
           wget -O framework.jar "${{ github.event.inputs.framework_url }}"
           wget -O services.jar "${{ github.event.inputs.services_url }}"
           wget -O miui-services.jar "${{ github.event.inputs.miui_services_url }}"
+          
+          echo "Validating downloaded JAR files..."
+          for jar in framework.jar services.jar miui-services.jar; do
+            echo "Checking $jar..."
+            if [ ! -f "$jar" ]; then
+              echo "❌ $jar not found!"
+              exit 1
+            fi
+            
+            # Check if file is a valid ZIP/JAR
+            if ! unzip -t "$jar" >/dev/null 2>&1; then
+              echo "❌ $jar is corrupted or not a valid ZIP file!"
+              echo "File size: $(stat -c%s "$jar") bytes"
+              echo "File type: $(file "$jar")"
+              exit 1
+            fi
+            
+            echo "✅ $jar is valid ($(stat -c%s "$jar") bytes)"
+          done
+          
+          echo "All JAR files validated successfully!"
 
       - name: Run Android 15 patcher
         run: |
