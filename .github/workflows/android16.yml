@@ -258,8 +258,19 @@ jobs:
           Changelog: https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md
           RELEASE_EOF
           
-          # Replace features placeholder with actual features
-          sed -i "s|FEATURES_PLACEHOLDER|${FEATURES}|g" /tmp/release_body.md
+          # Replace features placeholder with actual features (handle multiline properly)
+          # Create temporary file with features
+          echo "$FEATURES" > /tmp/features.txt
+          # Use awk to replace placeholder with file content
+          awk '{
+            if ($0 ~ /FEATURES_PLACEHOLDER/) {
+              while ((getline line < "/tmp/features.txt") > 0) print line
+              close("/tmp/features.txt")
+            } else {
+              print $0
+            }
+          }' /tmp/release_body.md > /tmp/release_body_final.md
+          mv /tmp/release_body_final.md /tmp/release_body.md
           
           # Output to GitHub
           echo "release_body<<EOF" >> $GITHUB_OUTPUT
