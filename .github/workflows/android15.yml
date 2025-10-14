@@ -50,34 +50,25 @@ on:
 
 jobs:
   patch:
+    name: Android 15 Framework Patcher
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y p7zip-full android-sdk-build-tools zipalign
-          # Fallback if package not found
-          if ! command -v zipalign &> /dev/null; then
-            sudo apt-get install -y android-tools-zipalign
-          fi
+          sudo apt-get install -y p7zip-full wget zip python3
 
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Download tools
+      - name: Prepare tools directory
         run: |
           mkdir -p tools
-          wget -O tools/baksmali.jar https://github.com/baksmali/smali/releases/download/3.0.9/baksmali-3.0.9-fat.jar
-          wget -O tools/smali.jar https://github.com/baksmali/smali/releases/download/3.0.9/smali-3.0.9-fat.jar
-          chmod +x tools/*.jar
+          if [ ! -f tools/apktool.jar ]; then
+            wget -O tools/apktool.jar https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar
+          fi
 
       - name: Download framework JARs
         run: |
@@ -85,7 +76,7 @@ jobs:
           wget -O services.jar "${{ github.event.inputs.services_url }}"
           wget -O miui-services.jar "${{ github.event.inputs.miui_services_url }}"
 
-      - name: Patch JARs and Create Module
+      - name: Run Android 15 patcher
         run: |
           chmod +x scripts/patcher_a15.sh
           
@@ -233,6 +224,26 @@ jobs:
           name: ${{ steps.release_info.outputs.name }}
           files: ${{ steps.find_zip.outputs.file_path }}
           body: ${{ steps.generate_release_body.outputs.release_body }}
+
+      - name: Upload patched jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: android15-patched-jars-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            framework_patched.jar
+            services_patched.jar
+            miui-services_patched.jar
+          retention-days: 7
+
+      - name: Upload module zip
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android15-module-${{ github.run_id }}
+          if-no-files-found: warn
+          path: Framework-Patcher-${{ github.event.inputs.device_name }}*.zip
+          retention-days: 7
 
       - name: Send Telegram Notification (Success)
         if: success() && github.event.inputs.user_id != ''
