@@ -61,7 +61,8 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y p7zip-full wget zip python3
+          sudo apt-get install -y p7zip-full wget zip python3 python3-pip
+          pip3 install gdown
 
       - name: Prepare tools directory
         run: |
@@ -72,10 +73,24 @@ jobs:
 
       - name: Download framework JARs
         run: |
+          # Smart download function that handles Google Drive links
+          download_file() {
+            url=$1
+            output=$2
+            echo "Downloading $output from $url"
+            if echo "$url" | grep -q "drive.google.com"; then
+              echo "Detected Google Drive link, using gdown..."
+              gdown --fuzzy -O "$output" "$url"
+            else
+              echo "Using curl for direct download..."
+              curl -L -C - -o "$output" "$url"
+            fi
+          }
+          
           echo "Downloading JAR files..."
-          wget -O framework.jar "${{ github.event.inputs.framework_url }}"
-          wget -O services.jar "${{ github.event.inputs.services_url }}"
-          wget -O miui-services.jar "${{ github.event.inputs.miui_services_url }}"
+          download_file "${{ github.event.inputs.framework_url }}" "framework.jar"
+          download_file "${{ github.event.inputs.services_url }}" "services.jar"
+          download_file "${{ github.event.inputs.miui_services_url }}" "miui-services.jar"
           
           echo "Validating downloaded JAR files..."
           for jar in framework.jar services.jar miui-services.jar; do
