@@ -627,7 +627,7 @@ ${indent}const/4 v4, 0x0" "$file"
     file=$(find "$decompile_dir" -type f -name "StrictJarFile.smali" | head -n 1)
     if [ -f "$file" ]; then
         local start_line
-        start_line=$(grep -n '\-\>findEntry(Ljava/lang/String;)Ljava/util/zip/ZipEntry;' "$file" | cut -d: -f1 | head -n 1)
+        start_line=$(grep -n "\->findEntry(Ljava/lang/String;)Ljava/util/zip/ZipEntry;" "$file" | cut -d: -f1 | head -n 1)
 
         if [ -n "$start_line" ]; then
             local i=$((start_line + 1))
