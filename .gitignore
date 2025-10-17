@@ -142,3 +142,6 @@ wheels/
 venv/
 ENV/
 env/
+
+# Documentation files moved to mics directory
+mics/
