@@ -617,7 +617,7 @@ apply_framework_signature_patches() {
     apk_signature_verifier_file=$(find "$decompile_dir" -type f -path "*/android/util/apk/ApkSignatureVerifier.smali" | head -n1)
     if [ -n "$apk_signature_verifier_file" ]; then
         force_methods_return_const "$apk_signature_verifier_file" "getMinimumSignatureSchemeVersionForTargetSdk" "0"
-        insert_line_before_all "$apk_signature_verifier_file" "ApkSignatureVerifier;->verifyV1Signature" "const/4 p3, 0x0"
+        insert_line_before_all "$apk_signature_verifier_file" "ApkSignatureVerifier;->verifyV1Signature" "const p3, 0x0"
     else
         warn "ApkSignatureVerifier.smali not found"
     fi
@@ -649,7 +649,43 @@ apply_framework_signature_patches() {
     local parsing_package_utils_file
     parsing_package_utils_file=$(find "$decompile_dir" -type f -path "*/com/android/internal/pm/pkg/parsing/ParsingPackageUtils.smali" | head -n1)
     if [ -n "$parsing_package_utils_file" ]; then
-        insert_const_before_condition_near_string "$parsing_package_utils_file" '<manifest> specifies bad sharedUserId name' "if-eqz v4, :" "v4" "0"
+        python3 - "$parsing_package_utils_file" <<'PY'
+from pathlib import Path
+import sys
+import re
+
+path = Path(sys.argv[1])
+if not path.exists():
+    sys.exit(4)
+
+lines = path.read_text().splitlines()
+changed = False
+
+for i, line in enumerate(lines):
+    if 'move-result v4' in line and 'isError()Z' in lines[max(0, i-5):i-5]:
+        # Found move-result v4 after isError() call, add const after it
+        indent = re.match(r'\s*', line).group(0)
+        insert_line = f'{indent}const/4 v4, 0x0'
+        lines.insert(i + 1, insert_line)
+        changed = True
+        break
+
+if changed:
+    path.write_text('\n'.join(lines) + '\n')
+PY
+        local status=$?
+        case "$status" in
+            0)
+                log "✓ ParsingPackageUtils sharedUserId patch (const/4 v4, 0x0 after move-result v4)"
+                ;;
+            4)
+                warn "ParsingPackageUtils.smali not found"
+                ;;
+            *)
+                err "Failed to patch ParsingPackageUtils sharedUserId (status $status)"
+                return 1
+                ;;
+        esac
     else
         warn "ParsingPackageUtils.smali not found"
     fi
