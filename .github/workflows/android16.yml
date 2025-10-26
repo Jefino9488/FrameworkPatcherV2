@@ -159,7 +159,9 @@ jobs:
         run: |
           # Format version name to be git tag friendly (replace spaces and dots with hyphens)
           SAFE_VERSION=$(echo "${{ github.event.inputs.version_name }}" | sed 's/[. ]/-/g')
-          RELEASE_TAG="${{ github.event.inputs.device_name }}_${SAFE_VERSION}"
+          # Add timestamp to ensure unique tags for same device+version combinations
+          TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
+          RELEASE_TAG="${{ github.event.inputs.device_name }}_${SAFE_VERSION}_${TIMESTAMP}"
           echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
           echo "name=Android 16 Framework Patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }})" >> $GITHUB_OUTPUT
 
@@ -234,7 +236,7 @@ jobs:
           fi
           
           # Create release body
-          cat > /tmp/release_body.md << 'RELEASE_EOF'
+          cat > /tmp/release_body.md << RELEASE_EOF
           Android 16 Framework Patcher for ${{ github.event.inputs.device_name }}
           
           Device: ${{ github.event.inputs.device_name }}
