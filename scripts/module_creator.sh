@@ -38,7 +38,7 @@ create_module() {
         sed -i "s/^name=.*/name=Framework Patch V2/" "$module_prop"
         sed -i "s/^version=.*/version=$version_name/" "$module_prop"
         sed -i "s/^versionCode=.*/versionCode=$version_name/" "$module_prop"
-        sed -i "s/^author=.*/author=Jᴇғɪɴᴏ ⚝/" "$module_prop"
+        sed -i "s/^author=.*/author=Jᴇғɪɴᴏ/" "$module_prop"
         sed -i "s/^description=.*/description=Framework patcher compatible with Magisk, KernelSU (KSU), and SUFS. Patched using jefino9488.github.io\/FrameworkPatcherV2/" "$module_prop"
 
         # Remove updateJson line
