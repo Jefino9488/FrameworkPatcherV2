@@ -561,16 +561,12 @@ apply_framework_signature_patches() {
     local decompile_dir="$1"
 
     log "Applying signature verification patches to framework.jar (Android 16)..."
-    warn "⚠️  SHARED USER PATCHES DISABLED: Some patches temporarily disabled due to /sdcard unmounting reports"
-    warn "   Disabled: sharedUserId validation bypasses in PackageParser and ParsingPackageUtils"
 
     local pkg_parser_file
     pkg_parser_file=$(find "$decompile_dir" -type f -path "*/android/content/pm/PackageParser.smali" | head -n1)
     if [ -n "$pkg_parser_file" ]; then
         insert_line_before_all "$pkg_parser_file" "ApkSignatureVerifier;->unsafeGetCertsWithoutVerification" "const/4 v1, 0x1"
-        # TEMPORARILY DISABLED: May cause /sdcard unmounting issues
-        # insert_const_before_condition_near_string "$pkg_parser_file" '<manifest> specifies bad sharedUserId name' "if-nez v14, :" "v14" "1"
-        warn "⚠️  DISABLED: sharedUserId validation bypass in PackageParser (potential /sdcard unmounting issue)"
+        insert_const_before_condition_near_string "$pkg_parser_file" '<manifest> specifies bad sharedUserId name' "if-nez v14, :" "v14" "1"
     else
         warn "PackageParser.smali not found"
     fi
@@ -650,15 +646,13 @@ apply_framework_signature_patches() {
         warn "StrictJarFile.smali not found"
     fi
 
-    # TEMPORARILY DISABLED: May cause /sdcard unmounting issues
-    # local parsing_package_utils_file
-    # parsing_package_utils_file=$(find "$decompile_dir" -type f -path "*/com/android/internal/pm/pkg/parsing/ParsingPackageUtils.smali" | head -n1)
-    # if [ -n "$parsing_package_utils_file" ]; then
-    #     insert_const_before_condition_near_string "$parsing_package_utils_file" '<manifest> specifies bad sharedUserId name' "if-eqz v4, :" "v4" "0"
-    # else
-    #     warn "ParsingPackageUtils.smali not found"
-    # fi
-    warn "⚠️  DISABLED: sharedUserId validation bypass in ParsingPackageUtils (potential /sdcard unmounting issue)"
+    local parsing_package_utils_file
+    parsing_package_utils_file=$(find "$decompile_dir" -type f -path "*/com/android/internal/pm/pkg/parsing/ParsingPackageUtils.smali" | head -n1)
+    if [ -n "$parsing_package_utils_file" ]; then
+        insert_const_before_condition_near_string "$parsing_package_utils_file" '<manifest> specifies bad sharedUserId name' "if-eqz v4, :" "v4" "0"
+    else
+        warn "ParsingPackageUtils.smali not found"
+    fi
 
     log "Signature verification patches applied to framework.jar (Android 16)"
 }
@@ -740,8 +734,6 @@ apply_services_signature_patches() {
     local decompile_dir="$1"
 
     log "Applying signature verification patches to services.jar (Android 16)..."
-    warn "⚠️  SHARED USER PATCHES DISABLED: Some patches temporarily disabled due to /sdcard unmounting reports"
-    warn "   Disabled: isLeavingSharedUser bypass and ReconcilePackageUtils clinit patch"
 
     # Resolve smali files across classes*/ to handle layout differences in CI
     resolve_smali_file() {
@@ -761,11 +753,10 @@ apply_services_signature_patches() {
 
     local pms_utils_file
     pms_utils_file=$(resolve_smali_file "com/android/server/pm/PackageManagerServiceUtils.smali")
-    # TEMPORARILY DISABLED: May cause /sdcard unmounting issues
-    # local install_package_helper_file
-    # install_package_helper_file=$(resolve_smali_file "com/android/server/pm/InstallPackageHelper.smali")
-    # local reconcile_package_utils_file
-    # reconcile_package_utils_file=$(resolve_smali_file "com/android/server/pm/ReconcilePackageUtils.smali")
+    local install_package_helper_file
+    install_package_helper_file=$(resolve_smali_file "com/android/server/pm/InstallPackageHelper.smali")
+    local reconcile_package_utils_file
+    reconcile_package_utils_file=$(resolve_smali_file "com/android/server/pm/ReconcilePackageUtils.smali")
 
     # checkDowngrade → return-void (all overloads)
     if [ -n "$pms_utils_file" ] && [ -f "$pms_utils_file" ]; then
@@ -792,29 +783,25 @@ apply_services_signature_patches() {
     fi
 
     # Apply shared-user guard in known file path (InstallPackageHelper)
-    # TEMPORARILY DISABLED: May cause /sdcard unmounting issues
-    # local invoke_pattern="invoke-interface {p5}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z"
-    # if [ -n "$install_package_helper_file" ] && [ -f "$install_package_helper_file" ]; then
-    #     ensure_const_before_if_for_register "$install_package_helper_file" "$invoke_pattern" "if-eqz v3, :" "v3" "1"
-    # else
-    #     # Fallback to repo-wide search if layout differs
-    #     local fallback_file
-    #     fallback_file=$(grep -rl --include='*.smali' "$invoke_pattern" "$decompile_dir" 2>/dev/null | head -n1)
-    #     if [ -n "$fallback_file" ]; then
-    #         ensure_const_before_if_for_register "$fallback_file" "$invoke_pattern" "if-eqz v3, :" "v3" "1"
-    #     else
-    #         warn "InstallPackageHelper.smali not found and pattern not located"
-    #     fi
-    # fi
-    warn "⚠️  DISABLED: isLeavingSharedUser bypass patch (potential /sdcard unmounting issue)"
+    local invoke_pattern="invoke-interface {p5}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z"
+    if [ -n "$install_package_helper_file" ] && [ -f "$install_package_helper_file" ]; then
+        ensure_const_before_if_for_register "$install_package_helper_file" "$invoke_pattern" "if-eqz v3, :" "v3" "1"
+    else
+        # Fallback to repo-wide search if layout differs
+        local fallback_file
+        fallback_file=$(grep -rl --include='*.smali' "$invoke_pattern" "$decompile_dir" 2>/dev/null | head -n1)
+        if [ -n "$fallback_file" ]; then
+            ensure_const_before_if_for_register "$fallback_file" "$invoke_pattern" "if-eqz v3, :" "v3" "1"
+        else
+            warn "InstallPackageHelper.smali not found and pattern not located"
+        fi
+    fi
 
-    # TEMPORARILY DISABLED: May cause /sdcard unmounting issues
-    # if [ -n "$reconcile_package_utils_file" ] && [ -f "$reconcile_package_utils_file" ]; then
-    #     patch_reconcile_clinit "$reconcile_package_utils_file"
-    # else
-    #     warn "ReconcilePackageUtils.smali not found"
-    # fi
-    warn "⚠️  DISABLED: ReconcilePackageUtils clinit patch (potential /sdcard unmounting issue)"
+    if [ -n "$reconcile_package_utils_file" ] && [ -f "$reconcile_package_utils_file" ]; then
+        patch_reconcile_clinit "$reconcile_package_utils_file"
+    else
+        warn "ReconcilePackageUtils.smali not found"
+    fi
 
     modify_invoke_custom_methods "$decompile_dir"
 
