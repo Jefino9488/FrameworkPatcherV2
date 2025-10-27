@@ -398,25 +398,25 @@ ${method_head_escaped}\\
 }
 
 # ------------------------------
-# Module creation using MMT-Extended template
+# Module creation using FrameworkPatcherModule template
 # ------------------------------
 create_module() {
     # local api_level="$1"  # Currently unused but kept for future use
     local device_name="$2"
     local version_name="$3"
 
-    log "Creating module using MMT-Extended for $device_name (v$version_name)"
+    log "Creating module using FrameworkPatcherModule for $device_name (v$version_name)"
 
     local build_dir="build_module"
     rm -rf "$build_dir"
 
-    # Copy MMT-Extended template
-    cp -r "templates/mmt-extended" "$build_dir" || {
-        err "MMT-Extended template not found: templates/mmt-extended"
+    # Copy FrameworkPatcherModule template
+    cp -r "templates/framework-patcher-module" "$build_dir" || {
+        err "FrameworkPatcherModule template not found: templates/framework-patcher-module"
         return 1
     }
 
-    # Clean up unnecessary files from MMT-Extended template
+    # Clean up unnecessary files from FrameworkPatcherModule template
     rm -f "$build_dir/.git" "$build_dir/.gitignore" "$build_dir/.gitattributes"
     rm -f "$build_dir/README.md" "$build_dir/changelog.md" "$build_dir/LICENSE"
     rm -f "$build_dir/update.json" "$build_dir/install.zip"

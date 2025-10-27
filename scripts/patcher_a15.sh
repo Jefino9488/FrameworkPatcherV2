@@ -1129,17 +1129,65 @@ patch_miui_services() {
     echo "Miui-services.jar patching completed."
 }
 
-# Source the module creator
-source "$(dirname "$0")/module_creator.sh"
+# Source helper functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/helper.sh"
 
-# Function to create module using MMT-Extended template
+# Function to create module using FrameworkPatcherModule template
 create_modules() {
+    # shellcheck disable=SC2034  # api_level currently unused but kept for future compatibility
     local api_level="$1"
     local device_name="$2"
     local version_name="$3"
 
-    echo "Creating module using MMT-Extended template"
-    create_all_modules "$api_level" "$device_name" "$version_name"
+    echo "Creating module using FrameworkPatcherModule template"
+
+    local build_dir="build_module"
+    rm -rf "$build_dir"
+
+    # Copy FrameworkPatcherModule template
+    cp -r "templates/framework-patcher-module" "$build_dir" || {
+        err "FrameworkPatcherModule template not found: templates/framework-patcher-module"
+        return 1
+    }
+
+    # Update module.prop with device-specific info
+    local module_prop="$build_dir/module.prop"
+    if [ -f "$module_prop" ]; then
+        sed -i "s/^version=.*/version=$version_name/" "$module_prop"
+        sed -i "s/^versionCode=.*/versionCode=$version_name/" "$module_prop"
+    fi
+
+    # Create required directories and copy patched files
+    mkdir -p "$build_dir/system/framework"
+    mkdir -p "$build_dir/system/system_ext/framework"
+
+    # Copy patched files if they exist
+    [ -f "framework_patched.jar" ] && cp "framework_patched.jar" "$build_dir/system/framework/framework.jar"
+    [ -f "services_patched.jar" ] && cp "services_patched.jar" "$build_dir/system/framework/services.jar"
+    [ -f "miui-services_patched.jar" ] && cp "miui-services_patched.jar" "$build_dir/system/system_ext/framework/miui-services.jar"
+
+    # Create module zip
+    local safe_version
+    safe_version=$(printf "%s" "$version_name" | sed 's/[. ]/-/g')
+    local zip_name="Framework-Patcher-${device_name}-${safe_version}.zip"
+
+    if command -v 7z >/dev/null 2>&1; then
+        (cd "$build_dir" && 7z a -tzip "../$zip_name" "*" >/dev/null) || {
+            err "7z failed to create $zip_name"
+            return 1
+        }
+    elif command -v zip >/dev/null 2>&1; then
+        (cd "$build_dir" && zip -r "../$zip_name" . >/dev/null) || {
+            err "zip failed to create $zip_name"
+            return 1
+        }
+    else
+        err "No archiver found (7z or zip). Install one to create module archive."
+        return 1
+    fi
+
+    echo "Created module: $zip_name"
 }
 
 # Legacy function for backward compatibility

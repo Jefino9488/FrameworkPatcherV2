@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Module Creator using MMT-Extended
+# Module Creator using FrameworkPatcherModule
 # This script creates a module that works with Magisk, KSU, and SUFS
 
 # Source helper functions
@@ -17,13 +17,13 @@ create_module() {
     local build_dir="build_module"
     rm -rf "$build_dir"
 
-    # Copy MMT-Extended template
-    cp -r "templates/mmt-extended" "$build_dir" || {
-        err "MMT-Extended template not found: templates/mmt-extended"
+    # Copy FrameworkPatcherModule template
+    cp -r "templates/framework-patcher-module" "$build_dir" || {
+        err "FrameworkPatcherModule template not found: templates/framework-patcher-module"
         return 1
     }
 
-    # Clean up unnecessary files from MMT-Extended template
+    # Clean up unnecessary files from FrameworkPatcherModule template
     rm -f "$build_dir/.git" "$build_dir/.gitignore" "$build_dir/.gitattributes"
     rm -f "$build_dir/README.md" "$build_dir/changelog.md" "$build_dir/LICENSE"
     rm -f "$build_dir/update.json" "$build_dir/install.zip"
@@ -114,6 +114,6 @@ create_all_modules() {
     local device_name="$2"
     local version_name="$3"
 
-    log "Creating module using MMT-Extended template"
+    log "Creating module using FrameworkPatcherModule template"
     create_module "$api_level" "$device_name" "$version_name"
 }
