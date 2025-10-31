@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Framework Patcher - Android 15 & 16</title>
+    <title>Framework Patcher - Android 13, 14, 15 & 16</title>
     <link href="styles.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -16,12 +16,20 @@
                 <i class="fas fa-mobile-alt"></i>
                 <h1>Framework Patcher</h1>
             </div>
-            <p class="subtitle">Patch Android Framework JARs for Android 15 & 16</p>
+            <p class="subtitle">Patch Android Framework JARs for Android 13, 14, 15 & 16</p>
         </div>
     </header>
 
     <main class="main-content">
         <div class="version-selector">
+            <button class="version-btn" data-version="android13">
+                <i class="fas fa-robot"></i>
+                Android 13
+            </button>
+            <button class="version-btn" data-version="android14">
+                <i class="fas fa-robot"></i>
+                Android 14
+            </button>
             <button class="version-btn active" data-version="android15">
                 <i class="fas fa-robot"></i>
                 Android 15
@@ -30,6 +38,224 @@
                 <i class="fas fa-robot"></i>
                 Android 16
             </button>
+        </div>
+
+        <!-- Android 13 Form -->
+        <div class="form-container" id="android13-form">
+            <div class="form-header">
+                <h2><i class="fas fa-cog"></i> Android 13 Framework Patcher</h2>
+                <p>Configure and trigger Android 13 patching workflow</p>
+            </div>
+
+            <form class="patcher-form" id="a13-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="a13-api-level">
+                            <i class="fas fa-code"></i>
+                            API Level
+                        </label>
+                        <input id="a13-api-level" name="api_level" required type="text" value="33">
+                        <small>Android API level (default: 33)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a13-device-name">
+                            <i class="fas fa-mobile-alt"></i>
+                            Device Codename
+                        </label>
+                        <input id="a13-device-name" name="device_name" placeholder="e.g., rothko" required type="text">
+                        <small>Your device's codename</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a13-version-name">
+                            <i class="fas fa-tag"></i>
+                            Version Name
+                        </label>
+                        <input id="a13-version-name" name="version_name" placeholder="e.g., OS2.0.200.33" required
+                               type="text">
+                        <small>MIUI/ROM version</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a13-user-id">
+                            <i class="fab fa-telegram"></i>
+                            Telegram User ID
+                        </label>
+                        <input id="a13-user-id" name="user_id" placeholder="Optional" type="text">
+                        <small>For notifications (optional)</small>
+                    </div>
+                </div>
+
+                <div class="features-section">
+                    <h3><i class="fas fa-magic"></i> Features to Apply</h3>
+                    <p class="feature-description">Select which features to include in the patched module</p>
+
+                    <div class="feature-options">
+                        <label class="feature-checkbox">
+                            <input checked name="enable_signature_bypass" type="checkbox" value="true">
+                            <span class="checkmark"></span>
+                            <div class="feature-info">
+                                <strong>Disable Signature Verification</strong>
+                                <small>Allows installation of modified/unsigned apps</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="jar-urls">
+                    <h3><i class="fas fa-download"></i> JAR File URLs</h3>
+
+                    <div class="form-group">
+                        <label for="a13-framework-url">
+                            <i class="fas fa-file-archive"></i>
+                            Framework.jar URL
+                        </label>
+                        <input id="a13-framework-url" name="framework_url"
+                               placeholder="https://example.com/framework.jar"
+                               required type="url">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a13-services-url">
+                            <i class="fas fa-file-archive"></i>
+                            Services.jar URL
+                        </label>
+                        <input id="a13-services-url" name="services_url" placeholder="https://example.com/services.jar"
+                               required type="url">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a13-miui-services-url">
+                            <i class="fas fa-file-archive"></i>
+                            MIUI Services.jar URL
+                        </label>
+                        <input id="a13-miui-services-url" name="miui_services_url"
+                               placeholder="https://example.com/miui-services.jar"
+                               required type="url">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="clearForm('a13-form')" type="button">
+                        <i class="fas fa-eraser"></i>
+                        Clear Form
+                    </button>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-play"></i>
+                        Start Patching
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Android 14 Form -->
+        <div class="form-container" id="android14-form">
+            <div class="form-header">
+                <h2><i class="fas fa-cog"></i> Android 14 Framework Patcher</h2>
+                <p>Configure and trigger Android 14 patching workflow</p>
+            </div>
+
+            <form class="patcher-form" id="a14-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="a14-api-level">
+                            <i class="fas fa-code"></i>
+                            API Level
+                        </label>
+                        <input id="a14-api-level" name="api_level" required type="text" value="34">
+                        <small>Android API level (default: 34)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a14-device-name">
+                            <i class="fas fa-mobile-alt"></i>
+                            Device Codename
+                        </label>
+                        <input id="a14-device-name" name="device_name" placeholder="e.g., rothko" required type="text">
+                        <small>Your device's codename</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a14-version-name">
+                            <i class="fas fa-tag"></i>
+                            Version Name
+                        </label>
+                        <input id="a14-version-name" name="version_name" placeholder="e.g., OS2.0.200.33" required
+                               type="text">
+                        <small>MIUI/ROM version</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a14-user-id">
+                            <i class="fab fa-telegram"></i>
+                            Telegram User ID
+                        </label>
+                        <input id="a14-user-id" name="user_id" placeholder="Optional" type="text">
+                        <small>For notifications (optional)</small>
+                    </div>
+                </div>
+
+                <div class="features-section">
+                    <h3><i class="fas fa-magic"></i> Features to Apply</h3>
+                    <p class="feature-description">Select which features to include in the patched module</p>
+
+                    <div class="feature-options">
+                        <label class="feature-checkbox">
+                            <input checked name="enable_signature_bypass" type="checkbox" value="true">
+                            <span class="checkmark"></span>
+                            <div class="feature-info">
+                                <strong>Disable Signature Verification</strong>
+                                <small>Allows installation of modified/unsigned apps</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="jar-urls">
+                    <h3><i class="fas fa-download"></i> JAR File URLs</h3>
+
+                    <div class="form-group">
+                        <label for="a14-framework-url">
+                            <i class="fas fa-file-archive"></i>
+                            Framework.jar URL
+                        </label>
+                        <input id="a14-framework-url" name="framework_url"
+                               placeholder="https://example.com/framework.jar"
+                               required type="url">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a14-services-url">
+                            <i class="fas fa-file-archive"></i>
+                            Services.jar URL
+                        </label>
+                        <input id="a14-services-url" name="services_url" placeholder="https://example.com/services.jar"
+                               required type="url">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="a14-miui-services-url">
+                            <i class="fas fa-file-archive"></i>
+                            MIUI Services.jar URL
+                        </label>
+                        <input id="a14-miui-services-url" name="miui_services_url"
+                               placeholder="https://example.com/miui-services.jar"
+                               required type="url">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="clearForm('a14-form')" type="button">
+                        <i class="fas fa-eraser"></i>
+                        Clear Form
+                    </button>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-play"></i>
+                        Start Patching
+                    </button>
+                </div>
+            </form>
         </div>
 
         <!-- Android 15 Form -->

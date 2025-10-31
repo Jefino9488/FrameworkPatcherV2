@@ -4,6 +4,8 @@ const CONFIG = {
     githubRepo: 'FrameworkPatcherV2',
     // Token is now handled server-side via API route
     workflows: {
+        android13: 'android13.yml',
+        android14: 'android14.yml',
         android15: 'android15.yml',
         android16: 'android16.yml'
     }
@@ -15,6 +17,8 @@ const CONFIG = {
 let currentVersion = 'android15';
 const versionBtns = document.querySelectorAll('.version-btn');
 const formContainers = document.querySelectorAll('.form-container');
+const a13Form = document.getElementById('a13-form');
+const a14Form = document.getElementById('a14-form');
 const a15Form = document.getElementById('a15-form');
 const a16Form = document.getElementById('a16-form');
 
@@ -65,6 +69,16 @@ function initializeForms() {
 
 // Event listeners
 function setupEventListeners() {
+    a13Form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        handleFormSubmit('android13', this);
+    });
+
+    a14Form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        handleFormSubmit('android14', this);
+    });
+
     a15Form.addEventListener('submit', function (e) {
         e.preventDefault();
         handleFormSubmit('android15', this);
@@ -172,7 +186,13 @@ async function triggerWorkflow(version, inputs) {
 
 // Show manual trigger instructions with workflow links
 function showManualTriggerInstructions(version, inputs) {
-    const workflowName = version === 'android15' ? 'Android 15 Framework Patcher' : 'Android 16 Framework Patcher';
+    const workflowNames = {
+        'android13': 'Android 13 Framework Patcher',
+        'android14': 'Android 14 Framework Patcher',
+        'android15': 'Android 15 Framework Patcher',
+        'android16': 'Android 16 Framework Patcher'
+    };
+    const workflowName = workflowNames[version] || 'Framework Patcher';
     const workflowUrl = `https://github.com/${CONFIG.githubOwner}/${CONFIG.githubRepo}/actions/workflows/${version}.yml`;
 
     const parametersHtml = Object.entries(inputs)
@@ -376,12 +396,14 @@ function loadFormData(formId) {
 
 // Load saved data on page load
 document.addEventListener('DOMContentLoaded', function () {
+    loadFormData('a13-form');
+    loadFormData('a14-form');
     loadFormData('a15-form');
     loadFormData('a16-form');
 });
 
 // Save data when form changes
-[a15Form, a16Form].forEach(form => {
+[a13Form, a14Form, a15Form, a16Form].forEach(form => {
     if (form) {
         form.addEventListener('input', () => saveFormData(form.id));
         form.addEventListener('change', () => saveFormData(form.id));

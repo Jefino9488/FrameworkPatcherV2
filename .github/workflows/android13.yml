@@ -1,0 +1,336 @@
+name: Android 13 Framework Patcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_level:
+        description: 'Android API level (Android 13 is API 33)'
+        required: true
+        default: '33'
+        type: string
+      device_name:
+        description: 'Device codename (for labeling artifacts)'
+        required: true
+        type: string
+      version_name:
+        description: 'ROM/firmware version identifier'
+        required: true
+        type: string
+      framework_url:
+        description: 'URL to framework.jar'
+        required: true
+        type: string
+      services_url:
+        description: 'URL to services.jar'
+        required: true
+        type: string
+      miui_services_url:
+        description: 'URL to miui-services.jar'
+        required: true
+        type: string
+      user_id:
+        description: 'Telegram User ID to notify (optional)'
+        required: false
+        type: string
+      enable_signature_bypass:
+        description: 'Enable signature verification bypass'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  patch:
+    name: Android 13 Framework Patcher
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y p7zip-full wget zip python3 python3-pip
+          pip3 install gdown
+
+      - name: Prepare tools directory
+        run: |
+          mkdir -p tools
+          if [ ! -f tools/apktool.jar ]; then
+            wget -O tools/apktool.jar https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar
+          fi
+
+      - name: Download framework JARs
+        run: |
+          # Smart download function that handles Google Drive links
+          download_file() {
+            url=$1
+            output=$2
+            echo "Downloading $output from $url"
+
+            if echo "$url" | grep -q "drive.google.com"; then
+              echo "Detected Google Drive link, using gdown..."
+              gdown --fuzzy -O "$output" "$url"
+            else
+              echo "Using wget for download..."
+              wget -O "$output" "$url"
+            fi
+          }
+
+          echo "Downloading JAR files..."
+          download_file "${{ github.event.inputs.framework_url }}" "framework.jar"
+          download_file "${{ github.event.inputs.services_url }}" "services.jar"
+          download_file "${{ github.event.inputs.miui_services_url }}" "miui-services.jar"
+
+          echo "Validating downloaded JAR files..."
+          for jar in framework.jar services.jar miui-services.jar; do
+            if [ ! -f "$jar" ]; then
+              echo "❌ $jar not found!"
+              exit 1
+            fi
+
+            file_size=$(stat -c%s "$jar")
+            echo "Checking $jar (${file_size} bytes)..."
+
+            if [ $file_size -lt 1500000 ]; then
+              echo "❌ Error: $jar is too small (${file_size} bytes). Download might have failed."
+              exit 1
+            fi
+
+            echo "✅ $jar validated successfully"
+          done
+
+          echo "All JAR files validated successfully!"
+
+      - name: Run Android 13 patcher
+        run: |
+          chmod +x scripts/patcher_a13.sh
+
+          # Build feature flags
+          FEATURE_FLAGS=""
+          if [ "${{ github.event.inputs.enable_signature_bypass }}" = "true" ]; then
+            FEATURE_FLAGS="$FEATURE_FLAGS --disable-signature-verification"
+          fi
+
+          # If no features selected, default to signature bypass for backward compatibility
+          if [ -z "$FEATURE_FLAGS" ]; then
+            FEATURE_FLAGS="--disable-signature-verification"
+          fi
+
+          ./scripts/patcher_a13.sh \
+            "${{ github.event.inputs.api_level }}" \
+            "${{ github.event.inputs.device_name }}" \
+            "${{ github.event.inputs.version_name }}" \
+            --framework --services --miui-services $FEATURE_FLAGS
+
+      - name: Verify module creation
+        run: |
+          echo "Checking if module was created properly..."
+          MODULE_FILE=$(ls Framework-Patcher-${{ github.event.inputs.device_name }}*.zip 2>/dev/null || echo "")
+          if [ -z "$MODULE_FILE" ]; then
+            echo "❌ No module ZIP found!"
+            exit 1
+          fi
+          echo "✅ Module ZIP found: $MODULE_FILE"
+          echo "Module contents:"
+          unzip -l "$MODULE_FILE" | head -20
+          echo "Checking for MMT-Extended files:"
+          unzip -l "$MODULE_FILE" | grep -E "(module\.prop|customize\.sh|common/functions\.sh|META-INF)" || echo "❌ Missing MMT-Extended files"
+
+      - name: Set Release Info
+        id: release_info
+        run: |
+          # Format version name to be git tag friendly (replace spaces and dots with hyphens)
+          SAFE_VERSION=$(echo "${{ github.event.inputs.version_name }}" | sed 's/[. ]/-/g')
+          # Add timestamp to ensure unique tags for same device+version combinations
+          TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
+          RELEASE_TAG="${{ github.event.inputs.device_name }}_${SAFE_VERSION}_${TIMESTAMP}"
+          echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "name=Android 13 Framework Patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }})" >> $GITHUB_OUTPUT
+
+      - name: Find Module ZIP
+        id: find_zip
+        run: |
+          # Find the module ZIP
+          ZIP_FILE=$(ls Framework-Patcher-${{ github.event.inputs.device_name }}*.zip 2>/dev/null || echo "")
+          if [ -z "$ZIP_FILE" ]; then
+            echo "No module ZIP found!"
+            exit 1
+          fi
+
+          echo "file_path=${ZIP_FILE}" >> $GITHUB_OUTPUT
+
+      - name: Delete Existing Release
+        uses: actions/github-script@v6
+        continue-on-error: true
+        with:
+          script: |
+            try {
+              const releases = await github.rest.repos.listReleases({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+
+              const existingRelease = releases.data.find(r => r.tag_name === '${{ steps.release_info.outputs.tag }}');
+
+              if (existingRelease) {
+                console.log('Found existing release, deleting...');
+                await github.rest.repos.deleteRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: existingRelease.id
+                });
+
+                // Delete the tag
+                try {
+                  await github.rest.git.deleteRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: 'tags/${{ steps.release_info.outputs.tag }}'
+                  });
+                } catch (e) {
+                  console.log('Tag might not exist, continuing...');
+                }
+              }
+            } catch (e) {
+              console.log('No existing release found or error occurred:', e.message);
+            }
+
+      - name: Generate Release Body
+        id: generate_release_body
+        run: |
+          # Build features list
+          FEATURES=""
+          if [ "${{ github.event.inputs.enable_signature_bypass }}" = "true" ]; then
+            FEATURES="${FEATURES}- Signature Verification Bypass
+          "
+          fi
+          if [ -z "$FEATURES" ]; then
+            FEATURES="- Signature Verification Bypass (default)
+          "
+          fi
+
+          # Create release body
+          cat > /tmp/release_body.md << RELEASE_EOF
+          Android 13 Framework Patcher for ${{ github.event.inputs.device_name }}
+
+          Device: ${{ github.event.inputs.device_name }}
+          Version: ${{ github.event.inputs.version_name }}
+          Android API: ${{ github.event.inputs.api_level }}
+
+          Important: This module is built specifically for ${{ github.event.inputs.device_name }} running ${{ github.event.inputs.version_name }}. Installing on other devices or ROM versions may cause boot loops or system issues.
+
+          Compatible with Magisk, KernelSU, and SUFS
+
+          Features:
+          FEATURES_PLACEHOLDER
+
+          Source files:
+          - Framework: ${{ github.event.inputs.framework_url }}
+          - Services: ${{ github.event.inputs.services_url }}
+          - MIUI Services: ${{ github.event.inputs.miui_services_url }}
+
+          Built: $(date +'%Y-%m-%d %H:%M:%S UTC')
+          Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          Changelog: https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md
+          RELEASE_EOF
+
+          # Replace features placeholder with actual features (handle multiline properly)
+          # Create temporary file with features
+          echo "$FEATURES" > /tmp/features.txt
+          # Use awk to replace placeholder with file content
+          awk '{
+            if ($0 ~ /FEATURES_PLACEHOLDER/) {
+              while ((getline line < "/tmp/features.txt") > 0) print line
+              close("/tmp/features.txt")
+            } else {
+              print $0
+            }
+          }' /tmp/release_body.md > /tmp/release_body_final.md
+          mv /tmp/release_body_final.md /tmp/release_body.md
+
+          # Output to GitHub
+          echo "release_body<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/release_body.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag }}
+          name: ${{ steps.release_info.outputs.name }}
+          files: ${{ steps.find_zip.outputs.file_path }}
+          body: ${{ steps.generate_release_body.outputs.release_body }}
+
+      - name: Upload patched jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: android13-patched-jars-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            framework_patched.jar
+            services_patched.jar
+            miui-services_patched.jar
+          retention-days: 7
+
+      - name: Upload module zip
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android13-module-${{ github.run_id }}
+          if-no-files-found: warn
+          path: Framework-Patcher-${{ github.event.inputs.device_name }}*.zip
+          retention-days: 7
+
+      - name: Send Telegram Notification (Success)
+        if: success() && github.event.inputs.user_id != ''
+        run: |
+          escape_mdv2() {
+            echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
+          }
+
+          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.device_name }}")
+          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
+          API_LEVEL_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.api_level }}")
+
+          MESSAGE=$(printf "Android 13 framework patch is ready for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`\n\nModule compatible with Magisk, KSU, and SUFS" \
+            "$DEVICE_NAME_ESCAPED" \
+            "$VERSION_NAME_ESCAPED" \
+            "$API_LEVEL_ESCAPED")
+
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${{ steps.release_info.outputs.tag }}"
+
+          REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"Click here to download\",\"url\":\"$RELEASE_URL\"}],[{\"text\":\"Support me\",\"url\":\"https://buymeacoffee.com/jefino\"}]]}"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ github.event.inputs.user_id }} \
+            -d text="$MESSAGE" \
+            -d parse_mode="MarkdownV2" \
+            -d reply_markup="$REPLY_MARKUP"
+
+      - name: Send Telegram Notification (Failure)
+        if: failure() && github.event.inputs.user_id != ''
+        run: |
+          escape_mdv2() {
+            echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
+          }
+
+          DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.device_name }}")
+          VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
+          WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          MESSAGE=$(printf "Android 13 framework patch failed for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n\nPlease check the workflow logs for more details." \
+            "$DEVICE_NAME_ESCAPED" \
+            "$VERSION_NAME_ESCAPED")
+
+          REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"View Workflow Run\",\"url\":\"$WORKFLOW_URL\"}]]}"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ github.event.inputs.user_id }} \
+            -d text="$MESSAGE" \
+            -d parse_mode="MarkdownV2" \
+            -d reply_markup="$REPLY_MARKUP"
