@@ -1,0 +1,59 @@
+# Vercel ignore file - exclude unnecessary files from deployment
+
+# Services that run on Pterodactyl (not Vercel)
+services/bot/
+*.session
+*.log
+bot.pid
+api.pid
+
+# Build artifacts
+*.pyc
+__pycache__/
+*.so
+*.egg-info/
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Logs
+logs/
+*.log
+
+# Backups
+backup/
+*.bak
+
+# Decompiled services
+services_decompile/
+
+# JAR files
+*.jar
+
+# Scripts and tools
+scripts/
+tools/
+mics/
+
+# Documentation (can be excluded if not needed on Vercel)
+docs/
+
+# API directory (if you want to deploy it separately)
+# Uncomment if API is not needed on Vercel
+# services/web/server.py
+# services/web/api/
