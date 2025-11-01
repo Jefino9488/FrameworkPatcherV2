@@ -4,7 +4,6 @@ import logging
 import os
 import sys
 import time
-
 import httpx
 import psutil
 from dotenv import load_dotenv
@@ -15,6 +14,7 @@ from pyrogram.errors import FloodWait, NetworkMigrate, AuthKeyUnregistered
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
 
 from shell import run_shell_cmd
+import provider
 
 # Load environment variables from .env file
 load_dotenv()
@@ -77,8 +77,8 @@ STATE_NONE = 0
 STATE_WAITING_FOR_API = 1
 STATE_WAITING_FOR_FEATURES = 2
 STATE_WAITING_FOR_FILES = 3
-STATE_WAITING_FOR_DEVICE_NAME = 4
-STATE_WAITING_FOR_VERSION_NAME = 5
+STATE_WAITING_FOR_DEVICE_CODENAME = 4
+STATE_WAITING_FOR_VERSION_SELECTION = 5
 
 
 # --- Connection Health Monitoring ---
@@ -755,6 +755,152 @@ async def features_done_handler(bot: Client, query: CallbackQuery):
     await query.answer("Features confirmed!")
 
 
+@Bot.on_callback_query(filters.regex(r"^ver_(\d+|showall)$"))
+async def version_selection_handler(bot: Client, query: CallbackQuery):
+    """Handles version selection from inline keyboard."""
+    user_id = query.from_user.id
+    if user_id not in user_states or user_states[user_id].get("state") != STATE_WAITING_FOR_VERSION_SELECTION:
+        await query.answer("Not expecting version selection.", show_alert=True)
+        return
+
+    data = query.data.split("_", 1)[1]
+
+    # Handle "Show All" button
+    if data == "showall":
+        software_data = user_states[user_id]["software_data"]
+        miui_roms = software_data.get("miui_roms", [])
+        device_name = user_states[user_id]["device_name"]
+
+        # Create text list of all versions
+        version_list = []
+        for idx, rom in enumerate(miui_roms):
+            version = rom.get('version') or rom.get('miui', 'Unknown')
+            android = rom.get('android', '?')
+            version_list.append(f"{idx + 1}. {version} (Android {android})")
+
+        versions_text = "\n".join(version_list[:30])  # Limit to 30 to avoid message length issues
+        if len(miui_roms) > 30:
+            versions_text += f"\n\n... and {len(miui_roms) - 30} more versions"
+
+        await query.message.edit_text(
+            f"📋 **All Available Versions for {device_name}:**\n\n{versions_text}\n\n"
+            f"Please type the version number (1-{len(miui_roms)}) or version name to select.",
+        )
+        await query.answer("Showing all versions")
+        return
+
+    # Handle version selection by index
+    try:
+        version_idx = int(data)
+        software_data = user_states[user_id]["software_data"]
+        miui_roms = software_data.get("miui_roms", [])
+
+        if version_idx >= len(miui_roms):
+            await query.answer("Invalid version selection!", show_alert=True)
+            return
+
+        selected_rom = miui_roms[version_idx]
+        version_name = selected_rom.get('version') or selected_rom.get('miui', 'Unknown')
+        android_version = selected_rom.get('android')
+
+        # Validate Android version
+        if not android_version:
+            await query.answer("⚠️ Android version not found for this ROM!", show_alert=True)
+            return
+
+        android_int = int(android_version)
+        if android_int < 13:
+            await query.answer(
+                f"⚠️ Android {android_version} is not supported. Minimum required: Android 13",
+                show_alert=True
+            )
+            return
+
+        # Get API level
+        api_level = provider.android_version_to_api_level(android_version)
+
+        # Store version info
+        user_states[user_id]["version_name"] = version_name
+        user_states[user_id]["android_version"] = android_version
+        user_states[user_id]["api_level"] = api_level
+
+        # Check daily rate limit
+        from datetime import datetime
+        today = datetime.now().date()
+        triggers = user_rate_limits.get(user_id, [])
+        triggers = [t for t in triggers if t.date() == today]
+
+        if len(triggers) >= 3:
+            await query.message.edit_text(
+                "❌ You have reached the daily limit of 3 workflow triggers. Try again tomorrow."
+            )
+            user_states.pop(user_id, None)
+            await query.answer("Daily limit reached!")
+            return
+
+        # Trigger workflow
+        await query.message.edit_text("⏳ Triggering GitHub workflow...")
+
+        try:
+            links = user_states[user_id]["files"]
+            device_name = user_states[user_id]["device_name"]
+            features = user_states[user_id].get("features", {
+                "enable_signature_bypass": True,
+                "enable_cn_notification_fix": False,
+                "enable_disable_secure_flag": False
+            })
+
+            status = await trigger_github_workflow_async(links, device_name, version_name, api_level, user_id, features)
+            triggers.append(datetime.now())
+            user_rate_limits[user_id] = triggers
+
+            # Build features summary for confirmation
+            selected_features = []
+            if features.get("enable_signature_bypass"):
+                selected_features.append("✓ Signature Verification Bypass")
+            if features.get("enable_cn_notification_fix"):
+                selected_features.append("✓ CN Notification Fix")
+            if features.get("enable_disable_secure_flag"):
+                selected_features.append("✓ Disable Secure Flag")
+
+            features_summary = "\n".join(selected_features) if selected_features else "Default features"
+
+            await query.message.edit_text(
+                f"✅ **Workflow triggered successfully!**\n\n"
+                f"📱 **Device:** {device_name}\n"
+                f"📦 **Version:** {version_name}\n"
+                f"🤖 **Android:** {android_version} (API {api_level})\n\n"
+                f"**Features Applied:**\n{features_summary}\n\n"
+                f"⏳ You will receive a notification when the process is complete.\n\n"
+                f"Daily triggers used: {len(triggers)}/3"
+            )
+            await query.answer("Workflow triggered!")
+
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                f"GitHub workflow trigger failed for user {user_id}: HTTP Error {e.response.status_code} - {e.response.text}",
+                exc_info=True)
+            await query.message.edit_text(
+                f"❌ **Error triggering workflow:**\n\n"
+                f"GitHub API returned status {e.response.status_code}\n"
+                f"Response: `{e.response.text}`"
+            )
+            await query.answer("Workflow trigger failed!", show_alert=True)
+
+        except Exception as e:
+            logger.error(f"Error triggering workflow for user {user_id}: {e}", exc_info=True)
+            await query.message.edit_text(
+                f"❌ **An unexpected error occurred:**\n\n`{e}`"
+            )
+            await query.answer("Workflow trigger failed!", show_alert=True)
+
+        finally:
+            user_states.pop(user_id, None)
+
+    except ValueError:
+        await query.answer("Invalid version selection!", show_alert=True)
+
+
 @Bot.on_message(filters.private & filters.command("cancel"))
 async def cancel_command(bot: Client, message: Message):
     """Cancels the current operation and resets the user's state."""
@@ -895,9 +1041,12 @@ async def handle_media_upload(bot: Client, message: Message):
         missing_files = [f for f in required_files if f not in user_states[user_id]["files"]]
 
         if received_count == 3:
-            user_states[user_id]["state"] = STATE_WAITING_FOR_DEVICE_NAME
+            user_states[user_id]["state"] = STATE_WAITING_FOR_DEVICE_CODENAME
+            user_states[user_id]["codename_retry_count"] = 0
             await message.reply_text(
-                "All 3 files received and uploaded. Please enter the device codename (e.g., rothko):",
+                "✅ All 3 files received and uploaded!\n\n"
+                "📱 Please enter the device codename (e.g., rothko, xaga, marble)\n\n"
+                "💡 Tip: You can also search for your device name if you don't know the codename.",
                 quote=True
             )
         else:
@@ -933,75 +1082,88 @@ async def handle_text_input(bot: Client, message: Message):
 
     current_state = user_states.get(user_id, {}).get("state", STATE_NONE)
 
-    if current_state == STATE_WAITING_FOR_DEVICE_NAME:
-        user_states[user_id]["device_name"] = message.text.strip()
-        user_states[user_id]["state"] = STATE_WAITING_FOR_VERSION_NAME
-        await message.reply_text("Now enter the ROM version (e.g., OS2.0.200.33):", quote=True)
+    if current_state == STATE_WAITING_FOR_DEVICE_CODENAME:
+        codename = message.text.strip().lower()
 
-    elif current_state == STATE_WAITING_FOR_VERSION_NAME:
-        from datetime import datetime
-        today = datetime.now().date()
-        triggers = user_rate_limits.get(user_id, [])
-        triggers = [t for t in triggers if t.date() == today]
+        # Validate codename
+        if not provider.is_codename_valid(codename):
+            retry_count = user_states[user_id].get("codename_retry_count", 0)
+            retry_count += 1
+            user_states[user_id]["codename_retry_count"] = retry_count
 
-        if len(triggers) >= 3:
-            await message.reply_text("You have reached the daily limit of 3 workflow triggers. Try again tomorrow.",
-                                     quote=True)
-            user_states.pop(user_id, None)
+            if retry_count >= 3:
+                await message.reply_text(
+                    "❌ Maximum retry attempts reached. Operation cancelled.\n\n"
+                    "Please use /start_patch to try again.",
+                    quote=True
+                )
+                user_states.pop(user_id, None)
+                return
+
+            # Get similar codenames for suggestions
+            similar = provider.get_similar_codenames(codename)
+            suggestion_text = ""
+            if similar:
+                suggestion_text = f"\n\n💡 Did you mean one of these?\n" + "\n".join([f"• `{c}`" for c in similar[:5]])
+
+            await message.reply_text(
+                f"❌ Invalid codename: `{codename}`\n\n"
+                f"Attempt {retry_count}/3 - Please try again.{suggestion_text}\n\n"
+                f"You can also search by device name (e.g., 'Redmi Note 11').",
+                quote=True
+            )
             return
 
-        user_states[user_id]["version_name"] = message.text.strip()
-        await message.reply_text("All inputs received. Triggering GitHub workflow...", quote=True)
+        # Codename is valid, get device info and versions
+        device_info = provider.get_device_by_codename(codename)
+        software_data = provider.get_device_software(codename)
 
-        try:
-            links = user_states[user_id]["files"]
-            device_name = user_states[user_id]["device_name"]
-            version_name = user_states[user_id]["version_name"]
-            api_level = user_states[user_id].get("api_level") or "35"
-            features = user_states[user_id].get("features", {
-                "enable_signature_bypass": True,
-                "enable_cn_notification_fix": False,
-                "enable_disable_secure_flag": False
-            })
-
-            status = await trigger_github_workflow_async(links, device_name, version_name, api_level, user_id, features)
-            triggers.append(datetime.now())
-            user_rate_limits[user_id] = triggers
-            
-            # Build features summary for confirmation
-            selected_features = []
-            if features.get("enable_signature_bypass"):
-                selected_features.append("✓ Signature Verification Bypass")
-            if features.get("enable_cn_notification_fix"):
-                selected_features.append("✓ CN Notification Fix")
-            if features.get("enable_disable_secure_flag"):
-                selected_features.append("✓ Disable Secure Flag")
-            
-            features_summary = "\n".join(selected_features) if selected_features else "Default features"
-
+        if not software_data or (not software_data.get("miui_roms") and not software_data.get("firmware_versions")):
             await message.reply_text(
-                f"✅ Workflow triggered successfully!\n\n"
-                f"**Device:** {device_name}\n"
-                f"**Version:** {version_name}\n"
-                f"**Android API:** {api_level}\n\n"
-                f"**Features Applied:**\n{features_summary}\n\n"
-                f"You will receive a notification when the process is complete.",
+                f"❌ No software versions found for device: **{device_info['name']}** (`{codename}`)\n\n"
+                "This device may not be supported yet. Please try another device.",
                 quote=True
             )
-        except httpx.HTTPStatusError as e:
-            logger.error(
-                f"GitHub workflow trigger failed for user {user_id}: HTTP Error {e.response.status_code} - {e.response.text}",
-                exc_info=True)
+            user_states[user_id]["state"] = STATE_WAITING_FOR_DEVICE_CODENAME
+            return
+
+        # Store device info
+        user_states[user_id]["device_codename"] = codename
+        user_states[user_id]["device_name"] = device_info["name"]
+        user_states[user_id]["software_data"] = software_data
+        user_states[user_id]["state"] = STATE_WAITING_FOR_VERSION_SELECTION
+
+        # Build version list
+        miui_roms = software_data.get("miui_roms", [])
+
+        if not miui_roms:
             await message.reply_text(
-                f"Error triggering workflow: GitHub API returned status {e.response.status_code}. "
-                f"Response: `{e.response.text}`",
+                f"❌ No MIUI ROM versions found for **{device_info['name']}**\n\n"
+                "Please try another device.",
                 quote=True
             )
-        except Exception as e:
-            logger.error(f"Error triggering workflow for user {user_id}: {e}", exc_info=True)
-            await message.reply_text(f"An unexpected error occurred while triggering workflow: `{e}`", quote=True)
-        finally:
-            user_states.pop(user_id, None)
+            user_states[user_id]["state"] = STATE_WAITING_FOR_DEVICE_CODENAME
+            return
+
+        # Create inline keyboard with version options (limit to first 10)
+        buttons = []
+        for idx, rom in enumerate(miui_roms[:10]):
+            version = rom.get('version') or rom.get('miui', 'Unknown')
+            android = rom.get('android', '?')
+            button_text = f"{version} (Android {android})"
+            buttons.append([InlineKeyboardButton(button_text, callback_data=f"ver_{idx}")])
+
+        # Add "Show More" button if there are more than 10 versions
+        if len(miui_roms) > 10:
+            buttons.append([InlineKeyboardButton(f"📋 Show All ({len(miui_roms)} versions)", callback_data="ver_showall")])
+
+        await message.reply_text(
+            f"✅ Device found: **{device_info['name']}** (`{codename}`)\n\n"
+            f"📦 Found {len(miui_roms)} MIUI ROM version(s)\n\n"
+            f"Please select a version:",
+            reply_markup=InlineKeyboardMarkup(buttons),
+            quote=True
+        )
 
     elif current_state == STATE_NONE:
         try:
@@ -1343,7 +1505,20 @@ async def connection_monitor():
 if __name__ == "__main__":
     try:
         logger.info("Starting Framework Patcher Bot...")
-        Bot.run()
+
+        # Initialize provider data before starting bot
+        async def startup():
+            logger.info("Initializing device data provider...")
+            success = await provider.initialize_data()
+            if not success:
+                logger.warning("Failed to initialize device data, some features may not work")
+            await Bot.start()
+            logger.info("Bot started successfully!")
+            await Bot.idle()
+
+        import asyncio
+        asyncio.run(startup())
+
     except KeyboardInterrupt:
         logger.info("Bot stopped by user")
     except Exception as e:
