@@ -1,9 +1,35 @@
 {
-  "outputDirectory": "web",
+  "buildCommand": "echo 'No build needed - static site'",
+  "outputDirectory": "services/web",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/services/web/api/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/web/$1"
+      "dest": "/services/web/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Accept"
+        }
+      ]
     }
   ]
 }
