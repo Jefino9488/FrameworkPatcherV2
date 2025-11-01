@@ -1,0 +1,31 @@
+#services.jar
+
+method;
+checkDowngrade
+return-void
+
+#######
+
+method;
+shouldCheckUpgradeKeySetLocked
+return 0
+
+#######
+
+method;
+verifySignatures
+return 0
+
+#######
+
+method;
+matchSignaturesCompat
+return 1
+
+invoke-interface {v4}, Lcom/android/server/pm/pkg/AndroidPackage;->isPersistent()Z
+
+    move-result v2
+    
+under it add 
+
+const/4 v2, 0x0

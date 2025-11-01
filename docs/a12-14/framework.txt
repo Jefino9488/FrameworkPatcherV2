@@ -1,0 +1,104 @@
+#framework.jar
+
+method;
+getMinimumSignatureSchemeVersionForTargetSdk
+return 0
+
+#######
+
+method;
+verifyMessageDigest
+return 1
+
+#######
+
+Method;
+verifySignatures
+find
+
+invoke-interface {v0}, Landroid/content/pm/parsing/result/ParseResult;->isError()Z
+
+    move-result v1
+
+under it add 
+
+const/4 v1, 0x0
+
+#######
+
+search for:
+
+invoke-static {p0, p1, p3}, Landroid/util/apk/ApkSignatureVerifier;->verifyV1Signature(Landroid/content/pm/parsing/result/ParseInput;Ljava/lang/String;Z)Landroid/content/pm/parsing/result/ParseResult;
+
+above it add 
+
+const/4 p3, 0x0
+
+#######
+
+search for:
+
+invoke-static {p0, p1, p3}, Landroid/util/apk/ApkSignatureVerifier;->verifyV2Signature(Landroid/content/pm/parsing/result/ParseInput;Ljava/lang/String;Z)Landroid/content/pm/parsing/result/ParseResult;
+
+above it add 
+
+const/4 p3, 0x0
+
+#######
+
+search for:
+
+invoke-static {p0, p1, p3}, Landroid/util/apk/ApkSignatureVerifier;->verifyV3Signature(Landroid/content/pm/parsing/result/ParseInput;Ljava/lang/String;Z)Landroid/content/pm/parsing/result/ParseResult;
+
+above it add 
+
+const/4 p3, 0x0
+
+#######
+
+search for:
+
+invoke-static {p0, p1, p2, p3}, Landroid/util/apk/ApkSignatureVerifier;->verifyV3AndBelowSignatures(Landroid/content/pm/parsing/result/ParseInput;Ljava/lang/String;IZ)Landroid/content/pm/parsing/result/ParseResult;
+
+above it add 
+
+const/4 p3, 0x0
+
+#######
+
+method;
+checkCapability
+
+return 1
+
+#######
+
+method;
+checkCapabilityRecover
+
+return 1
+
+#######
+
+method;
+isPackageWhitelistedForHiddenApis
+
+return 1
+
+#######
+
+Class;
+android.util.jar.StrictJarFile
+
+search;
+    
+invoke-virtual {p0, v5}, Landroid/util/jar/StrictJarFile;->findEntry(Ljava/lang/String;)Ljava/util/zip/ZipEntry;
+
+move-result-object v6
+
+below delete if-eqz
+
+if-eqz v6, :cond_52 #removed
+
+:cond_52 #removed
+
