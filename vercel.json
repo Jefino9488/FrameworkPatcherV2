@@ -3,16 +3,6 @@
   "outputDirectory": "services/web",
   "cleanUrls": true,
   "trailingSlash": false,
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/services/web/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/services/web/$1"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
