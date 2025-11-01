@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Framework Patcher - Universal Android Framework Patcher</title>
+    <link href="styles.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-mobile-alt"></i>
+                <h1>Framework Patcher</h1>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- Unified Form -->
+        <div class="form-container active" id="unified-form">
+            <div class="form-header">
+                <h2><i class="fas fa-cog"></i> Framework Patcher</h2>
+                <p>Configure and trigger framework patching workflow</p>
+            </div>
+
+            <form class="patcher-form" id="patcher-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="device-name">
+                            <i class="fas fa-mobile-alt"></i>
+                            Device
+                        </label>
+                        <div class="custom-select" data-select-id="device-name">
+                            <div class="select-trigger">
+                                <input type="text" class="select-input" placeholder="Search and select device..." readonly>
+                                <i class="fas fa-chevron-down select-arrow"></i>
+                            </div>
+                            <div class="select-options">
+                                <div class="search-container">
+                                    <input type="text" class="search-input" placeholder="Search devices...">
+                                </div>
+                                <div class="options-list">
+                                    <div class="option" value="">Select a device</div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="device-name" name="device_name" required>
+                        <small>Select your device from the list</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="version-name">
+                            <i class="fas fa-tag"></i>
+                            Version
+                        </label>
+                        <div class="custom-select" data-select-id="version-name">
+                            <div class="select-trigger">
+                                <input type="text" class="select-input" placeholder="Select device first..." readonly>
+                                <i class="fas fa-chevron-down select-arrow"></i>
+                            </div>
+                            <div class="select-options">
+                                <div class="search-container">
+                                    <input type="text" class="search-input" placeholder="Search versions...">
+                                </div>
+                                <div class="options-list">
+                                    <div class="option" value="">Select device first</div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="version-name" name="version_name" required>
+                        <small>Select firmware/MIUI version - Android version will be auto-detected</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="detected-android">
+                            <i class="fas fa-android"></i>
+                            Detected Android Version
+                        </label>
+                        <input id="detected-android" type="text" readonly placeholder="Will be auto-detected" class="readonly-input">
+                        <small>Automatically detected from selected MIUI ROM</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="user-id">
+                            <i class="fab fa-telegram"></i>
+                            Telegram User ID
+                        </label>
+                        <input id="user-id" name="user_id" placeholder="Optional" type="text">
+                        <small>For notifications (optional)</small>
+                    </div>
+                </div>
+
+                <div class="features-section" id="features-section">
+                    <h3><i class="fas fa-magic"></i> Features to Apply</h3>
+                    <p class="feature-description">Available features depend on detected Android version</p>
+
+                    <div class="feature-options">
+                        <label class="feature-checkbox">
+                            <input type="checkbox" name="enable_signature_bypass" value="true" checked>
+                            <span class="checkmark"></span>
+                            <div class="feature-info">
+                                <strong>Disable Signature Verification</strong>
+                                <small>Allows installation of modified/unsigned apps (Available for all Android versions)</small>
+                            </div>
+                        </label>
+
+                        <label class="feature-checkbox" id="cn-notification-feature" style="display: none;">
+                            <input type="checkbox" name="enable_cn_notification_fix" value="true">
+                            <span class="checkmark"></span>
+                            <div class="feature-info">
+                                <strong>CN Notification Fix</strong>
+                                <small>Fixes notification delays on China ROMs (Available for Android 15+)</small>
+                            </div>
+                        </label>
+
+                        <label class="feature-checkbox" id="secure-flag-feature" style="display: none;">
+                            <input type="checkbox" name="enable_disable_secure_flag" value="true">
+                            <span class="checkmark"></span>
+                            <div class="feature-info">
+                                <strong>Disable Secure Flag</strong>
+                                <small>Allows screenshots/recordings of secure content (Available for Android 15+)</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="jar-urls">
+                    <h3><i class="fas fa-download"></i> JAR File URLs</h3>
+
+                    <div class="form-group">
+                        <label for="framework-url">
+                            <i class="fas fa-file-archive"></i>
+                            Framework.jar URL
+                        </label>
+                        <input id="framework-url" name="framework_url" placeholder="https://example.com/framework.jar"
+                               required type="url">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="services-url">
+                            <i class="fas fa-file-archive"></i>
+                            Services.jar URL
+                        </label>
+                        <input id="services-url" name="services_url" placeholder="https://example.com/services.jar"
+                               required type="url">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="miui-services-url">
+                            <i class="fas fa-file-archive"></i>
+                            MIUI Services.jar URL
+                        </label>
+                        <input id="miui-services-url" name="miui_services_url" placeholder="https://example.com/miui-services.jar"
+                               required type="url">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="clearForm('patcher-form')" type="button">
+                        <i class="fas fa-eraser"></i>
+                        Clear Form
+                    </button>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-play"></i>
+                        Start Patching
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 Framework Patcher. Built for the Android community.</p>
+            <div class="footer-links">
+                <a href="https://github.com/jefino9488/FrameworkPatcherV2" target="_blank">
+                    <i class="fab fa-github"></i>
+                    GitHub
+                </a>
+                <a href="https://buymeacoffee.com/jefino" target="_blank">
+                    <i class="fas fa-coffee"></i>
+                    Support
+                </a>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal" id="loading-modal">
+    <div class="modal-content">
+        <div class="loading-spinner"></div>
+        <h3>Triggering Workflow...</h3>
+        <p>Please wait while we start the patching process.</p>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal" id="success-modal">
+    <div class="modal-content">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3>Workflow Triggered Successfully!</h3>
+        <p>Your framework patching workflow has been started. Check the GitHub Actions tab for progress.</p>
+        <button class="btn btn-primary" onclick="closeModal('success-modal')">
+            <i class="fas fa-external-link-alt"></i>
+            View Workflow
+        </button>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal" id="error-modal">
+    <div class="modal-content">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3>Error Triggering Workflow</h3>
+        <p id="error-message">Something went wrong. Please try again.</p>
+        <button class="btn btn-secondary" onclick="closeModal('error-modal')">
+            <i class="fas fa-times"></i>
+            Close
+        </button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
