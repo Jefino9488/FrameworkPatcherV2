@@ -186,3 +186,17 @@ async def get_all_codenames() -> Dict[str, List[str]]:
         "miui_codenames": app_cache["miui_codenames"],
         "vendor_codenames": app_cache["vendor_codenames"],
     }
+
+
+if __name__ == "__main__":
+    import os
+    import uvicorn
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    host = os.getenv("WEB_HOST", "0.0.0.0")
+    port = int(os.getenv("WEB_PORT", "9837"))
+
+    print(f"Starting FastAPI server on {host}:{port}")
+    uvicorn.run(app, host=host, port=port, log_level="info")
