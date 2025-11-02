@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://dono-01.danbot.host:9837/:path*"
+      "destination": "http://dono-01.danbot.host:9837/:path*"
     }
   ],
   "headers": [
