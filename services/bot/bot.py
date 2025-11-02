@@ -19,8 +19,8 @@ import provider
 # Load environment variables from .env file
 load_dotenv()
 
-# Initialize repo object
-REPO = Repo(os.path.dirname(os.path.dirname(__file__)))
+# Initialize repo object (go up 3 levels: bot.py -> bot/ -> services/ -> project root)
+REPO = Repo(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 # --- Environment Variables ---
 try:
