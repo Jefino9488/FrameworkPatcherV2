@@ -10,7 +10,8 @@ const CONFIG = {
         android16: 'android16.yml'
     },
     // API endpoints for device and version data
-    apiBaseUrl: window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://your-pterodactyl-domain.com',
+    // Use /api prefix which will be proxied by Vercel to the DanBot API
+    apiBaseUrl: '/api',
     endpoints: {
         devices: '/devices',
         deviceSoftware: '/devices/{codename}/software'

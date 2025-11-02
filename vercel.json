@@ -3,6 +3,12 @@
   "outputDirectory": "services/web",
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://dono-01.danbot.host:9837/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
