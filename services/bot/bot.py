@@ -8,7 +8,7 @@ import httpx
 import psutil
 from dotenv import load_dotenv
 from git import Repo
-from pyrogram import Client, filters
+from pyrogram import Client, filters, idle
 from pyrogram.enums import ParseMode
 from pyrogram.errors import FloodWait, NetworkMigrate, AuthKeyUnregistered
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
@@ -19,7 +19,6 @@ import provider
 # Load environment variables from .env file
 load_dotenv()
 
-# Initialize repo object (go up 3 levels: bot.py -> bot/ -> services/ -> project root)
 REPO = Repo(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 # --- Environment Variables ---
@@ -1514,7 +1513,7 @@ if __name__ == "__main__":
                 logger.warning("Failed to initialize device data, some features may not work")
             await Bot.start()
             logger.info("Bot started successfully!")
-            await Bot.idle()
+            await idle()
 
         import asyncio
         asyncio.run(startup())
