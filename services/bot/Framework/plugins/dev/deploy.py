@@ -14,15 +14,22 @@ async def deploy_new_bot(client: Client, message: Message):
     reply = await message.reply_text("🚀 Deploying new bot version...")
 
     try:
-        # Create deployment script
+        # Create deployment script targeting module runner
         script_path = os.path.abspath(__file__)
-        project_root = os.path.dirname(os.path.dirname(script_path))
+        # services/bot directory (four levels up from this file)
+        bot_dir = os.path.dirname(
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.dirname(script_path)
+                )
+            )
+        )
 
         deploy_script = f"""#!/bin/bash
-cd {project_root}
+cd {bot_dir}
 
 echo "🔄 Stopping current bot processes..."
-pkill -f "bot.py" || true
+pkill -f "python -m Framework" || true
 sleep 3
 
 echo "📥 Pulling latest changes..."
@@ -34,7 +41,7 @@ echo "📦 Installing dependencies..."
 pip install -r requirements.txt
 
 echo "🚀 Starting new bot..."
-nohup python {script_path} > bot.log 2>&1 &
+nohup python -m Framework > bot.log 2>&1 &
 echo $! > bot.pid
 
 echo "✅ Deployment complete!"

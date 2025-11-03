@@ -9,7 +9,7 @@ async def get_bot_processes():
             try:
                 if 'python' in proc.info['name'].lower():
                     cmdline = ' '.join(proc.info['cmdline']) if proc.info['cmdline'] else ''
-                    if 'bot.py' in cmdline or 'FrameworkPatcherBot' in cmdline:
+                    if ' -m Framework' in cmdline or 'python -m Framework' in cmdline or 'FrameworkPatcherBot' in cmdline:
                         processes.append(proc)
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
