@@ -8,7 +8,7 @@ import yaml
 import logging
 from typing import List, Dict, Any, Optional
 
-logger = logging.getLogger(__name__)
+from Framework.helpers.logger import LOGGER
 
 # URLs for data sources
 DEVICES_URL = "https://raw.githubusercontent.com/XiaomiFirmwareUpdater/xiaomi_devices/master/devices.json"
@@ -34,11 +34,11 @@ _cache = {
 async def initialize_data():
     """Initialize all data from remote sources."""
     if _cache["initialized"]:
-        logger.info("Data already initialized, skipping...")
+        LOGGER.info("Data already initialized, skipping...")
         return True
 
     try:
-        logger.info("Initializing device and software data...")
+        LOGGER.info("Initializing device and software data...")
         async with httpx.AsyncClient(timeout=60.0) as client:
             # Load all data concurrently
             await load_devices_data(client)
@@ -49,10 +49,10 @@ async def initialize_data():
             await load_miui_roms_data(client)
 
         _cache["initialized"] = True
-        logger.info("Data initialization complete!")
+        LOGGER.info("Data initialization complete!")
         return True
     except Exception as e:
-        logger.error(f"Failed to initialize data: {e}", exc_info=True)
+        LOGGER.error(f"Failed to initialize data: {e}", exc_info=True)
         return False
 
 
@@ -78,10 +78,10 @@ async def load_devices_data(client: httpx.AsyncClient):
 
         _cache["device_list"] = device_list
         _cache["codename_to_name"] = codename_map
-        logger.info(f"Loaded {len(device_list)} devices.")
+        LOGGER.info(f"Loaded {len(device_list)} devices.")
 
     except Exception as e:
-        logger.error(f"Error fetching devices: {e}")
+        LOGGER.error(f"Error fetching devices: {e}")
 
 
 async def load_yaml_list_data(client: httpx.AsyncClient, url: str, cache_key: str, name: str):
@@ -91,9 +91,9 @@ async def load_yaml_list_data(client: httpx.AsyncClient, url: str, cache_key: st
         response.raise_for_status()
         data = yaml.safe_load(response.text)
         _cache[cache_key] = data
-        logger.info(f"Loaded {len(data)} {name}.")
+        LOGGER.info(f"Loaded {len(data)} {name}.")
     except Exception as e:
-        logger.error(f"Error fetching {name}: {e}")
+        LOGGER.error(f"Error fetching {name}: {e}")
 
 
 async def load_firmware_data(client: httpx.AsyncClient):
@@ -116,10 +116,10 @@ async def load_firmware_data(client: httpx.AsyncClient):
                 continue
 
         _cache["firmware_data"] = latest
-        logger.info(f"Loaded firmware data for {len(latest)} devices.")
+        LOGGER.info(f"Loaded firmware data for {len(latest)} devices.")
 
     except Exception as e:
-        logger.error(f"Error fetching firmware: {e}")
+        LOGGER.error(f"Error fetching firmware: {e}")
 
 
 async def load_miui_roms_data(client: httpx.AsyncClient):
@@ -141,10 +141,10 @@ async def load_miui_roms_data(client: httpx.AsyncClient):
                 continue
 
         _cache["miui_data"] = latest
-        logger.info(f"Loaded MIUI ROMs data for {len(latest)} devices.")
+        LOGGER.info(f"Loaded MIUI ROMs data for {len(latest)} devices.")
 
     except Exception as e:
-        logger.error(f"Error fetching MIUI ROMs: {e}")
+        LOGGER.error(f"Error fetching MIUI ROMs: {e}")
 
 
 def get_all_devices() -> List[Dict[str, str]]:

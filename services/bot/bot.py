@@ -1070,7 +1070,7 @@ async def handle_media_upload(bot: Client, message: Message):
 @Bot.on_message(
     filters.private
     & filters.text
-    & ~filters.command(["start", "start_patch", "cancel", "update", "sh"]),
+    & ~filters.command(["start", "start_patch", "cancel", "update", "sh", "ping"]),
     group=10
 )
 async def handle_text_input(bot: Client, message: Message):
