@@ -52,7 +52,7 @@ async def api_selection_handler(bot: Client, query: CallbackQuery):
         "Now, choose which features to apply:",
         reply_markup=InlineKeyboardMarkup(
             [
-                [InlineKeyboardButton("✓ Disable Signature Verification", callback_data="feature_signature")],
+                [InlineKeyboardButton("☐ Disable Signature Verification", callback_data="feature_signature")],
                 [InlineKeyboardButton("☐ CN Notification Fix", callback_data="feature_cn_notif")],
                 [InlineKeyboardButton("☐ Disable Secure Flag", callback_data="feature_secure_flag")],
                 [InlineKeyboardButton("➡️ Continue with selected features", callback_data="features_done")]

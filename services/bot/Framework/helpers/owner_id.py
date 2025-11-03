@@ -1,11 +1,13 @@
-import os
 import ast
+import os
+import config
 
-def _parse_owner_ids() -> list[int]:
-    raw = os.getenv("OWNER_ID", "").strip()
+def _parse_owner_ids() -> list[int]:    
+    raw = os.getenv("OWNER_ID", str(config.OWNER_ID)).strip()
+
     if not raw:
-        raise RuntimeError("OWNER_ID is missing in environment")
-    
+        raise RuntimeError("OWNER_ID is missing in config or environment")
+
     if raw.startswith("[") and raw.endswith("]"):
         try:
             parsed = ast.literal_eval(raw)
@@ -14,6 +16,7 @@ def _parse_owner_ids() -> list[int]:
             raise ValueError
         except Exception:
             raise RuntimeError(f"Invalid OWNER_ID list format: {raw}")
+
     
     if "," in raw:
         ids = [x.strip() for x in raw.split(",") if x.strip()]

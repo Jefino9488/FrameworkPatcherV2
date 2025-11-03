@@ -124,7 +124,7 @@ async def ensure_connection(func, *args, **kwargs):
 
 # --- Auto-Update and Process Management Functions ---
 
-async def backup_current_state():
+async def backup_current_state(): ## added in helper. but not used in actual plugins.
     """Create a backup of current bot state before updating."""
     try:
         backup_dir = "/tmp/bot_backup"
@@ -163,7 +163,7 @@ async def get_bot_processes():
         return []
 
 
-async def graceful_shutdown():
+async def graceful_shutdown(): ## no need for this
     """Gracefully shutdown the bot."""
     global update_in_progress
     update_in_progress = True
@@ -205,7 +205,7 @@ async def notify_users_maintenance():
         logger.error(f"Error notifying users about maintenance: {e}")
 
 
-async def restart_bot_process():
+async def restart_bot_process(): ## maybe, you can modify the scripts. to run the bot "python -m Framework"
     """Restart the bot process."""
     try:
         logger.info("Restarting bot process...")
@@ -1235,7 +1235,7 @@ async def shell_handler(bot: Client, message: Message):
     await reply.edit_text(f"**$ {cmd}**\n\n```{output}```")
 
 
-@Bot.on_message(filters.command("deploy") & filters.user(OWNER_ID))
+@Bot.on_message(filters.command("deploy") & filters.user(OWNER_ID)) ## haven't added the deploy.
 async def deploy_new_bot(client: Client, message: Message):
     """Deploy the new bot version from GitHub"""
     reply = await message.reply_text("🚀 Deploying new bot version...")
@@ -1289,7 +1289,7 @@ echo "✅ Deployment complete!"
         await reply.edit_text(f"❌ Deployment failed: {str(e)}")
 
 
-async def get_commits() -> str | None:
+async def get_commits() -> str | None: ## already in dev/updater.py
     try:
         # Always fetch from origin/master
         await asyncio.to_thread(REPO.git.fetch, 'origin', 'master')
