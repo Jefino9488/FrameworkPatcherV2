@@ -7,9 +7,19 @@ This directory contains all the microservices for the Framework Patcher applicat
 ```
 services/
 ├── bot/                    # Telegram Bot Service
-│   ├── bot.py             # Main bot application
-│   ├── provider.py        # Device data provider
-│   ├── shell.py           # Shell command utilities
+│   ├── Framework/         # Modular bot framework
+│   │   ├── __init__.py   # Framework initialization
+│   │   ├── __main__.py   # Main entry point
+│   │   ├── helpers/      # Helper modules
+│   │   │   ├── provider.py    # Device data provider
+│   │   │   ├── shell.py       # Shell command utilities
+│   │   │   ├── workflows.py   # GitHub workflow management
+│   │   │   ├── pd_utils.py    # Pixeldrain utilities
+│   │   │   └── ...            # Other helpers
+│   │   └── plugins/      # Bot plugins
+│   │       ├── user/     # User commands (start, patch, device, etc.)
+│   │       └── dev/      # Developer commands (deploy, update, status, etc.)
+│   ├── config.py          # Configuration management
 │   ├── requirements.txt   # Python dependencies
 │   └── logs/              # Bot logs
 │
@@ -93,7 +103,7 @@ This will:
 **Start Bot:**
 ```bash
 cd services/bot
-nohup python bot.py > bot.log 2>&1 &
+nohup python -m Framework > bot.log 2>&1 &
 echo $! > bot.pid
 ```
 
@@ -147,7 +157,7 @@ The API fetches data from public Xiaomi firmware repositories, no configuration 
 
 ```bash
 cd services/bot
-python bot.py
+python -m Framework
 ```
 
 ### Local Development - Web + API
@@ -172,7 +182,7 @@ vercel dev
 
 ```bash
 # Check if services are running
-ps aux | grep -E "bot.py|uvicorn"
+ps aux | grep -E "Framework|uvicorn"
 
 # Check PIDs
 cat services/bot/bot.pid
