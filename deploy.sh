@@ -50,8 +50,8 @@ if [ ! -d "$SERVICES_DIR" ]; then
     exit 1
 fi
 
-if [ ! -f "$BOT_DIR/bot.py" ]; then
-    print_error "bot.py not found in $BOT_DIR"
+if [ ! -f "$BOT_DIR/Framework/__main__.py" ]; then
+    print_error "Framework/__main__.py not found in $BOT_DIR"
     exit 1
 fi
 
@@ -126,18 +126,18 @@ echo ""
 print_status "Stopping existing services..."
 
 # Stop Bot
-BOT_PIDS=$(pgrep -f "bot.py" || true)
+BOT_PIDS=$(pgrep -f "python -m Framework" || true)
 if [ -n "$BOT_PIDS" ]; then
     print_warning "Found running bot processes: $BOT_PIDS"
     print_status "Stopping bot processes..."
-    pkill -f "bot.py" || true
+    pkill -f "python -m Framework" || true
     sleep 2
 
     # Force kill if needed
-    REMAINING_PIDS=$(pgrep -f "bot.py" || true)
+    REMAINING_PIDS=$(pgrep -f "python -m Framework" || true)
     if [ -n "$REMAINING_PIDS" ]; then
         print_warning "Force killing bot processes..."
-        pkill -9 -f "bot.py" || true
+        pkill -9 -f "python -m Framework" || true
         sleep 1
     fi
     print_success "Bot processes stopped"
@@ -266,7 +266,7 @@ cat >"$BOT_STARTUP_SCRIPT" <<EOF
 #!/bin/bash
 cd "$BOT_DIR"
 export PYTHONPATH="$SCRIPT_DIR:\$PYTHONPATH"
-nohup $PYTHON_CMD bot.py > bot.log 2>&1 &
+nohup $PYTHON_CMD -m Framework > bot.log 2>&1 &
 echo \$! > bot.pid
 echo "Bot started with PID: \$(cat bot.pid)"
 EOF

@@ -1,6 +1,5 @@
 import asyncio
 
-
 async def run_shell_cmd(cmd: str) -> str:
     process = await asyncio.create_subprocess_shell(
         cmd,

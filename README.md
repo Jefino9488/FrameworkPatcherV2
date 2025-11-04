@@ -243,9 +243,9 @@ Create a `.env` file in the `bot/` directory:
 #### Installation
 
    ```bash
-cd bot
+cd services/bot
 pip install -r requirements.txt
-python bot.py
+python -m Framework
 ```
 
 #### Bot Commands
