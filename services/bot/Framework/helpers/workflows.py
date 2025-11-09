@@ -44,7 +44,8 @@ def _select_workflow_id(api_level: str) -> str:
     return WORKFLOW_ID_A16 or WORKFLOW_ID_A15 or WORKFLOW_ID_A14 or WORKFLOW_ID_A13 or "android15.yml"
 
 
-async def trigger_github_workflow_async(links: dict, device_name: str, version_name: str, api_level: str,
+async def trigger_github_workflow_async(links: dict, device_name: str, device_codename: str, version_name: str,
+                                        api_level: str,
                                         user_id: int, features: dict = None) -> int:
     """Trigger GitHub workflow with improved error handling and retry logic."""
     workflow_id = _select_workflow_id(api_level)
@@ -63,20 +64,31 @@ async def trigger_github_workflow_async(links: dict, device_name: str, version_n
             "enable_cn_notification_fix": False,
             "enable_disable_secure_flag": False
         }
-    
+
+    feature_list = []
+    if features.get("enable_signature_bypass", True):
+        feature_list.append("disable_signature_verification")
+    if features.get("enable_cn_notification_fix", False):
+        feature_list.append("cn_notification_fix")
+    if features.get("enable_disable_secure_flag", False):
+        feature_list.append("disable_secure_flag")
+
+    features_str = ",".join(feature_list)
+    if not features_str:
+        features_str = "disable_signature_verification"
+
     data = {
         "ref": "master",
         "inputs": {
             "api_level": api_level,
             "device_name": device_name,
+            "device_codename": device_codename,
             "version_name": version_name,
             "framework_url": links.get("framework.jar"),
             "services_url": links.get("services.jar"),
             "miui_services_url": links.get("miui-services.jar"),
             "user_id": str(user_id),
-            "enable_signature_bypass": str(features.get("enable_signature_bypass", True)).lower(),
-            "enable_cn_notification_fix": str(features.get("enable_cn_notification_fix", False)).lower(),
-            "enable_disable_secure_flag": str(features.get("enable_disable_secure_flag", False)).lower()
+            "features": features_str
         }
     }
 

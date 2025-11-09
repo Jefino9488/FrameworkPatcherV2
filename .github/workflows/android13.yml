@@ -36,11 +36,11 @@ on:
         description: 'Telegram User ID to notify (optional)'
         required: false
         type: string
-      enable_signature_bypass:
-        description: 'Enable signature verification bypass'
+      features:
+        description: 'Comma-separated list of features to enable (e.g., "disable_signature_verification")'
         required: false
-        type: boolean
-        default: true
+        type: string
+        default: 'disable_signature_verification'
 
 jobs:
   patch:
@@ -123,11 +123,11 @@ jobs:
 
           # Build feature flags
           FEATURE_FLAGS=""
-          if [ "${{ github.event.inputs.enable_signature_bypass }}" = "true" ]; then
+          if [[ "${{ github.event.inputs.features }}" == *disable_signature_verification* ]]; then
             FEATURE_FLAGS="$FEATURE_FLAGS --disable-signature-verification"
           fi
 
-          # If no features selected, default to signature bypass for backward compatibility
+          # If no features selected, default to signature bypass
           if [ -z "$FEATURE_FLAGS" ]; then
             FEATURE_FLAGS="--disable-signature-verification"
           fi
@@ -216,13 +216,13 @@ jobs:
         run: |
           # Build features list
           FEATURES=""
-          if [ "${{ github.event.inputs.enable_signature_bypass }}" = "true" ]; then
+          if [[ "${{ github.event.inputs.features }}" == *disable_signature_verification* ]]; then
             FEATURES="${FEATURES}- Signature Verification Bypass
-          "
+  "
           fi
           if [ -z "$FEATURES" ]; then
             FEATURES="- Signature Verification Bypass (default)
-          "
+  "
           fi
 
           # Create release body
