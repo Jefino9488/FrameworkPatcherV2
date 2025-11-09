@@ -186,7 +186,6 @@ async def handle_media_upload(bot: Client, message: Message):
                     return
 
                 # Get all required info from state
-                links = user_states[user_id]["files"]
                 device_name = user_states[user_id]["device_name"]
                 device_codename = user_states[user_id]["device_codename"]
                 version_name = user_states[user_id]["version_name"]
