@@ -23,7 +23,9 @@ logging.getLogger("pymongo").setLevel(logging.WARNING)
 logging.getLogger("httpx").setLevel(logging.ERROR)
 
 
-def LOGGER(name: str) -> logging.Logger:
-    return logging.getLogger(name) 
+def get_logger(name: str) -> logging.Logger:
+    return logging.getLogger(name)
 
-LOGGER = LOGGER(__name__)
+
+# Module-level default logger for simple usage
+LOGGER = get_logger(__name__)
