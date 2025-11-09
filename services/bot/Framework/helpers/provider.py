@@ -3,10 +3,10 @@ Xiaomi Device and Software Data Provider
 Provides device information, firmware versions, and MIUI ROM data
 """
 
+from typing import List, Dict, Any, Optional
+
 import httpx
 import yaml
-import logging
-from typing import List, Dict, Any, Optional
 
 from Framework.helpers.logger import LOGGER
 
@@ -212,9 +212,14 @@ def android_version_to_api_level(android_version: str) -> str:
         '13': '33',
         '14': '34',
         '15': '35',
-        '16': '36'
+        '16': '36',
+        # Support integer inputs as well
+        13: '33',
+        14: '34',
+        15: '35',
+        16: '36'
     }
-    return version_map.get(str(android_version), str(android_version))
+    return version_map.get(android_version, version_map.get(str(android_version), str(android_version)))
 
 
 def is_codename_valid(codename: str) -> bool:

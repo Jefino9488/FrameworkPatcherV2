@@ -1,13 +1,11 @@
-from datetime import datetime
 from pyrogram import filters, Client
-from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from pyrogram.types import CallbackQuery
 
 from Framework import bot
 from Framework.helpers.pd_utils import *
-from Framework.helpers.state import *
-from Framework.helpers.workflows import *
-from Framework.helpers.logger import LOGGER
 from Framework.helpers.provider import *
+from Framework.helpers.workflows import *
+
 
 def get_id(text: str) -> str | None:
     """Extracts PixelDrain ID from a URL or raw ID."""
@@ -112,6 +110,7 @@ async def handle_text_input(bot: Client, message: Message):
         if len(miui_roms) > 10:
             buttons.append([InlineKeyboardButton(f"📋 Show All ({len(miui_roms)} versions)", callback_data="ver_showall")])
 
+        buttons.append([InlineKeyboardButton("🔄 Reselect Codename", callback_data="reselect_codename")])
         await message.reply_text(
             f"✅ Device found: **{device_info['name']}** (`{codename}`)\n\n"
             f"📦 Found {len(miui_roms)} MIUI ROM version(s)\n\n"
@@ -119,6 +118,139 @@ async def handle_text_input(bot: Client, message: Message):
             reply_markup=InlineKeyboardMarkup(buttons),
             quote=True
         )
+
+    elif current_state == STATE_WAITING_FOR_VERSION_SELECTION:
+        # Handle text input for version selection (when user types a number)
+        user_input = message.text.strip()
+        software_data = user_states[user_id].get("software_data")
+
+        if not software_data:
+            await message.reply_text("❌ Session expired. Please use /start_patch to begin again.", quote=True)
+            user_states.pop(user_id, None)
+            return
+
+        miui_roms = software_data.get("miui_roms", [])
+
+        # Try to parse as version number
+        try:
+            version_idx = int(user_input) - 1  # User enters 1-based, we need 0-based
+
+            if version_idx < 0 or version_idx >= len(miui_roms):
+                await message.reply_text(
+                    f"❌ Invalid version number. Please enter a number between 1 and {len(miui_roms)}.",
+                    quote=True
+                )
+                return
+
+            selected_rom = miui_roms[version_idx]
+            version_name = selected_rom.get('version') or selected_rom.get('miui', 'Unknown')
+            android_version = selected_rom.get('android')
+
+            # Validate Android version
+            if not android_version:
+                await message.reply_text("⚠️ Android version not found for this ROM!", quote=True)
+                return
+
+            android_int = int(float(android_version))
+            if android_int < 13:
+                await message.reply_text(
+                    f"⚠️ Android {android_version} is not supported. Minimum required: Android 13\n\n"
+                    f"Please select another version.",
+                    quote=True
+                )
+                return
+
+            # Get API level
+            api_level = android_version_to_api_level(android_version)
+
+            # Store version info
+            user_states[user_id]["version_name"] = version_name
+            user_states[user_id]["android_version"] = android_version
+            user_states[user_id]["api_level"] = api_level
+            user_states[user_id]["state"] = STATE_WAITING_FOR_FEATURES
+
+            # Build feature selection buttons based on Android version
+            buttons = [
+                [InlineKeyboardButton("☐ Disable Signature Verification", callback_data="feature_signature")]
+            ]
+
+            # Only show Android 15+ features if version is 15 or higher
+            if android_int >= 15:
+                buttons.append([InlineKeyboardButton("☐ CN Notification Fix", callback_data="feature_cn_notif")])
+                buttons.append([InlineKeyboardButton("☐ Disable Secure Flag", callback_data="feature_secure_flag")])
+
+            buttons.append([InlineKeyboardButton("Continue with selected features", callback_data="features_done")])
+
+            await message.reply_text(
+                f"✅ **Version selected!**\n\n"
+                f"📱 **Device:** {user_states[user_id]['device_name']}\n"
+                f"📦 **Version:** {version_name}\n"
+                f"🤖 **Android:** {android_version} (API {api_level})\n\n"
+                f"Now, choose which features to apply:",
+                reply_markup=InlineKeyboardMarkup(buttons),
+                quote=True
+            )
+
+        except ValueError:
+            # Not a number, try to match by version name
+            user_input_lower = user_input.lower()
+            matched_idx = None
+
+            for idx, rom in enumerate(miui_roms):
+                version = rom.get('version') or rom.get('miui', '')
+                if user_input_lower in version.lower():
+                    matched_idx = idx
+                    break
+
+            if matched_idx is not None:
+                # Found a match, process it
+                selected_rom = miui_roms[matched_idx]
+                version_name = selected_rom.get('version') or selected_rom.get('miui', 'Unknown')
+                android_version = selected_rom.get('android')
+
+                if not android_version:
+                    await message.reply_text("⚠️ Android version not found for this ROM!", quote=True)
+                    return
+
+                android_int = int(float(android_version))
+                if android_int < 13:
+                    await message.reply_text(
+                        f"⚠️ Android {android_version} is not supported. Minimum required: Android 13",
+                        quote=True
+                    )
+                    return
+
+                api_level = android_version_to_api_level(android_version)
+                user_states[user_id]["version_name"] = version_name
+                user_states[user_id]["android_version"] = android_version
+                user_states[user_id]["api_level"] = api_level
+                user_states[user_id]["state"] = STATE_WAITING_FOR_FEATURES
+
+                buttons = [
+                    [InlineKeyboardButton("☐ Disable Signature Verification", callback_data="feature_signature")]
+                ]
+
+                if android_int >= 15:
+                    buttons.append([InlineKeyboardButton("☐ CN Notification Fix", callback_data="feature_cn_notif")])
+                    buttons.append([InlineKeyboardButton("☐ Disable Secure Flag", callback_data="feature_secure_flag")])
+
+                buttons.append([InlineKeyboardButton("Continue with selected features", callback_data="features_done")])
+
+                await message.reply_text(
+                    f"✅ **Version selected!**\n\n"
+                    f"📱 **Device:** {user_states[user_id]['device_name']}\n"
+                    f"📦 **Version:** {version_name}\n"
+                    f"🤖 **Android:** {android_version} (API {api_level})\n\n"
+                    f"Now, choose which features to apply:",
+                    reply_markup=InlineKeyboardMarkup(buttons),
+                    quote=True
+                )
+            else:
+                await message.reply_text(
+                    f"❌ Version not found: `{user_input}`\n\n"
+                    f"Please enter a version number (1-{len(miui_roms)}) or click a button from the list above.",
+                    quote=True
+                )
 
     elif current_state == STATE_NONE:
         try:
@@ -149,11 +281,25 @@ async def handle_text_input(bot: Client, message: Message):
 async def version_selection_handler(bot: Client, query: CallbackQuery):
     """Handles version selection from inline keyboard."""
     user_id = query.from_user.id
-    if user_id not in user_states or user_states[user_id].get("state") != STATE_WAITING_FOR_VERSION_SELECTION:
-        await query.answer("Not expecting version selection.", show_alert=True)
+
+    LOGGER.info(f"Version selection callback received: user_id={user_id}, data={query.data}")
+
+    if user_id not in user_states:
+        LOGGER.warning(f"User {user_id} not in user_states")
+        await query.answer("Session expired. Please use /start_patch to begin again.", show_alert=True)
+        return
+
+    current_state = user_states[user_id].get("state")
+    LOGGER.info(f"User {user_id} current state: {current_state}")
+
+    if current_state != STATE_WAITING_FOR_VERSION_SELECTION:
+        LOGGER.warning(
+            f"User {user_id} not in correct state. Expected: {STATE_WAITING_FOR_VERSION_SELECTION}, Got: {current_state}")
+        await query.answer("Not expecting version selection. Please restart with /start_patch", show_alert=True)
         return
 
     data = query.data.split("_", 1)[1]
+    LOGGER.info(f"Parsed version data: {data}")
 
     # Handle "Show All" button
     if data == "showall":
@@ -182,23 +328,35 @@ async def version_selection_handler(bot: Client, query: CallbackQuery):
     # Handle version selection by index
     try:
         version_idx = int(data)
-        software_data = user_states[user_id]["software_data"]
-        miui_roms = software_data.get("miui_roms", [])
+        LOGGER.info(f"Processing version selection: index={version_idx}")
 
-        if version_idx >= len(miui_roms):
-            await query.answer("Invalid version selection!", show_alert=True)
+        software_data = user_states[user_id].get("software_data")
+        if not software_data:
+            LOGGER.error(f"No software_data found for user {user_id}")
+            await query.answer("Session data lost. Please use /start_patch to begin again.", show_alert=True)
+            return
+
+        miui_roms = software_data.get("miui_roms", [])
+        LOGGER.info(f"Available ROMs count: {len(miui_roms)}")
+
+        if version_idx < 0 or version_idx >= len(miui_roms):
+            LOGGER.warning(f"Invalid version index: {version_idx} (available: 0-{len(miui_roms) - 1})")
+            await query.answer(f"Invalid version selection! Index: {version_idx}, Available: {len(miui_roms)}",
+                               show_alert=True)
             return
 
         selected_rom = miui_roms[version_idx]
+        LOGGER.info(f"Selected ROM: {selected_rom}")
         version_name = selected_rom.get('version') or selected_rom.get('miui', 'Unknown')
         android_version = selected_rom.get('android')
+        LOGGER.info(f"Version: {version_name}, Android: {android_version}")
 
         # Validate Android version
         if not android_version:
             await query.answer("⚠️ Android version not found for this ROM!", show_alert=True)
             return
 
-        android_int = int(android_version)
+        android_int = int(float(android_version))
         if android_int < 13:
             await query.answer(
                 f"⚠️ Android {android_version} is not supported. Minimum required: Android 13",
@@ -213,77 +371,36 @@ async def version_selection_handler(bot: Client, query: CallbackQuery):
         user_states[user_id]["version_name"] = version_name
         user_states[user_id]["android_version"] = android_version
         user_states[user_id]["api_level"] = api_level
+        user_states[user_id]["state"] = STATE_WAITING_FOR_FEATURES
 
-        today = datetime.now().date()
-        triggers = user_rate_limits.get(user_id, [])
-        triggers = [t for t in triggers if t.date() == today]
+        # Build feature selection buttons based on Android version
+        android_int = int(float(android_version))
+        buttons = [
+            [InlineKeyboardButton("☐ Disable Signature Verification", callback_data="feature_signature")]
+        ]
 
-        if len(triggers) >= 3:
-            await query.message.edit_text(
-                "❌ You have reached the daily limit of 3 workflow triggers. Try again tomorrow."
-            )
-            user_states.pop(user_id, None)
-            await query.answer("Daily limit reached!")
-            return
+        # Only show Android 15+ features if version is 15 or higher
+        if android_int >= 15:
+            buttons.append([InlineKeyboardButton("☐ CN Notification Fix", callback_data="feature_cn_notif")])
+            buttons.append([InlineKeyboardButton("☐ Disable Secure Flag", callback_data="feature_secure_flag")])
 
-        # Trigger workflow
-        await query.message.edit_text("⏳ Triggering GitHub workflow...")
+        buttons.append([InlineKeyboardButton("Continue with selected features", callback_data="features_done")])
 
-        try:
-            links = user_states[user_id]["files"]
-            device_name = user_states[user_id]["device_name"]
-            features = user_states[user_id].get("features", {
-                "enable_signature_bypass": True,
-                "enable_cn_notification_fix": False,
-                "enable_disable_secure_flag": False
-            })
+        await query.message.edit_text(
+            f"✅ **Version selected!**\n\n"
+            f"📱 **Device:** {user_states[user_id]['device_name']}\n"
+            f"📦 **Version:** {version_name}\n"
+            f"🤖 **Android:** {android_version} (API {api_level})\n\n"
+            f"Now, choose which features to apply:",
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+        await query.answer("Version selected!")
+        LOGGER.info(f"Version selection completed successfully for user {user_id}")
 
-            status = await trigger_github_workflow_async(links, device_name, version_name, api_level, user_id, features)
-            triggers.append(datetime.now())
-            user_rate_limits[user_id] = triggers
-
-            # Build features summary for confirmation
-            selected_features = []
-            if features.get("enable_signature_bypass"):
-                selected_features.append("✓ Signature Verification Bypass")
-            if features.get("enable_cn_notification_fix"):
-                selected_features.append("✓ CN Notification Fix")
-            if features.get("enable_disable_secure_flag"):
-                selected_features.append("✓ Disable Secure Flag")
-
-            features_summary = "\n".join(selected_features) if selected_features else "Default features"
-
-            await query.message.edit_text(
-                f"✅ **Workflow triggered successfully!**\n\n"
-                f"📱 **Device:** {device_name}\n"
-                f"📦 **Version:** {version_name}\n"
-                f"🤖 **Android:** {android_version} (API {api_level})\n\n"
-                f"**Features Applied:**\n{features_summary}\n\n"
-                f"⏳ You will receive a notification when the process is complete.\n\n"
-                f"Daily triggers used: {len(triggers)}/3"
-            )
-            await query.answer("Workflow triggered!")
-
-        except httpx.HTTPStatusError as e:
-            logger.error(
-                f"GitHub workflow trigger failed for user {user_id}: HTTP Error {e.response.status_code} - {e.response.text}",
-                exc_info=True)
-            await query.message.edit_text(
-                f"❌ **Error triggering workflow:**\n\n"
-                f"GitHub API returned status {e.response.status_code}\n"
-                f"Response: `{e.response.text}`"
-            )
-            await query.answer("Workflow trigger failed!", show_alert=True)
-
-        except Exception as e:
-            logger.error(f"Error triggering workflow for user {user_id}: {e}", exc_info=True)
-            await query.message.edit_text(
-                f"❌ **An unexpected error occurred:**\n\n`{e}`"
-            )
-            await query.answer("Workflow trigger failed!", show_alert=True)
-
-        finally:
-            user_states.pop(user_id, None)
-
-    except ValueError:
+    except ValueError as e:
+        LOGGER.error(f"ValueError in version selection: {e}", exc_info=True)
         await query.answer("Invalid version selection!", show_alert=True)
+
+    except Exception as e:
+        LOGGER.error(f"Unexpected error in version selection for user {user_id}: {e}", exc_info=True)
+        await query.answer(f"An error occurred: {str(e)}", show_alert=True)

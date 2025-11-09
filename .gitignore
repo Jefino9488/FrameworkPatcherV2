@@ -146,4 +146,4 @@ env/
 # Documentation files moved to mics directory
 mics/
 
-logs.txt
+logs.txtFrameworkPatcherBot.session*

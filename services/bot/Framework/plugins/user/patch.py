@@ -1,21 +1,25 @@
 from pyrogram import filters, Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
-from Framework.helpers.state import *
 from Framework import bot
+from Framework.helpers.state import *
 
 
 @bot.on_message(filters.private & filters.command("start_patch"))
 async def start_patch_command(bot: Client, message: Message):
     """Initiates the framework patching conversation."""
     user_id = message.from_user.id
-    # Initialize state and prompt for Android version selection
+    # Initialize state and prompt for device codename
     user_states[user_id] = {
-        "state": STATE_WAITING_FOR_API,
+        "state": STATE_WAITING_FOR_DEVICE_CODENAME,
         "files": {},
         "device_name": None,
+        "device_codename": None,
         "version_name": None,
+        "android_version": None,
         "api_level": None,
+        "codename_retry_count": 0,
+        "software_data": None,
         "features": {
             "enable_signature_bypass": False,
             "enable_cn_notification_fix": False,
@@ -24,42 +28,32 @@ async def start_patch_command(bot: Client, message: Message):
     }
     await message.reply_text(
         "🚀 Let's start the framework patching process!\n\n"
-        "First, choose Android version to patch:",
-        reply_markup=InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton("📱 Android 15 (API 35)", callback_data="api_35"),
-                    InlineKeyboardButton("📱 Android 16 (API 36)", callback_data="api_36"),
-                ]
-            ]
-        ),
+        "📱 Please enter your device codename (e.g., rothko, xaga, marble)\n\n"
+        "💡 Tip: You can also search by device name if you don't know the codename.",
         quote=True,
     )
 
 
-@bot.on_callback_query(filters.regex(r"^api_(35|36)$"))
-async def api_selection_handler(bot: Client, query: CallbackQuery):
+@bot.on_callback_query(filters.regex(r"^reselect_codename$"))
+async def reselect_codename_handler(bot: Client, query: CallbackQuery):
+    """Handles reselecting device codename."""
     user_id = query.from_user.id
-    if user_id not in user_states or user_states[user_id].get("state") != STATE_WAITING_FOR_API:
-        await query.answer("Not expecting version selection.", show_alert=True)
+    if user_id not in user_states:
+        await query.answer("Session expired. Use /start_patch to begin.", show_alert=True)
         return
-    api_choice = query.data.split("_", 1)[1]
-    user_states[user_id]["api_level"] = api_choice
-    user_states[user_id]["state"] = STATE_WAITING_FOR_FEATURES
+
+    # Reset to codename selection state
+    user_states[user_id]["state"] = STATE_WAITING_FOR_DEVICE_CODENAME
+    user_states[user_id]["device_codename"] = None
+    user_states[user_id]["device_name"] = None
+    user_states[user_id]["software_data"] = None
+    user_states[user_id]["codename_retry_count"] = 0
     
     await query.message.edit_text(
-        f"✅ Android {'15' if api_choice == '35' else '16'} selected!\n\n"
-        "Now, choose which features to apply:",
-        reply_markup=InlineKeyboardMarkup(
-            [
-                [InlineKeyboardButton("☐ Disable Signature Verification", callback_data="feature_signature")],
-                [InlineKeyboardButton("☐ CN Notification Fix", callback_data="feature_cn_notif")],
-                [InlineKeyboardButton("☐ Disable Secure Flag", callback_data="feature_secure_flag")],
-                [InlineKeyboardButton("➡️ Continue with selected features", callback_data="features_done")]
-            ]
-        )
+        "📱 Please enter your device codename (e.g., rothko, xaga, marble)\n\n"
+        "💡 Tip: You can also search by device name if you don't know the codename."
     )
-    await query.answer("Version selected.")
+    await query.answer("Codename reset. Enter a new codename.")
 
 
 @bot.on_callback_query(filters.regex(r"^feature_(signature|cn_notif|secure_flag)$"))
@@ -83,22 +77,29 @@ async def feature_toggle_handler(bot: Client, query: CallbackQuery):
     
     # Update button display
     features = user_states[user_id]["features"]
+    android_version = user_states[user_id].get("android_version", "15")
+    android_int = int(float(android_version))
+
     buttons = [
         [InlineKeyboardButton(
             f"{'✓' if features['enable_signature_bypass'] else '☐'} Disable Signature Verification",
             callback_data="feature_signature"
-        )],
-        [InlineKeyboardButton(
+        )]
+    ]
+
+    # Only show Android 15+ features if Android version is 15 or higher
+    if android_int >= 15:
+        buttons.append([InlineKeyboardButton(
             f"{'✓' if features['enable_cn_notification_fix'] else '☐'} CN Notification Fix",
             callback_data="feature_cn_notif"
-        )],
-        [InlineKeyboardButton(
+        )])
+        buttons.append([InlineKeyboardButton(
             f"{'✓' if features['enable_disable_secure_flag'] else '☐'} Disable Secure Flag",
             callback_data="feature_secure_flag"
-        )],
-        [InlineKeyboardButton("➡️ Continue with selected features", callback_data="features_done")]
-    ]
-    
+        )])
+
+    buttons.append([InlineKeyboardButton("Continue with selected features", callback_data="features_done")])
+
     await query.message.edit_reply_markup(InlineKeyboardMarkup(buttons))
     await query.answer(f"Feature {'enabled' if user_states[user_id]['features'][feature_key] else 'disabled'}")
 
@@ -115,7 +116,7 @@ async def features_done_handler(bot: Client, query: CallbackQuery):
     
     # Check if at least one feature is selected
     if not any(features.values()):
-        await query.answer("⚠️ Please select at least one feature!", show_alert=True)
+        await query.answer("⚠ Please select at least one feature!", show_alert=True)
         return
     
     # Build features summary

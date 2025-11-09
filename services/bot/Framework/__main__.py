@@ -1,9 +1,11 @@
 from pyrogram import idle
-from Framework import bot
-from Framework.helpers.logger import LOGGER
-from Framework.plugins.dev.updater import restart_notification
-from Framework.helpers.maintenance import notify_users_maintenance  
+
+from Framework import bot, loop
+from Framework.helpers.maintenance import notify_users_maintenance
 from Framework.helpers.provider import *
+from Framework.helpers.provider import initialize_data
+from Framework.plugins.dev.updater import restart_notification
+
 
 async def main():
     await bot.start()
@@ -21,4 +23,4 @@ async def main():
     LOGGER.info("Bot stopped")
 
 if __name__ == "__main__":
-    bot.loop.run_until_complete(main())
+    loop.run_until_complete(main())

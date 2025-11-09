@@ -1,12 +1,14 @@
-import config
-import asyncio, httpx
+import asyncio
+import httpx
+
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-from Framework.helpers.decorators import owner 
+import config
+from Framework import bot
+from Framework.helpers.decorators import owner
 from Framework.helpers.logger import LOGGER
 from Framework.helpers.state import *
-from Framework import bot
 
 
 @bot.on_message(filters.command("pdup") & filters.group & filters.reply)
@@ -158,14 +160,80 @@ async def handle_media_upload(bot: Client, message: Message):
         missing_files = [f for f in required_files if f not in user_states[user_id]["files"]]
 
         if received_count == 3:
-            user_states[user_id]["state"] = STATE_WAITING_FOR_DEVICE_CODENAME
-            user_states[user_id]["codename_retry_count"] = 0
+            # All files received, now trigger the workflow
+            from Framework.helpers.workflows import trigger_github_workflow_async
+            from datetime import datetime
+            from Framework.helpers.state import user_rate_limits
+
             await message.reply_text(
                 "✅ All 3 files received and uploaded!\n\n"
-                "📱 Please enter the device codename (e.g., rothko, xaga, marble)\n\n"
-                "💡 Tip: You can also search for your device name if you don't know the codename.",
+                "⏳ Triggering GitHub workflow...",
                 quote=True
             )
+
+            try:
+                # Check daily rate limit
+                today = datetime.now().date()
+                triggers = user_rate_limits.get(user_id, [])
+                triggers = [t for t in triggers if t.date() == today]
+
+                if len(triggers) >= 3:
+                    await message.reply_text(
+                        "❌ You have reached the daily limit of 3 workflow triggers. Try again tomorrow.",
+                        quote=True
+                    )
+                    user_states.pop(user_id, None)
+                    return
+
+                # Get all required info from state
+                links = user_states[user_id]["files"]
+                device_name = user_states[user_id]["device_name"]
+                version_name = user_states[user_id]["version_name"]
+                api_level = user_states[user_id]["api_level"]
+                android_version = user_states[user_id]["android_version"]
+                features = user_states[user_id].get("features", {
+                    "enable_signature_bypass": True,
+                    "enable_cn_notification_fix": False,
+                    "enable_disable_secure_flag": False
+                })
+
+                # Trigger workflow
+                status = await trigger_github_workflow_async(links, device_name, version_name, api_level, user_id,
+                                                             features)
+                triggers.append(datetime.now())
+                user_rate_limits[user_id] = triggers
+
+                # Build features summary for confirmation
+                selected_features = []
+                if features.get("enable_signature_bypass"):
+                    selected_features.append("✓ Signature Verification Bypass")
+                if features.get("enable_cn_notification_fix"):
+                    selected_features.append("✓ CN Notification Fix")
+                if features.get("enable_disable_secure_flag"):
+                    selected_features.append("✓ Disable Secure Flag")
+
+                features_summary = "\n".join(selected_features) if selected_features else "Default features"
+
+                await message.reply_text(
+                    f"✅ **Workflow triggered successfully!**\n\n"
+                    f"📱 **Device:** {device_name}\n"
+                    f"📦 **Version:** {version_name}\n"
+                    f"🤖 **Android:** {android_version} (API {api_level})\n\n"
+                    f"**Features Applied:**\n{features_summary}\n\n"
+                    f"⏳ You will receive a notification when the process is complete.\n\n"
+                    f"Daily triggers used: {len(triggers)}/3",
+                    quote=True
+                )
+
+            except Exception as e:
+                LOGGER.error(f"Error triggering workflow for user {user_id}: {e}", exc_info=True)
+                await message.reply_text(
+                    f"❌ **An unexpected error occurred while triggering workflow:**\n\n`{e}`",
+                    quote=True
+                )
+
+            finally:
+                user_states.pop(user_id, None)
         else:
             await message.reply_text(
                 f"Received {file_name}. You have {received_count}/3 files. "
@@ -195,7 +263,7 @@ async def upload_file_stream(file_path: str, pixeldrain_api_key: str) -> tuple:
         try:
             # Progressive timeout increase
             timeout = base_timeout + (attempt * 30)
-            logger.info(f"Upload attempt {attempt + 1}/{max_attempts} with timeout {timeout}s")
+            LOGGER.info(f"Upload attempt {attempt + 1}/{max_attempts} with timeout {timeout}s")
 
             # Enhanced HTTP client configuration
             limits = httpx.Limits(
@@ -233,26 +301,26 @@ async def upload_file_stream(file_path: str, pixeldrain_api_key: str) -> tuple:
 
             logs.append("Uploaded Successfully to PixelDrain")
             response_data = response.json()
-            logger.info(f"Upload successful on attempt {attempt + 1}")
+            LOGGER.info(f"Upload successful on attempt {attempt + 1}")
             break
 
         except httpx.TimeoutException as e:
             error_msg = f"Upload timeout on attempt {attempt + 1}: {e}"
-            logger.error(error_msg)
+            LOGGER.error(error_msg)
             logs.append(error_msg)
             if attempt == max_attempts - 1:
                 response_data = {"error": f"Upload failed after {max_attempts} attempts due to timeout"}
             
         except httpx.RequestError as e:
             error_msg = f"HTTPX Request error during PixelDrain upload (attempt {attempt + 1}): {type(e).__name__}: {e}"
-            logger.error(error_msg)
+            LOGGER.error(error_msg)
             logs.append(error_msg)
             if attempt == max_attempts - 1:
                 response_data = {"error": f"Upload failed after {max_attempts} attempts: {str(e)}"}
 
         except httpx.HTTPStatusError as e:
             error_msg = f"HTTP error {e.response.status_code} on attempt {attempt + 1}: {e.response.text}"
-            logger.error(error_msg)
+            LOGGER.error(error_msg)
             logs.append(error_msg)
             if e.response.status_code in [429, 502, 503, 504]:  # Retry on these status codes
                 if attempt < max_attempts - 1:
@@ -265,7 +333,7 @@ async def upload_file_stream(file_path: str, pixeldrain_api_key: str) -> tuple:
 
         except Exception as e:
             error_msg = f"Unexpected error during PixelDrain upload (attempt {attempt + 1}): {type(e).__name__}: {e}"
-            logger.error(error_msg, exc_info=True)
+            LOGGER.error(error_msg, exc_info=True)
             logs.append(error_msg)
             if attempt == max_attempts - 1:
                 response_data = {"error": f"Upload failed after {max_attempts} attempts: {str(e)}"}
@@ -282,6 +350,6 @@ async def upload_file_stream(file_path: str, pixeldrain_api_key: str) -> tuple:
             os.remove(file_path)
             logs.append("Temporary file cleaned up")
         except Exception as e:
-            logger.error(f"Failed to remove temporary file {file_path}: {e}")
+            LOGGER.error(f"Failed to remove temporary file {file_path}: {e}")
     
     return response_data, logs

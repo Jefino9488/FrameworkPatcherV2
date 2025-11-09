@@ -1,15 +1,23 @@
+import asyncio
 import time
-import os
-from pyrogram import Client
-from Framework.helpers.logger import LOGGER
-import config
 
+from pyrogram import Client
+
+import config
+from Framework.helpers.logger import LOGGER
 
 try:
-    import uvloop  
-    uvloop.install()
+    import uvloop
+
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 except ImportError:
-    uvloop = None  
+    uvloop = None
+
+try:
+    loop = asyncio.get_event_loop()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
 LOGGER.info("Starting Framework Patcher Bot...")
 BotStartTime = time.time()
