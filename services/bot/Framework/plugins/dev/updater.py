@@ -31,11 +31,11 @@ async def _run_cmd(*args):
 async def graceful_restart():
     """Gracefully stop the bot and restart the process"""
     try:
-        LOGGER(__name__).info("Stopping client...")
+        LOGGER.info("Stopping client...")
         await bot.stop()
-        LOGGER(__name__).info("Client stopped.")
+        LOGGER.info("Client stopped.")
     except Exception as e:
-        LOGGER(__name__).error(f"Error during graceful stop: {e}")
+        LOGGER.error(f"Error during graceful stop: {e}")
     finally:
         os.chdir(PROJECT_ROOT)
         os.execl(sys.executable, sys.executable, "-m", "Framework")
@@ -83,22 +83,22 @@ def get_relative_time(date_str):
         years = int(seconds / 31536000)
         return f"{years} year{'s' if years != 1 else ''} ago"
     except Exception as e:
-        LOGGER(__name__).error(f"Error calculating relative time: {e}")
+        LOGGER.error(f"Error calculating relative time: {e}")
         return date_str
 
 async def check_for_updates():
     try:
         rc, _, err = await _run_cmd("git", "remote", "update")
         if rc != 0:
-            LOGGER(__name__).error(f"git remote update failed: {err}")
+            LOGGER.error(f"git remote update failed: {err}")
             return None
         rc, status_out, _ = await _run_cmd("git", "status", "-uno")
         if rc != 0:
-            LOGGER(__name__).error("git status failed")
+            LOGGER.error("git status failed")
             return None
         if "Your branch is behind" in status_out:
-            rc, count_out, _ = await _run_cmd("git", "rev-list", "--count", "HEAD..origin/main")
-            rc2, latest_msg, _ = await _run_cmd("git", "log", "-1", "--pretty=format:%s", "origin/main")
+            rc, count_out, _ = await _run_cmd("git", "rev-list", "--count", "HEAD..origin/master")
+            rc2, latest_msg, _ = await _run_cmd("git", "log", "-1", "--pretty=format:%s", "origin/master")
             return {
                 "updates_available": True,
                 "commits_behind": (count_out or "0").strip(),
@@ -106,23 +106,23 @@ async def check_for_updates():
             }
         return {"updates_available": False}
     except Exception as e:
-        LOGGER(__name__).error(f"Failed to check for updates: {e}")
+        LOGGER.error(f"Failed to check for updates: {e}")
         return None
 
 async def pull_updates(msg=None):
     try:
-        rc, out, err = await _run_cmd("git", "pull", "--ff-only", "origin", "main")
+        rc, out, err = await _run_cmd("git", "pull", "--ff-only", "origin", "master")
         if rc != 0:
             error = (err or out or "").strip()
             if msg:
                 await msg.edit(f"Failed to pull updates: `{error}`")
-            LOGGER(__name__).error(f"Git pull failed: {error}")
+            LOGGER.error(f"Git pull failed: {error}")
             return None
         _, commit_hash, _ = await _run_cmd("git", "rev-parse", "HEAD")
         _, commit_date, _ = await _run_cmd("git", "log", "-1", "--format=%cd", "--date=local")
         _, commit_timestamp, _ = await _run_cmd("git", "log", "-1", "--format=%at")
         _, commit_msg, _ = await _run_cmd("git", "log", "-1", "--format=%s")
-        LOGGER(__name__).info(f"Bot updated. Commit: {commit_hash.strip()}, Date: {commit_date.strip()}, Message: {commit_msg.strip()}")
+        LOGGER.info(f"Bot updated. Commit: {commit_hash.strip()}, Date: {commit_date.strip()}, Message: {commit_msg.strip()}")
         if msg:
             await msg.edit(f"Pulled updates.\nPull: {commit_msg.strip()}\nCommit: `{commit_hash.strip()[:7]}`\nRestarting...")
         return {
@@ -134,7 +134,7 @@ async def pull_updates(msg=None):
     except Exception as e:
         if msg:
             await msg.edit(f"An error occurred: `{e}`")
-        LOGGER(__name__).exception("Exception during update")
+        LOGGER.exception("Exception during update")
         return None
 
 @bot.on_message(filters.command("update"))
@@ -155,7 +155,7 @@ async def update(_, message: Message):
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(f"{msg.chat.id} {msg.id} {commit_info['commit_hash']} | {commit_info['commit_date']} | {commit_info['commit_timestamp']} | {commit_info['commit_msg']} | {info['commits_behind']} | {info['latest_commit_msg']}")
     except Exception as e:
-        LOGGER(__name__).error(f"Failed writing restart file: {e}")
+        LOGGER.error(f"Failed writing restart file: {e}")
     
     # Schedule graceful restart after a short delay
     asyncio.create_task(graceful_restart())
@@ -170,7 +170,7 @@ async def restart_notification():
             try:
                 content = open(fpath, encoding="utf-8").read().strip()
             except Exception as e:
-                LOGGER(__name__).error(f"restart_notification read failed: {e}")
+                LOGGER.error(f"restart_notification read failed: {e}")
                 continue
             parts = content.split(" | ")
             head = parts[0].split()
@@ -200,14 +200,14 @@ async def restart_notification():
             try:
                 await bot.edit_message_text(chat_id=chat_id, message_id=msg_id, text=text)
             except Exception as e:
-                LOGGER(__name__).error(f"restart_notification edit failed: {e}")
+                LOGGER.error(f"restart_notification edit failed: {e}")
             finally:
                 try:
                     os.remove(fpath)
                 except OSError:
                     pass
     except Exception as e:
-        LOGGER(__name__).error(f"restart_notification failed: {e}")
+        LOGGER.error(f"restart_notification failed: {e}")
 
 @bot.on_message(filters.command("restart"))
 @owner
@@ -251,7 +251,7 @@ async def handle_restart_confirmation(_, callback_query):
                 with open(fpath, "w", encoding="utf-8") as f:
                     f.write(f"{msg.chat.id} {msg.id} {commit_info['commit_hash']} | {commit_info['commit_date']} | {commit_info['commit_timestamp']} | {commit_info['commit_msg']} | {update_info['commits_behind']} | {update_info['latest_commit_msg']}")
             except Exception as e:
-                LOGGER(__name__).error(f"Failed writing restart file: {e}")
+                LOGGER.error(f"Failed writing restart file: {e}")
             
             # Schedule graceful restart after a short delay
             asyncio.create_task(graceful_restart())
@@ -266,7 +266,7 @@ async def handle_restart_confirmation(_, callback_query):
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(f"{msg.chat.id} {msg.id}")
     except Exception as e:
-        LOGGER(__name__).error(f"Failed writing restart file: {e}")
+        LOGGER.error(f"Failed writing restart file: {e}")
     
     # Schedule graceful restart after a short delay
     asyncio.create_task(graceful_restart())
