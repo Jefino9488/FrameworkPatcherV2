@@ -110,6 +110,7 @@ async def handle_text_input(bot: Client, message: Message):
         if len(miui_roms) > 10:
             buttons.append([InlineKeyboardButton(f"📋 Show All ({len(miui_roms)} versions)", callback_data="ver_showall")])
 
+        buttons.append([InlineKeyboardButton("❓ Can't find your version?", callback_data="ver_manual")])
         buttons.append([InlineKeyboardButton("🔄 Reselect Codename", callback_data="reselect_codename")])
         await message.reply_text(
             f"✅ Device found: **{device_info['name']}** (`{codename}`)\n\n"
@@ -118,6 +119,95 @@ async def handle_text_input(bot: Client, message: Message):
             reply_markup=InlineKeyboardMarkup(buttons),
             quote=True
         )
+
+    elif current_state == STATE_WAITING_FOR_MANUAL_ROM_VERSION:
+        # User is entering ROM version manually
+        rom_version = message.text.strip()
+
+        if not rom_version:
+            await message.reply_text(
+                "❌ ROM version cannot be empty. Please enter a valid version (e.g., OS2.0.208.0.VNOCNXM).",
+                quote=True
+            )
+            return
+
+        # Store the ROM version
+        user_states[user_id]["version_name"] = rom_version
+        user_states[user_id]["state"] = STATE_WAITING_FOR_MANUAL_ANDROID_VERSION
+
+        await message.reply_text(
+            f"✅ ROM version set to: `{rom_version}`\n\n"
+            f"Now, please enter the Android version (e.g., 15, 14, 13):",
+            quote=True
+        )
+
+    elif current_state == STATE_WAITING_FOR_MANUAL_ANDROID_VERSION:
+        # User is entering Android version manually
+        android_input = message.text.strip()
+
+        if not android_input:
+            await message.reply_text(
+                "❌ Android version cannot be empty. Please enter a valid version (e.g., 15, 14, 13).",
+                quote=True
+            )
+            return
+
+        # Try to parse and validate Android version
+        try:
+            android_float = float(android_input)
+            android_int = int(android_float)
+
+            if android_int < 13:
+                await message.reply_text(
+                    f"⚠️ Android {android_int} is not supported. Minimum required: Android 13\n\n"
+                    f"Please enter a supported Android version (13 or higher):",
+                    quote=True
+                )
+                return
+
+            if android_int > 20:
+                await message.reply_text(
+                    f"❌ Android {android_int} seems invalid. Please enter a reasonable version (13-20):",
+                    quote=True
+                )
+                return
+
+            # Store Android version as string to match existing format
+            android_version = str(android_float)
+            api_level = android_version_to_api_level(android_version)
+
+            user_states[user_id]["android_version"] = android_version
+            user_states[user_id]["api_level"] = api_level
+            user_states[user_id]["state"] = STATE_WAITING_FOR_FEATURES
+
+            # Build feature selection buttons based on Android version
+            buttons = [
+                [InlineKeyboardButton("☐ Disable Signature Verification", callback_data="feature_signature")]
+            ]
+
+            # Only show Android 15+ features if version is 15 or higher
+            if android_int >= 15:
+                buttons.append([InlineKeyboardButton("☐ CN Notification Fix", callback_data="feature_cn_notif")])
+                buttons.append([InlineKeyboardButton("☐ Disable Secure Flag", callback_data="feature_secure_flag")])
+
+            buttons.append([InlineKeyboardButton("Continue with selected features", callback_data="features_done")])
+
+            await message.reply_text(
+                f"✅ **Manual version configured!**\n\n"
+                f"📱 **Device:** {user_states[user_id]['device_name']} (`{user_states[user_id]['device_codename']}`)\n"
+                f"📦 **ROM Version:** {user_states[user_id]['version_name']}\n"
+                f"🤖 **Android:** {android_version} (API {api_level})\n\n"
+                f"Now, choose which features to apply:",
+                reply_markup=InlineKeyboardMarkup(buttons),
+                quote=True
+            )
+
+        except ValueError:
+            await message.reply_text(
+                f"❌ Invalid Android version: `{android_input}`\n\n"
+                f"Please enter a valid number (e.g., 15, 14.0, 13):",
+                quote=True
+            )
 
     elif current_state == STATE_WAITING_FOR_VERSION_SELECTION:
         # Handle text input for version selection (when user types a number)
@@ -275,8 +365,45 @@ async def handle_text_input(bot: Client, message: Message):
     else:
         await message.reply_text("I'm currently expecting files or specific text input. Use /cancel to restart.",
                                  quote=True)
-        
-        
+
+
+@bot.on_callback_query(filters.regex(r"^ver_(manual)$"))
+async def manual_version_handler(bot: Client, query: CallbackQuery):
+    """Handles manual version entry request."""
+    user_id = query.from_user.id
+
+    LOGGER.info(f"Manual version entry callback received: user_id={user_id}")
+
+    if user_id not in user_states:
+        LOGGER.warning(f"User {user_id} not in user_states")
+        await query.answer("Session expired. Please use /start_patch to begin again.", show_alert=True)
+        return
+
+    current_state = user_states[user_id].get("state")
+
+    if current_state != STATE_WAITING_FOR_VERSION_SELECTION:
+        LOGGER.warning(
+            f"User {user_id} not in correct state. Expected: {STATE_WAITING_FOR_VERSION_SELECTION}, Got: {current_state}")
+        await query.answer("Not expecting version selection. Please restart with /start_patch", show_alert=True)
+        return
+
+    # Set state to wait for manual ROM version
+    user_states[user_id]["state"] = STATE_WAITING_FOR_MANUAL_ROM_VERSION
+
+    device_name = user_states[user_id].get("device_name", "Unknown")
+    codename = user_states[user_id].get("device_codename", "unknown")
+
+    await query.message.edit_text(
+        f"📝 **Manual Version Entry**\n\n"
+        f"Device: **{device_name}** (`{codename}`)\n\n"
+        f"Please enter your ROM version.\n"
+        f"Example: `OS2.0.208.0.VNOCNXM` or `V14.0.5.0.TKQMIXM`\n\n"
+        f"Type /cancel to go back."
+    )
+    await query.answer("Switched to manual entry mode")
+    LOGGER.info(f"User {user_id} switched to manual version entry")
+
+
 @bot.on_callback_query(filters.regex(r"^ver_(\d+|showall)$"))
 async def version_selection_handler(bot: Client, query: CallbackQuery):
     """Handles version selection from inline keyboard."""
