@@ -8,8 +8,12 @@ on:
         required: true
         default: '36'
         type: string
+      device_codename:
+        description: 'Device codename (for zip file naming, e.g., "munch"). Optional, will use sanitized device_name if not provided.'
+        required: false
+        type: string
       device_name:
-        description: 'Device codename (for labeling artifacts)'
+        description: 'Full device name (for release description, e.g., "Redmi Note 11T Pro")'
         required: true
         type: string
       version_name:
@@ -113,6 +117,16 @@ jobs:
           
           echo "All JAR files validated successfully!"
 
+      - name: Set safe device codename
+        id: set_codename
+        run: |
+          if [ -n "${{ github.event.inputs.device_codename }}" ]; then
+            echo "codename=${{ github.event.inputs.device_codename }}" >> $GITHUB_OUTPUT
+          else
+            SAFE_CODENAME=$(echo "${{ github.event.inputs.device_name }}" | sed 's/[^a-zA-Z0-9._-]/_/g')
+            echo "codename=${SAFE_CODENAME}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run Android 16 patcher
         run: |
           chmod +x scripts/patcher_a16.sh
@@ -136,14 +150,14 @@ jobs:
           
           ./scripts/patcher_a16.sh \
             "${{ github.event.inputs.api_level }}" \
-            "${{ github.event.inputs.device_name }}" \
+            "${{ steps.set_codename.outputs.codename }}" \
             "${{ github.event.inputs.version_name }}" \
             --framework --services --miui-services $FEATURE_FLAGS
 
       - name: Verify module creation
         run: |
           echo "Checking if module was created properly..."
-          MODULE_FILE=$(ls Framework-Patcher-${{ github.event.inputs.device_name }}*.zip 2>/dev/null || echo "")
+          MODULE_FILE=$(ls Framework-Patcher-${{ steps.set_codename.outputs.codename }}*.zip 2>/dev/null || echo "")
           if [ -z "$MODULE_FILE" ]; then
             echo "❌ No module ZIP found!"
             exit 1
@@ -161,7 +175,7 @@ jobs:
           SAFE_VERSION=$(echo "${{ github.event.inputs.version_name }}" | sed 's/[. ]/-/g')
           # Add timestamp to ensure unique tags for same device+version combinations
           TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
-          RELEASE_TAG="${{ github.event.inputs.device_name }}_${SAFE_VERSION}_${TIMESTAMP}"
+          RELEASE_TAG="${{ steps.set_codename.outputs.codename }}_${SAFE_VERSION}_${TIMESTAMP}"
           echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
           echo "name=Android 16 Framework Patch for ${{ github.event.inputs.device_name }} (${{ github.event.inputs.version_name }})" >> $GITHUB_OUTPUT
 
@@ -169,7 +183,7 @@ jobs:
         id: find_zip
         run: |
           # Find the module ZIP
-          ZIP_FILE=$(ls Framework-Patcher-${{ github.event.inputs.device_name }}*.zip 2>/dev/null || echo "")
+          ZIP_FILE=$(ls Framework-Patcher-${{ steps.set_codename.outputs.codename }}*.zip 2>/dev/null || echo "")
           if [ -z "$ZIP_FILE" ]; then
             echo "No module ZIP found!"
             exit 1
@@ -307,7 +321,7 @@ jobs:
         with:
           name: android16-module-${{ github.run_id }}
           if-no-files-found: warn
-          path: Framework-Patcher-${{ github.event.inputs.device_name }}*.zip
+          path: Framework-Patcher-${{ steps.set_codename.outputs.codename }}*.zip
           retention-days: 7
 
       - name: Send Telegram Notification (Success)
@@ -317,12 +331,14 @@ jobs:
             echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
           }
 
+          DEVICE_CODENAME_ESCAPED=$(escape_mdv2 "${{ steps.set_codename.outputs.codename }}")
           DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.device_name }}")
           VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
           API_LEVEL_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.api_level }}")
 
-          MESSAGE=$(printf "Android 16 framework patch is ready for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`\n\nModule compatible with Magisk, KSU, and SUFS" \
+          MESSAGE=$(printf "Android 16 framework patch is ready for your device:\n\n> *Device:* \`%s\`\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n> *Android API:* \`%s\`\n\nModule compatible with Magisk, KSU, and SUFS" \
             "$DEVICE_NAME_ESCAPED" \
+            "$DEVICE_CODENAME_ESCAPED" \
             "$VERSION_NAME_ESCAPED" \
             "$API_LEVEL_ESCAPED")
           
@@ -343,12 +359,14 @@ jobs:
             echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
           }
 
+          DEVICE_CODENAME_ESCAPED=$(escape_mdv2 "${{ steps.set_codename.outputs.codename }}")
           DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.device_name }}")
           VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
           WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
-          MESSAGE=$(printf "Android 16 framework patch failed for your device:\n\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n\nPlease check the workflow logs for more details." \
+          MESSAGE=$(printf "Android 16 framework patch failed for your device:\n\n> *Device:* \`%s\`\n> *Codename:* \`%s\`\n> *Version:* \`%s\`\n\nPlease check the workflow logs for more details." \
             "$DEVICE_NAME_ESCAPED" \
+            "$DEVICE_CODENAME_ESCAPED" \
             "$VERSION_NAME_ESCAPED")
 
           REPLY_MARKUP="{\"inline_keyboard\":[[{\"text\":\"View Workflow Run\",\"url\":\"$WORKFLOW_URL\"}]]}"
