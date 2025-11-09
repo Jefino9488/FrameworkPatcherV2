@@ -220,25 +220,23 @@ jobs:
       - name: Generate Release Body
         id: generate_release_body
         run: |
-          # Build features list
-          FEATURES=""
-          if [[ "${{ github.event.inputs.features }}" == *disable_signature_verification* ]]; then
-            FEATURES="${FEATURES}- Signature Verification Bypass
-  "
-          fi
-          if [[ "${{ github.event.inputs.features }}" == *cn_notification_fix* ]]; then
-            FEATURES="${FEATURES}- CN Notification Fix
-  "
-          fi
-          if [[ "${{ github.event.inputs.features }}" == *disable_secure_flag* ]]; then
-            FEATURES="${FEATURES}- Disable Secure Flag
-  "
-          fi
-          if [ -z "$FEATURES" ]; then
-            FEATURES="- Signature Verification Bypass (default)
-  "
-          fi
-          
+                    # Build features list
+                    FEATURES=""
+                    if [[ "${{ github.event.inputs.features }}" == *disable_signature_verification* ]]; then
+                      FEATURES="${FEATURES}
+          - Signature Verification Bypass"
+                    fi
+                    if [[ "${{ github.event.inputs.features }}" == *cn_notification_fix* ]]; then
+                      FEATURES="${FEATURES}
+          - CN Notification Fix"
+                    fi
+                    if [[ "${{ github.event.inputs.features }}" == *disable_secure_flag* ]]; then
+                      FEATURES="${FEATURES}
+          - Disable Secure Flag"
+                    fi
+                    if [ -z "$FEATURES" ]; then
+                      FEATURES="- Signature Verification Bypass (default)"
+                    fi          
           # Create release body
           cat > /tmp/release_body.md << RELEASE_EOF
           Android 15 Framework Patcher for ${{ github.event.inputs.device_name }}

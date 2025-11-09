@@ -223,20 +223,19 @@ jobs:
           # Build features list
           FEATURES=""
           if [[ "${{ github.event.inputs.features }}" == *disable_signature_verification* ]]; then
-            FEATURES="${FEATURES}- Signature Verification Bypass
-  "
+            FEATURES="${FEATURES}
+- Signature Verification Bypass"
           fi
           if [[ "${{ github.event.inputs.features }}" == *cn_notification_fix* ]]; then
-            FEATURES="${FEATURES}- CN Notification Fix
-  "
+            FEATURES="${FEATURES}
+- CN Notification Fix"
           fi
           if [[ "${{ github.event.inputs.features }}" == *disable_secure_flag* ]]; then
-            FEATURES="${FEATURES}- Disable Secure Flag
-  "
+            FEATURES="${FEATURES}
+- Disable Secure Flag"
           fi
           if [ -z "$FEATURES" ]; then
-            FEATURES="- Signature Verification Bypass (default)
-  "
+            FEATURES="- Signature Verification Bypass (default)"
           fi
           
           # Create release body
