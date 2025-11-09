@@ -128,12 +128,18 @@ function initializeForms() {
     // Initialize custom dropdowns for unified form
     const deviceSelect = document.querySelector(`[data-select-id="device-name"]`);
     const versionSelect = document.querySelector(`[data-select-id="version-name"]`);
-    const hiddenDeviceInput = document.getElementById(`device-name`);
-    const hiddenVersionInput = document.getElementById(`version-name`);
+    const hiddenDeviceNameInput = document.getElementById(`device-name`);
+    const hiddenDeviceCodenameInput = document.getElementById(`device-codename`);
 
-    if (deviceSelect && hiddenDeviceInput) {
-        const deviceDropdown = initializeCustomDropdown(deviceSelect, hiddenDeviceInput, (value) => {
+    if (deviceSelect && hiddenDeviceNameInput && hiddenDeviceCodenameInput) {
+        const deviceDropdown = initializeCustomDropdown(deviceSelect, hiddenDeviceCodenameInput, (value) => {
             console.log(`Device changed to: ${value}`);
+
+            // Get the selected option to extract the full name
+            const selectedOption = deviceSelect.dropdownInstance.getOptionByValue(value);
+            if (selectedOption) {
+                hiddenDeviceNameInput.value = selectedOption.text.split(' (')[0];
+            }
 
             // Clear detected Android version when device changes
             detectedAndroidVersion = null;
@@ -418,6 +424,9 @@ function initializeCustomDropdown(customSelect, hiddenInput, onChangeCallback) {
             if (disabled) {
                 closeDropdown();
             }
+        },
+        getOptionByValue: (value) => {
+            return options.find(opt => opt.value === value);
         }
     };
 }
@@ -458,12 +467,27 @@ async function handleFormSubmit(version, form) {
         for (let [key, value] of formData.entries()) {
             inputs[key] = value;
         }
-        
-        // Handle checkboxes (they only appear in FormData if checked)
-        // Set all feature flags to false first, then set to true if checked
-        inputs.enable_signature_bypass = formData.has('enable_signature_bypass') ? 'true' : 'false';
-        inputs.enable_cn_notification_fix = formData.has('enable_cn_notification_fix') ? 'true' : 'false';
-        inputs.enable_disable_secure_flag = formData.has('enable_disable_secure_flag') ? 'true' : 'false';
+
+        // Handle feature flags
+        const feature_list = [];
+        if (formData.has('enable_signature_bypass')) {
+            feature_list.push('disable_signature_verification');
+        }
+        if (formData.has('enable_cn_notification_fix')) {
+            feature_list.push('cn_notification_fix');
+        }
+        if (formData.has('enable_disable_secure_flag')) {
+            feature_list.push('disable_secure_flag');
+        }
+        inputs.features = feature_list.join(',');
+        if (!inputs.features) {
+            inputs.features = 'disable_signature_verification';
+        }
+
+        // Remove individual feature flags
+        delete inputs.enable_signature_bypass;
+        delete inputs.enable_cn_notification_fix;
+        delete inputs.enable_disable_secure_flag;
 
         // Remove empty optional fields
         if (!inputs.user_id || inputs.user_id.trim() === '') {

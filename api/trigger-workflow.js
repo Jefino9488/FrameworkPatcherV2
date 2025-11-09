@@ -55,27 +55,18 @@ export default async function handler(req, res) {
         const workflowInputs = {
             api_level: inputs.api_level,
             device_name: inputs.device_name,
+            device_codename: inputs.device_codename,
             version_name: inputs.version_name,
             framework_url: inputs.framework_url,
             services_url: inputs.services_url,
             miui_services_url: inputs.miui_services_url,
+            features: inputs.features || 'disable_signature_verification'
         };
 
         // Add optional user_id if provided
         if (inputs.user_id) {
             workflowInputs.user_id = inputs.user_id;
         }
-        
-        // Add feature flags (default to 'true' for signature bypass if not specified)
-        workflowInputs.enable_signature_bypass = inputs.enable_signature_bypass !== undefined 
-            ? String(inputs.enable_signature_bypass) 
-            : 'true';
-        workflowInputs.enable_cn_notification_fix = inputs.enable_cn_notification_fix !== undefined 
-            ? String(inputs.enable_cn_notification_fix) 
-            : 'false';
-        workflowInputs.enable_disable_secure_flag = inputs.enable_disable_secure_flag !== undefined 
-            ? String(inputs.enable_disable_secure_flag) 
-            : 'false';
 
         console.log(`Triggering ${workflowFile} workflow for ${inputs.device_name}`);
 

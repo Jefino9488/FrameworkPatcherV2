@@ -1,6 +1,6 @@
 import asyncio
-import httpx
 
+import httpx
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
@@ -188,6 +188,7 @@ async def handle_media_upload(bot: Client, message: Message):
                 # Get all required info from state
                 links = user_states[user_id]["files"]
                 device_name = user_states[user_id]["device_name"]
+                device_codename = user_states[user_id]["device_codename"]
                 version_name = user_states[user_id]["version_name"]
                 api_level = user_states[user_id]["api_level"]
                 android_version = user_states[user_id]["android_version"]
@@ -198,7 +199,8 @@ async def handle_media_upload(bot: Client, message: Message):
                 })
 
                 # Trigger workflow
-                status = await trigger_github_workflow_async(links, device_name, version_name, api_level, user_id,
+                status = await trigger_github_workflow_async(links, device_name, device_codename, version_name,
+                                                             api_level, user_id,
                                                              features)
                 triggers.append(datetime.now())
                 user_rate_limits[user_id] = triggers
