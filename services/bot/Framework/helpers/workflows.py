@@ -1,4 +1,5 @@
 import asyncio
+
 import httpx
 
 from Framework.helpers.logger import LOGGER
@@ -6,16 +7,41 @@ from config import *
 
 
 def _select_workflow_id(api_level: str) -> str:
-    # Prefer specific workflow IDs if provided, fallback to default WORKFLOW_ID
-    if api_level == "36":
-        return WORKFLOW_ID_A16 or "android16.yml" or WORKFLOW_ID
-    elif api_level == "35":
-        return WORKFLOW_ID_A15 or "android15.yml" or WORKFLOW_ID
-    elif api_level == "34":
-        return WORKFLOW_ID_A14 or "android14.yml" or WORKFLOW_ID
-    elif api_level == "33":
-        return WORKFLOW_ID_A13 or "android13.yml" or WORKFLOW_ID
-    return WORKFLOW_ID
+    """Select the appropriate workflow file based on API level.
+
+    Accepts either Android version (e.g., '16', 16, '15.0') or API level ('36'..'33').
+    Always returns a non-empty workflow file name.
+    """
+    # Normalize input
+    api_str = str(api_level).strip() if api_level is not None else ""
+
+    # Convert Android version to API level if needed
+    if api_str in {"13", "14", "15", "16"} or api_str.replace(".", "", 1).isdigit() and int(float(api_str)) in {13, 14,
+                                                                                                                15, 16}:
+        try:
+            from Framework.helpers.provider import android_version_to_api_level
+            api_str = android_version_to_api_level(api_str)
+        except Exception:
+            # Fallback to best effort mapping
+            mapping = {"13": "33", "14": "34", "15": "35", "16": "36"}
+            api_str = mapping.get(api_str, api_str)
+
+    # Map API levels to workflow files
+    if api_str == "36":
+        return WORKFLOW_ID_A16 or "android16.yml"
+    if api_str == "35":
+        return WORKFLOW_ID_A15 or "android15.yml"
+    if api_str == "34":
+        return WORKFLOW_ID_A14 or "android14.yml"
+    if api_str == "33":
+        return WORKFLOW_ID_A13 or "android13.yml"
+
+    # Unknown input: fall back to explicit WORKFLOW_ID, then to latest known workflow
+    if WORKFLOW_ID:
+        return WORKFLOW_ID
+
+    # Safe default
+    return WORKFLOW_ID_A16 or WORKFLOW_ID_A15 or WORKFLOW_ID_A14 or WORKFLOW_ID_A13 or "android15.yml"
 
 
 async def trigger_github_workflow_async(links: dict, device_name: str, version_name: str, api_level: str,

@@ -208,6 +208,12 @@ def get_android_version_from_miui(codename: str, miui_version: str) -> Optional[
 
 def android_version_to_api_level(android_version: str) -> str:
     """Convert Android version to API level."""
+    # Handle float strings like "13.0", "14.0", "15.0"
+    try:
+        android_int = int(float(android_version))
+    except (ValueError, TypeError):
+        android_int = android_version
+
     version_map = {
         '13': '33',
         '14': '34',
@@ -219,7 +225,9 @@ def android_version_to_api_level(android_version: str) -> str:
         15: '35',
         16: '36'
     }
-    return version_map.get(android_version, version_map.get(str(android_version), str(android_version)))
+
+    # Try with the integer version first, then fall back to original
+    return version_map.get(android_int, version_map.get(str(android_int), str(android_version)))
 
 
 def is_codename_valid(codename: str) -> bool:
