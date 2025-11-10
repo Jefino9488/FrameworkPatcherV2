@@ -221,21 +221,21 @@ jobs:
         id: generate_release_body
         run: |
           # Build features list
-          FEATURES=""
+          FEATURES_LIST=()
           if [[ "${{ github.event.inputs.features }}" == *disable_signature_verification* ]]; then
-            FEATURES="${FEATURES}
-- Signature Verification Bypass"
+            FEATURES_LIST+=("- Signature Verification Bypass")
           fi
           if [[ "${{ github.event.inputs.features }}" == *cn_notification_fix* ]]; then
-            FEATURES="${FEATURES}
-- CN Notification Fix"
+            FEATURES_LIST+=("- CN Notification Fix")
           fi
           if [[ "${{ github.event.inputs.features }}" == *disable_secure_flag* ]]; then
-            FEATURES="${FEATURES}
-- Disable Secure Flag"
+            FEATURES_LIST+=("- Disable Secure Flag")
           fi
-          if [ -z "$FEATURES" ]; then
+
+          if [ ${#FEATURES_LIST[@]} -eq 0 ]; then
             FEATURES="- Signature Verification Bypass (default)"
+          else
+            FEATURES=$(printf '%s\n' "${FEATURES_LIST[@]}")
           fi
           
           # Create release body
@@ -284,7 +284,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

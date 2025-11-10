@@ -269,7 +269,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -299,6 +299,12 @@ jobs:
           retention-days: 7
 
       - name: Send Telegram Notification (Success)
+        if: success() && github.event.inputs.user_id != ''
+        run: |
+          escape_mdv2() {
+            echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\./\\./g' -e 's/\-/\\-/g' -e 's/!/\\!/g' -e 's/#/\\#/g' -e 's/{/\\{/g' -e 's/}/\\}/g' -e 's/(/\\(/g' -e 's/)/\\)/g'
+          }
+
           DEVICE_CODENAME_ESCAPED=$(escape_mdv2 "${{ steps.set_codename.outputs.codename }}")
           DEVICE_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.device_name }}")
           VERSION_NAME_ESCAPED=$(escape_mdv2 "${{ github.event.inputs.version_name }}")
