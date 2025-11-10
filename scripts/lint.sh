@@ -36,6 +36,8 @@ echo "============================"
 SCRIPTS=(
     "scripts/helper.sh"
     "scripts/module_creator.sh"
+    "scripts/patcher_a13.sh"
+    "scripts/patcher_a14.sh"
     "scripts/patcher_a15.sh"
     "scripts/patcher_a16.sh"
     "deploy_bot.sh"

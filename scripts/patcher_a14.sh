@@ -252,9 +252,11 @@ apply_framework_signature_patches() {
         if [ -n "$linenos" ]; then
             for lineno in $linenos; do
                 local move_result_lineno=$((lineno + 1))
-                local current_line=$(sed -n "${move_result_lineno}p" "$file" | sed 's/^[ \t]*//')
+                local current_line
+                current_line=$(sed -n "${move_result_lineno}p" "$file" | sed 's/^[ \t]*//')
                 if [[ "$current_line" == "move-result v1" ]]; then
-                    local indent=$(sed -n "${move_result_lineno}p" "$file" | grep -o '^[ \t]*')
+                    local indent
+                    indent=$(sed -n "${move_result_lineno}p" "$file" | grep -o '^[ \t]*')
                     sed -i "$((move_result_lineno + 1))i\\
 ${indent}const/4 v1, 0x0" "$file"
                     echo "Patched verifySignatures at line $((move_result_lineno + 1))"
@@ -269,7 +271,8 @@ ${indent}const/4 v1, 0x0" "$file"
     file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l "verifyV1Signature.*ParseInput.*Ljava/lang/String;Z" 2>/dev/null | head -n 1)
     if [ -f "$file" ]; then
         local pattern="invoke-static.*verifyV1Signature"
-        local lineno=$(grep -n "$pattern" "$file" | cut -d: -f1 | head -n1)
+        local lineno
+        lineno=$(grep -n "$pattern" "$file" | cut -d: -f1 | head -n1)
         if [ -n "$lineno" ]; then
             sed -i "${lineno}i\\
     const/4 p3, 0x0" "$file"
@@ -282,7 +285,8 @@ ${indent}const/4 v1, 0x0" "$file"
     file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l "verifyV2Signature.*ParseInput.*Ljava/lang/String;Z" 2>/dev/null | head -n 1)
     if [ -f "$file" ]; then
         local pattern="invoke-static.*verifyV2Signature"
-        local lineno=$(grep -n "$pattern" "$file" | cut -d: -f1 | head -n1)
+        local lineno
+        lineno=$(grep -n "$pattern" "$file" | cut -d: -f1 | head -n1)
         if [ -n "$lineno" ]; then
             sed -i "${lineno}i\\
     const/4 p3, 0x0" "$file"
@@ -295,7 +299,8 @@ ${indent}const/4 v1, 0x0" "$file"
     file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l "verifyV3Signature.*ParseInput.*Ljava/lang/String;Z" 2>/dev/null | head -n 1)
     if [ -f "$file" ]; then
         local pattern="invoke-static.*verifyV3Signature"
-        local lineno=$(grep -n "$pattern" "$file" | cut -d: -f1 | head -n1)
+        local lineno
+        lineno=$(grep -n "$pattern" "$file" | cut -d: -f1 | head -n1)
         if [ -n "$lineno" ]; then
             sed -i "${lineno}i\\
     const/4 p3, 0x0" "$file"
@@ -308,7 +313,8 @@ ${indent}const/4 v1, 0x0" "$file"
     file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l "verifyV3AndBelowSignatures.*ParseInput.*Ljava/lang/String;IZ" 2>/dev/null | head -n 1)
     if [ -f "$file" ]; then
         local pattern="invoke-static.*verifyV3AndBelowSignatures"
-        local lineno=$(grep -n "$pattern" "$file" | cut -d: -f1 | head -n1)
+        local lineno
+        lineno=$(grep -n "$pattern" "$file" | cut -d: -f1 | head -n1)
         if [ -n "$lineno" ]; then
             sed -i "${lineno}i\\
     const/4 p3, 0x0" "$file"
@@ -337,7 +343,8 @@ ${indent}const/4 v1, 0x0" "$file"
 
         if [ -n "$start_line" ]; then
             local i=$((start_line + 1))
-            local total_lines=$(wc -l <"$file")
+            local total_lines
+            total_lines=$(wc -l <"$file")
 
             while [ "$i" -le "$total_lines" ]; do
                 line=$(sed -n "${i}p" "$file")
@@ -417,14 +424,17 @@ apply_services_signature_patches() {
     file=$(find "$decompile_dir" -type f -name "*.smali" -print0 | xargs -0 grep -l "invoke-interface.*isPersistent()Z" 2>/dev/null | head -n 1)
     if [ -f "$file" ]; then
         local pattern="invoke-interface {v4}, Lcom/android/server/pm/pkg/AndroidPackage;->isPersistent()Z"
-        local linenos=$(grep -nF "$pattern" "$file" | cut -d: -f1)
+        local linenos
+        linenos=$(grep -nF "$pattern" "$file" | cut -d: -f1)
 
         if [ -n "$linenos" ]; then
             for lineno in $linenos; do
                 local move_result_lineno=$((lineno + 1))
-                local current_line=$(sed -n "${move_result_lineno}p" "$file" | sed 's/^[ \t]*//')
+                local current_line
+                current_line=$(sed -n "${move_result_lineno}p" "$file" | sed 's/^[ \t]*//')
                 if [[ "$current_line" == "move-result v2" ]]; then
-                    local indent=$(sed -n "${move_result_lineno}p" "$file" | grep -o '^[ \t]*')
+                    local indent
+                    indent=$(sed -n "${move_result_lineno}p" "$file" | grep -o '^[ \t]*')
                     sed -i "$((move_result_lineno + 1))i\\
 ${indent}const/4 v2, 0x0" "$file"
                     echo "Patched isPersistent check at line $((move_result_lineno + 1))"
@@ -517,68 +527,6 @@ patch_miui_services() {
 # Source helper functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/helper.sh"
-
-# Function to create module using FrameworkPatcherModule template
-create_modules() {
-    # shellcheck disable=SC2034  # api_level currently unused but kept for future compatibility
-    local api_level="$1"
-    local device_name="$2"
-    local version_name="$3"
-
-    echo "Creating module using FrameworkPatcherModule template"
-
-    local build_dir="build_module"
-    rm -rf "$build_dir"
-
-    # Copy FrameworkPatcherModule template
-    cp -r "templates/framework-patcher-module" "$build_dir" || {
-        err "FrameworkPatcherModule template not found: templates/framework-patcher-module"
-        return 1
-    }
-
-    # Update module.prop with device-specific info
-    local module_prop="$build_dir/module.prop"
-    if [ -f "$module_prop" ]; then
-        sed -i "s/^version=.*/version=$version_name/" "$module_prop"
-        sed -i "s/^versionCode=.*/versionCode=$version_name/" "$module_prop"
-    fi
-
-    # Create required directories and copy patched files
-    mkdir -p "$build_dir/system/framework"
-    mkdir -p "$build_dir/system/system_ext/framework"
-
-    # Copy patched files if they exist
-    [ -f "framework_patched.jar" ] && cp "framework_patched.jar" "$build_dir/system/framework/framework.jar"
-    [ -f "services_patched.jar" ] && cp "services_patched.jar" "$build_dir/system/framework/services.jar"
-    [ -f "miui-services_patched.jar" ] && cp "miui-services_patched.jar" "$build_dir/system/system_ext/framework/miui-services.jar"
-
-    # Create module zip
-    local safe_version
-    safe_version=$(printf "%s" "$version_name" | sed 's/[. ]/-/g')
-    local zip_name="Framework-Patcher-${device_name}-${safe_version}.zip"
-
-    if command -v 7z >/dev/null 2>&1; then
-        (cd "$build_dir" && 7z a -tzip "../$zip_name" "*" >/dev/null) || {
-            err "7z failed to create $zip_name"
-            return 1
-        }
-    elif command -v zip >/dev/null 2>&1; then
-        (cd "$build_dir" && zip -r "../$zip_name" . >/dev/null) || {
-            err "zip failed to create $zip_name"
-            return 1
-        }
-    else
-        err "No archiver found (7z or zip). Install one to create module archive."
-        return 1
-    fi
-
-    echo "Created module: $zip_name"
-}
-
-# Legacy function for backward compatibility
-create_magisk_module() {
-    create_modules "$1" "$2" "$3" "magisk"
-}
 
 # Main function
 main() {
@@ -674,7 +622,7 @@ EOF
     fi
 
     # Create module
-    create_modules "$API_LEVEL" "$DEVICE_NAME" "$VERSION_NAME"
+    create_module "$API_LEVEL" "$DEVICE_NAME" "$VERSION_NAME"
 
     echo "All patching completed successfully!"
 }
