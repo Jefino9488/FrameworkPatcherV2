@@ -49,6 +49,9 @@ async def trigger_github_workflow_async(links: dict, device_name: str, device_co
                                         user_id: int, features: dict = None) -> int:
     """Trigger GitHub workflow with improved error handling and retry logic."""
     workflow_id = _select_workflow_id(api_level)
+    if not workflow_id:
+        LOGGER.error(f"Could not determine workflow ID for API level: {api_level}")
+        raise ValueError(f"Could not determine workflow ID for API level: {api_level}")
     url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/actions/workflows/{workflow_id}/dispatches"
 
     headers = {

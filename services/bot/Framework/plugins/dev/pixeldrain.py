@@ -197,6 +197,7 @@ async def handle_media_upload(bot: Client, message: Message):
                     "enable_disable_secure_flag": False
                 })
 
+                links = user_states[user_id]["files"]
                 # Trigger workflow
                 status = await trigger_github_workflow_async(links, device_name, device_codename, version_name,
                                                              api_level, user_id,
