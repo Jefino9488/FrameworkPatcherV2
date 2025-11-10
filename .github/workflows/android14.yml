@@ -201,7 +201,7 @@ jobs:
                   await github.rest.git.deleteRef({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    ref: 'tags/${{ steps.release_info.outputs.tag }}'
+                    ref: 'tags/' + '${{ steps.release_info.outputs.tag }}'
                   });
                 } catch (e) {
                   console.log('Tag might not exist, continuing...');
@@ -213,6 +213,15 @@ jobs:
 
       - name: Generate Release Body
         id: generate_release_body
+        env:
+          DEVICE_NAME: ${{ github.event.inputs.device_name }}
+          VERSION_NAME: ${{ github.event.inputs.version_name }}
+          API_LEVEL: ${{ github.event.inputs.api_level }}
+          FRAMEWORK_URL: ${{ github.event.inputs.framework_url }}
+          SERVICES_URL: ${{ github.event.inputs.services_url }}
+          MIUI_SERVICES_URL: ${{ github.event.inputs.miui_services_url }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           # Build features list
           FEATURES_LIST=()
@@ -228,13 +237,13 @@ jobs:
           
           # Create release body
           cat > /tmp/release_body.md << RELEASE_EOF
-          Android 14 Framework Patcher for ${{ github.event.inputs.device_name }}
+          Android 14 Framework Patcher for $DEVICE_NAME
 
-          Device: ${{ github.event.inputs.device_name }}
-          Version: ${{ github.event.inputs.version_name }}
-          Android API: ${{ github.event.inputs.api_level }}
+          Device: $DEVICE_NAME
+          Version: $VERSION_NAME
+          Android API: $API_LEVEL
 
-          Important: This module is built specifically for ${{ github.event.inputs.device_name }} running ${{ github.event.inputs.version_name }}. Installing on other devices or ROM versions may cause boot loops or system issues.
+          Important: This module is built specifically for $DEVICE_NAME running $VERSION_NAME. Installing on other devices or ROM versions may cause boot loops or system issues.
 
           Compatible with Magisk, KernelSU, and SUFS
 
@@ -242,13 +251,13 @@ jobs:
           FEATURES_PLACEHOLDER
 
           Source files:
-          - Framework: ${{ github.event.inputs.framework_url }}
-          - Services: ${{ github.event.inputs.services_url }}
-          - MIUI Services: ${{ github.event.inputs.miui_services_url }}
+          - Framework: $FRAMEWORK_URL
+          - Services: $SERVICES_URL
+          - MIUI Services: $MIUI_SERVICES_URL
 
           Built: $(date +'%Y-%m-%d %H:%M:%S UTC')
-          Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          Changelog: https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md
+          Workflow: https://github.com/$REPO/actions/runs/$RUN_ID
+          Changelog: https://github.com/$REPO/blob/master/CHANGELOG.md
           RELEASE_EOF
 
           # Replace features placeholder with actual features (handle multiline properly)
@@ -279,7 +288,8 @@ jobs:
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.name }}
           files: ${{ steps.find_zip.outputs.file_path }}
-          body: ${{ steps.generate_release_body.outputs.release_body }}
+          body: |
+            ${{ steps.generate_release_body.outputs.release_body }}
 
       - name: Upload patched jars
         uses: actions/upload-artifact@v4

@@ -1073,9 +1073,6 @@ patch_miui_services() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/helper.sh"
 
-# Create module
-create_module "$api_level" "$device_name" "$version_name"
-
 # ----------------------------------------------
 # Main entrypoint
 # ----------------------------------------------
@@ -1191,7 +1188,7 @@ EOF
     fi
 
     # Create module
-    create_modules "$api_level" "$device_name" "$version_name"
+    create_module "$api_level" "$device_name" "$version_name"
 
     log "Android 16 patching completed successfully"
 }
