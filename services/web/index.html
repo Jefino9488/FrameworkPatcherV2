@@ -20,7 +20,6 @@
     </header>
 
     <main class="main-content">
-        <!-- Unified Form -->
         <div class="form-container active" id="unified-form">
             <div class="form-header">
                 <h2><i class="fas fa-cog"></i> Framework Patcher</h2>
@@ -29,72 +28,123 @@
 
             <form class="patcher-form" id="patcher-form">
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label for="device-name">
-                            <i class="fas fa-mobile-alt"></i>
-                            Device
+                    <div class="form-group"
+                         style="grid-column: 1 / -1; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; gap: 12px;">
+                        <input id="manual-mode-toggle" style="width: 20px; height: 20px; margin: 0; cursor: pointer;"
+                               type="checkbox">
+                        <label for="manual-mode-toggle" style="margin: 0; cursor: pointer; font-size: 1rem;">
+                            <i class="fas fa-tools"></i> <strong>Manual Mode</strong> (Use if API is down or device not
+                            found)
                         </label>
-                        <div class="custom-select" data-select-id="device-name">
-                            <div class="select-trigger">
-                                <input type="text" class="select-input" placeholder="Search and select device..." readonly>
-                                <i class="fas fa-chevron-down select-arrow"></i>
-                            </div>
-                            <div class="select-options">
-                                <div class="search-container">
-                                    <input type="text" class="search-input" placeholder="Search devices...">
-                                </div>
-                                <div class="options-list">
-                                    <div class="option" value="">Select a device</div>
-                                </div>
-                            </div>
-                        </div>
-                        <input type="hidden" id="device-name" name="device_name" required>
-                        <input id="device-codename" name="device_codename" required type="hidden">
-                        <small>Select your device from the list</small>
                     </div>
 
-                    <div class="form-group">
-                        <label for="version-name">
-                            <i class="fas fa-tag"></i>
-                            Version
-                        </label>
-                        <div class="custom-select" data-select-id="version-name">
-                            <div class="select-trigger">
-                                <input type="text" class="select-input" placeholder="Select device first..." readonly>
-                                <i class="fas fa-chevron-down select-arrow"></i>
-                            </div>
-                            <div class="select-options">
-                                <div class="search-container">
-                                    <input type="text" class="search-input" placeholder="Search versions...">
+                    <div id="smart-inputs" style="display: contents;">
+                        <div class="form-group">
+                            <label for="device-name">
+                                <i class="fas fa-mobile-alt"></i> Device
+                            </label>
+                            <div class="custom-select" data-select-id="device-name">
+                                <div class="select-trigger">
+                                    <input class="select-input" placeholder="Search and select device..." readonly
+                                           type="text">
+                                    <i class="fas fa-chevron-down select-arrow"></i>
                                 </div>
-                                <div class="options-list">
-                                    <div class="option" value="">Select device first</div>
+                                <div class="select-options">
+                                    <div class="search-container">
+                                        <input class="search-input" placeholder="Search devices..." type="text">
+                                    </div>
+                                    <div class="options-list">
+                                        <div class="option" value="">Select a device</div>
+                                    </div>
                                 </div>
                             </div>
+                            <input id="device-name" name="device_name" type="hidden">
+                            <input id="device-codename" name="device_codename" type="hidden">
+                            <small>Select your device from the list</small>
                         </div>
-                        <input type="hidden" id="version-name" name="version_name" required>
-                        <small>Select firmware/MIUI version</small>
+
+                        <div class="form-group">
+                            <label for="version-name">
+                                <i class="fas fa-tag"></i> Version
+                            </label>
+                            <div class="custom-select" data-select-id="version-name">
+                                <div class="select-trigger">
+                                    <input class="select-input" placeholder="Select device first..." readonly
+                                           type="text">
+                                    <i class="fas fa-chevron-down select-arrow"></i>
+                                </div>
+                                <div class="select-options">
+                                    <div class="search-container">
+                                        <input class="search-input" placeholder="Search versions..." type="text">
+                                    </div>
+                                    <div class="options-list">
+                                        <div class="option" value="">Select device first</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input id="version-name" name="version_name" type="hidden">
+                            <small>Select firmware/MIUI version</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="detected-android">
+                                <i class="fas fa-android"></i> Detected Android Version
+                            </label>
+                            <input class="readonly-input" id="detected-android" placeholder="Will be auto-detected" readonly
+                                   type="text">
+                            <small>Automatically detected from selected MIUI ROM</small>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="detected-android">
-                            <i class="fas fa-android"></i>
-                            Detected Android Version
-                        </label>
-                        <input id="detected-android" type="text" readonly placeholder="Will be auto-detected" class="readonly-input">
-                        <small>Automatically detected from selected MIUI ROM</small>
+                    <div id="manual-inputs" style="display: none; contents;">
+                        <div class="form-group">
+                            <label for="manual-device-name">
+                                <i class="fas fa-mobile-alt"></i> Device Name
+                            </label>
+                            <input id="manual-device-name" placeholder="e.g. Xiaomi 14" type="text">
+                            <small>Enter the full device name</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="manual-device-codename">
+                                <i class="fas fa-code"></i> Device Codename
+                            </label>
+                            <input id="manual-device-codename" placeholder="e.g. houji" type="text">
+                            <small><strong>Important:</strong> Must be the exact board codename</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="manual-version-name">
+                                <i class="fas fa-tag"></i> Firmware Version
+                            </label>
+                            <input id="manual-version-name" placeholder="e.g. OS1.0.24.0.UNCNXM" type="text">
+                            <small>Enter the specific version string (e.g., V14.0.2.0)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="manual-android-version">
+                                <i class="fas fa-android"></i> Android Version
+                            </label>
+                            <select class="select-input" id="manual-android-version"
+                                    style="width: 100%; padding: 12px; border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); outline: none;">
+                                <option value="">Select Android Version</option>
+                                <option value="13">Android 13 (Tiramisu)</option>
+                                <option value="14">Android 14 (Upside Down Cake)</option>
+                                <option value="15">Android 15 (Vanilla Ice Cream)</option>
+                                <option value="16">Android 16 (Baklava)</option>
+                            </select>
+                            <small>Required to select the correct patching script</small>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="user-id">
-                            <i class="fab fa-telegram"></i>
-                            Telegram User ID
+                            <i class="fab fa-telegram"></i> Telegram User ID
                         </label>
                         <input id="user-id" name="user_id" placeholder="Optional" type="text">
                         <small>For notifications (optional)</small>
                     </div>
                 </div>
-
                 <div class="features-section" id="features-section">
                     <h3><i class="fas fa-magic"></i> Features to Apply</h3>
                     <p class="feature-description">Available features depend on detected Android version</p>
