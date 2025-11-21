@@ -28,14 +28,18 @@
 
             <form class="patcher-form" id="patcher-form">
                 <div class="form-grid">
-                    <div class="form-group"
-                         style="grid-column: 1 / -1; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; gap: 12px;">
-                        <input id="manual-mode-toggle" style="width: 20px; height: 20px; margin: 0; cursor: pointer;"
-                               type="checkbox">
-                        <label for="manual-mode-toggle" style="margin: 0; cursor: pointer; font-size: 1rem;">
-                            <i class="fas fa-tools"></i> <strong>Manual Mode</strong> (Use if API is down or device not
-                            found)
-                        </label>
+                    <div class="manual-toggle-container"
+                         onclick="document.getElementById('manual-mode-toggle').click()">
+                        <div class="toggle-wrapper" onclick="event.stopPropagation()">
+                            <label class="switch">
+                                <input id="manual-mode-toggle" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-info">
+                            <strong><i class="fas fa-tools"></i> Manual Mode</strong>
+                            <small>Enable to manually enter device details if the API is unavailable</small>
+                        </div>
                     </div>
 
                     <div id="smart-inputs" style="display: contents;">
