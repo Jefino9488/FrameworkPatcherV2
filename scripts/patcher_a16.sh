@@ -326,13 +326,13 @@ replace_entire_method() {
             return 0
         fi
         # Verify method exists in this file
-        if ! grep -q "\.method.* ${method_signature}" "$file" 2>/dev/null; then
+        if ! grep -s -q "\.method.* ${method_signature}" "$file" 2>/dev/null; then
             warn "Method $method_signature not found in $specific_class"
             return 0
         fi
     else
         # Search across all smali files
-        file=$(find "$decompile_dir" -type f -name "*.smali" -exec grep -l "\.method.* ${method_signature}" {} + 2>/dev/null | head -n 1)
+        file=$(find "$decompile_dir" -type f -name "*.smali" -exec grep -s -l "\.method.* ${method_signature}" {} + 2>/dev/null | head -n 1)
     fi
 
     [ -z "$file" ] && {
@@ -789,7 +789,7 @@ apply_services_signature_patches() {
     else
         # Fallback to repo-wide search if layout differs
         local fallback_file
-        fallback_file=$(grep -rl --include='*.smali' "$invoke_pattern" "$decompile_dir" 2>/dev/null | head -n1)
+        fallback_file=$(grep -s -rl --include='*.smali' "$invoke_pattern" "$decompile_dir" 2>/dev/null | head -n1)
         if [ -n "$fallback_file" ]; then
             ensure_const_before_if_for_register "$fallback_file" "$invoke_pattern" "if-eqz v3, :" "v3" "1"
         else
@@ -807,17 +807,17 @@ apply_services_signature_patches() {
 
     # Emit robust verification logs for CI (avoid brittle hardcoded file paths)
     log "[VERIFY] services: locating isLeavingSharedUser invoke (context)"
-    grep -R -n --include='*.smali' \
+    grep -s -R -n --include='*.smali' \
         'invoke-interface {p5}, Lcom/android/server/pm/pkg/AndroidPackage;->isLeavingSharedUser()Z' \
         "$decompile_dir" | head -n 1 || true
 
     log "[VERIFY] services: verifySignatures/compareSignatures/matchSignaturesCompat presence"
-    grep -R -n --include='*.smali' '^[[:space:]]*\\.method.* verifySignatures' "$decompile_dir" | head -n 1 || true
-    grep -R -n --include='*.smali' '^[[:space:]]*\\.method.* compareSignatures' "$decompile_dir" | head -n 1 || true
-    grep -R -n --include='*.smali' '^[[:space:]]*\\.method.* matchSignaturesCompat' "$decompile_dir" | head -n 1 || true
+    grep -s -R -n --include='*.smali' '^[[:space:]]*\\.method.* verifySignatures' "$decompile_dir" | head -n 1 || true
+    grep -s -R -n --include='*.smali' '^[[:space:]]*\\.method.* compareSignatures' "$decompile_dir" | head -n 1 || true
+    grep -s -R -n --include='*.smali' '^[[:space:]]*\\.method.* matchSignaturesCompat' "$decompile_dir" | head -n 1 || true
 
     log "[VERIFY] services: checkDowngrade methods now return-void"
-    grep -R -n --include='*.smali' '^[[:space:]]*\.method.*checkDowngrade' "$decompile_dir" | head -n 5 || true
+    grep -s -R -n --include='*.smali' '^[[:space:]]*\.method.*checkDowngrade' "$decompile_dir" | head -n 5 || true
 
     log "[VERIFY] services: ReconcilePackageUtils <clinit> toggle lines"
     local rpu_file
@@ -935,8 +935,8 @@ apply_miui_services_signature_patches() {
 
     # Targeted verification that won't hang
     log "[VERIFY] miui-services: verifyIsolationViolation/canBeUpdate return-void"
-    grep -R -n --include='*.smali' '^[[:space:]]*\.method.*verifyIsolationViolation' "$decompile_dir" | head -n 5 || true
-    grep -R -n --include='*.smali' '^[[:space:]]*\.method.*canBeUpdate' "$decompile_dir" | head -n 5 || true
+    grep -s -R -n --include='*.smali' '^[[:space:]]*\.method.*verifyIsolationViolation' "$decompile_dir" | head -n 5 || true
+    grep -s -R -n --include='*.smali' '^[[:space:]]*\.method.*canBeUpdate' "$decompile_dir" | head -n 5 || true
 
     log "Signature verification patches applied to miui-services.jar (Android 16)"
 }

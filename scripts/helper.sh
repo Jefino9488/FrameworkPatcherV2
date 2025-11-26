@@ -162,8 +162,8 @@ find_smali_method_file() {
     local method="$2"
     # returns first match (stdout)
     find "$decompile_dir" -type f -name "*.smali" -print0 |
-        xargs -0 grep -l -- ".method" 2>/dev/null |
-        xargs -r -I{} sh -c "grep -q \"[[:space:]]*\\.method.*${method}\" \"{}\" && printf '%s\n' \"{}\"" |
+        xargs -0 grep -s -l -- ".method" 2>/dev/null |
+        xargs -r -I{} sh -c "grep -s -q \"[[:space:]]*\\.method.*${method}\" \"{}\" && printf '%s\n' \"{}\"" |
         head -n1
 }
 
@@ -286,7 +286,7 @@ modify_invoke_custom_methods() {
     local smali_files
     # Redirect both stdout and stderr, and use || true to prevent failures
     smali_files=$(find "$decompile_dir" -type f -name "*.smali" 2>/dev/null | while read -r f; do
-        if [ -f "$f" ] && grep -q "invoke-custom" "$f" 2>/dev/null; then
+        if [ -f "$f" ] && grep -s -q "invoke-custom" "$f" 2>/dev/null; then
             echo "$f"
         fi
     done)
@@ -347,7 +347,7 @@ patch_return_void_methods_all() {
 
     # Find all files containing the method
     local files
-    files=$(find "$decompile_dir" -type f -name "*.smali" -exec grep -l "^[[:space:]]*\\.method.*${method_name}" {} + 2>/dev/null || true)
+    files=$(find "$decompile_dir" -type f -name "*.smali" -exec grep -s -l "^[[:space:]]*\\.method.*${method_name}" {} + 2>/dev/null || true)
 
     [ -z "$files" ] && {
         warn "No occurrences of ${method_name} found in $decompile_dir"
