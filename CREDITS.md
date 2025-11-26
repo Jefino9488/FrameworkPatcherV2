@@ -121,15 +121,18 @@
 
 ### Development and Support
 
-**[Saikrishna1504](https://github.com/Saikrishna1504)**
-- Ongoing support and encouragement
-- Testing and feedback
-- Community engagement
-
-**[kindaUnknown](https://github.com/kindaUnknown)**
+**[MisfiT2020](https://github.com/MisfiT2020)**
 - Bot development contributions
 - Extensive testing and bug reports
 - Support and documentation feedback
+
+**[kindaUnknown](https://github.com/kindaUnknown)**
+- Extensive testing and bug reports
+- Support and documentation feedback
+
+**[Saikrishna1504](https://github.com/Saikrishna1504)**
+- Ongoing support and encouragement
+- Community engagement
 
 ## Tool and Library Creators
 
