@@ -445,7 +445,7 @@ async function handleFormSubmit(version, form) {
 
         if (success) {
             hideModal('loading-modal');
-            showSuccessModal();
+            showModal('success-modal');
         } else {
             throw new Error('Failed to trigger workflow');
         }
