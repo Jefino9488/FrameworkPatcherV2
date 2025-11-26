@@ -34,6 +34,7 @@
     --red: #f38ba8;
     --flamingo: #f2cdcd;
     --rosewater: #f5e0dc;
+    --border: #313244;
 }
 
 body {
@@ -326,7 +327,7 @@ body {
     border-color: var(--accent);
 }
 
-.feature-checkbox input:checked ~ .checkmark {
+.feature-checkbox input:checked~.checkmark {
     background-color: var(--accent);
     border-color: var(--accent);
 }
@@ -344,7 +345,7 @@ body {
     transform: rotate(45deg);
 }
 
-.feature-checkbox input:checked ~ .checkmark:after {
+.feature-checkbox input:checked~.checkmark:after {
     display: block;
 }
 
@@ -506,12 +507,14 @@ body {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
 }
 
-.success-icon, .error-icon {
+.success-icon,
+.error-icon {
     font-size: 4rem;
     margin-bottom: 1rem;
 }
@@ -819,7 +822,8 @@ body {
     padding: 12px 16px;
     cursor: pointer;
     transition: all 0.3s ease;
-    min-height: 52px; /* Consistent height */
+    min-height: 52px;
+    /* Consistent height */
     width: 100%;
     box-sizing: border-box;
 }
@@ -978,7 +982,7 @@ body {
     font-weight: 600;
     font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     padding: 8px 16px 4px;
     cursor: default;
     border-bottom: 1px solid var(--surface-hover);
@@ -1047,8 +1051,13 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: translateY(-50%) rotate(0deg); }
-    100% { transform: translateY(-50%) rotate(360deg); }
+    0% {
+        transform: translateY(-50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translateY(-50%) rotate(360deg);
+    }
 }
 
 /* Readonly input styling */
@@ -1128,12 +1137,12 @@ body {
 }
 
 /* Active State (Checked) */
-input:checked + .slider {
+input:checked+.slider {
     background-color: var(--accent);
     border-color: var(--accent);
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
     transform: translateX(24px);
     background-color: var(--bg-primary);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
