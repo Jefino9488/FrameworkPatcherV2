@@ -57,7 +57,7 @@ async def reselect_codename_handler(bot: Client, query: CallbackQuery):
     await query.answer("Codename reset. Enter a new codename.")
 
 
-@bot.on_callback_query(filters.regex(r"^feature_(signature|cn_notif|secure_flag)$"))
+@bot.on_callback_query(filters.regex(r"^feature_(signature|cn_notif|secure_flag|kaorios)$"))
 async def feature_toggle_handler(bot: Client, query: CallbackQuery):
     """Handles toggling features on/off."""
     user_id = query.from_user.id
