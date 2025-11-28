@@ -406,34 +406,34 @@ while i < len(lines):
     if '.method ' in line and 'engineGetCertificateChain' in line:
         in_method = True
     
-    # If we're in the method and find .registers line
-    if in_method and '.registers' in line:
+    # If we're in the method and find .registers or .locals line
+    if in_method and ('.registers' in line or '.locals' in line):
         # Check if patch already exists on next line
         if i + 1 < len(lines) and 'ToolboxUtils;->KaoriosPropsEngineGetCertificateChain' in lines[i+1]:
             in_method = False
             i += 1
             continue
-        
+
         # Get indentation
         indent = re.match(r'^\s*', line).group(0)
-        
+
         # Insert the patch line after .registers
         patch_lines = [
             '',
             f'{indent}invoke-static {{}}, Lcom/android/internal/util/kaorios/ToolboxUtils;->KaoriosPropsEngineGetCertificateChain()V'
         ]
-        
+
         for j, patch_line in enumerate(patch_lines):
             lines.insert(i + 1 + j, patch_line)
-        
+
         modified = True
         i += len(patch_lines) + 1
         in_method = False
         continue
-    
+
     if '.end method' in line:
         in_method = False
-    
+
     i += 1
 
 if modified:
@@ -448,25 +448,25 @@ PYTHON
     else
         warn "Failed to patch AndroidKeyStoreSpi.engineGetCertificateChain"
     fi
-    
+
     return 0
 }
 
 # Main function to apply all Kaorios Toolbox patches
 apply_kaorios_toolbox_patches() {
     local decompile_dir="$1"
-    
+
     log "========================================="
     log "Applying Kaorios Toolbox Patches"
     log "========================================="
-    
+
     # Inject utility classes first
     inject_kaorios_utility_classes "$decompile_dir" || return 1
-    
+
     # Apply surgical patches based on Guide.md
     # NOTE: ApplicationPackageManager patch disabled due to DEX 65k limit in this framework
     # patch_application_package_manager_has_system_feature "$decompile_dir"
-    log "⚠ Skipping ApplicationPackageManager patch (causes DEX 65k limit)"
+    log "⚠ Skipping ApplicationPackageManager patch (bootloop)"
     
     patch_instrumentation_new_application "$decompile_dir"
     patch_keystore2_get_key_entry "$decompile_dir"
