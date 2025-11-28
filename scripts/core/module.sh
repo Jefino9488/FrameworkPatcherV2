@@ -54,38 +54,88 @@ create_module() {
     fi
 
     # Update customize.sh with framework replacements
+    # Update customize.sh with framework replacements
     local customize_sh="$build_dir/customize.sh"
     if [ -f "$customize_sh" ]; then
-        # Replace the empty REPLACE section with our framework files
-        sed -i '/^REPLACE="/,/^"/c\
-REPLACE="\
-/system/framework/framework.jar\
-/system/framework/services.jar\
-/system/system_ext/framework/miui-services.jar\
-"' "$customize_sh"
+        # Construct dynamic REPLACE list
+        local replace_list=""
+        
+        # Create required directories and copy patched files
+        mkdir -p "$build_dir/system/framework"
+        mkdir -p "$build_dir/system/system_ext/framework"
+
+        # copy patched files (if present in cwd) and add to REPLACE list
+        if [ -f "framework_patched.jar" ]; then
+            cp "framework_patched.jar" "$build_dir/system/framework/framework.jar"
+            replace_list="${replace_list}/system/framework/framework.jar\n"
+        fi
+        
+        if [ -f "services_patched.jar" ]; then
+            cp "services_patched.jar" "$build_dir/system/framework/services.jar"
+            replace_list="${replace_list}/system/framework/services.jar\n"
+        fi
+        
+        if [ -f "miui-services_patched.jar" ]; then
+            cp "miui-services_patched.jar" "$build_dir/system/system_ext/framework/miui-services.jar"
+            replace_list="${replace_list}/system/system_ext/framework/miui-services.jar\n"
+        fi
+
+        # Replace the empty REPLACE section with our dynamic list
+        # We use a temporary file to avoid complex sed escaping issues with newlines
+        awk -v r="$replace_list" '{
+            if ($0 ~ /^REPLACE="/) {
+                print "REPLACE=\""
+                printf "%s", r
+                print "\""
+                # Skip lines until the closing quote
+                while (getline > 0 && $0 !~ /^"/) {}
+            } else {
+                print
+            }
+        }' "$customize_sh" > "${customize_sh}.tmp" && mv "${customize_sh}.tmp" "$customize_sh"
     fi
-
-    # Create required directories and copy patched files
-    mkdir -p "$build_dir/system/framework"
-    mkdir -p "$build_dir/system/system_ext/framework"
-
-    # copy patched files (if present in cwd)
-    [ -f "framework_patched.jar" ] && cp "framework_patched.jar" "$build_dir/system/framework/framework.jar"
-    [ -f "services_patched.jar" ] && cp "services_patched.jar" "$build_dir/system/framework/services.jar"
-    [ -f "miui-services_patched.jar" ] && cp "miui-services_patched.jar" "$build_dir/system/system_ext/framework/miui-services.jar"
 
     # Copy Kaorios Toolbox files if present
     if [ -d "kaorios_toolbox" ]; then
         log "Including Kaorios Toolbox components in module"
-        mkdir -p "$build_dir/kaorios"
         
-        # Copy APK and permission XML
-        [ -f "kaorios_toolbox/KaoriosToolbox.apk" ] && cp "kaorios_toolbox/KaoriosToolbox.apk" "$build_dir/kaorios/"
-        [ -f "kaorios_toolbox/privapp_whitelist_com.kousei.kaorios.xml" ] && cp "kaorios_toolbox/privapp_whitelist_com.kousei.kaorios.xml" "$build_dir/kaorios/"
+        # 1. Install APK as system app (priv-app)
+        if [ -f "kaorios_toolbox/KaoriosToolbox.apk" ]; then
+            mkdir -p "$build_dir/system/product/priv-app/KaoriosToolbox"
+            cp "kaorios_toolbox/KaoriosToolbox.apk" "$build_dir/system/product/priv-app/KaoriosToolbox/KaoriosToolbox.apk"
+            
+            # Extract native libraries
+            log "  • Extracting native libraries from APK..."
+            mkdir -p "$build_dir/system/product/priv-app/KaoriosToolbox/lib"
+            # Extract lib/arm64-v8a or lib/armeabi-v7a to lib/
+            unzip -q "kaorios_toolbox/KaoriosToolbox.apk" "lib/*" -d "$build_dir/system/product/priv-app/KaoriosToolbox/" || true
+        fi
+
+        # 2. Install permissions
+        if [ -f "kaorios_toolbox/privapp_whitelist_com.kousei.kaorios.xml" ]; then
+            mkdir -p "$build_dir/system/product/etc/permissions"
+            cp "kaorios_toolbox/privapp_whitelist_com.kousei.kaorios.xml" "$build_dir/system/product/etc/permissions/"
+        fi
         
-        # Data files removed - app fetches from its own repository
-        # Version info for tracking
-        [ -f "kaorios_toolbox/version.txt" ] && cp "kaorios_toolbox/version.txt" "$build_dir/kaorios/"
+        # 3. Configure system properties
+        {
+            echo ""
+            echo "# Kaorios Toolbox"
+            echo "persist.sys.kaorios=kousei"
+            echo "ro.control_privapp_permissions=enforce"
+        } >> "$build_dir/system.prop"
+
+        # 4. Add service script for user app update
+        # service.sh is already in the template, but we ensure it's executable
+        if [ -f "$build_dir/service.sh" ]; then
+            chmod +x "$build_dir/service.sh"
+        fi
+        
+        # Version info for tracking (optional, maybe in module.prop description or just log)
+        if [ -f "kaorios_toolbox/version.txt" ]; then
+             local k_ver=$(cat "kaorios_toolbox/version.txt")
+             log "  • Kaorios Version: $k_ver"
+        fi
         
         log "✓ Kaorios Toolbox files added to module"
     fi
