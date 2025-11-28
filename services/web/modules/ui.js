@@ -1,6 +1,6 @@
 // services/web/modules/ui.js
-import {androidVersionToApiLevel} from './utils.js';
-import {triggerWorkflow} from './api.js';
+import { androidVersionToApiLevel } from './utils.js';
+import { triggerWorkflow } from './api.js';
 
 // Global state for detected Android version (module-scoped)
 let detectedAndroidVersion = null;
@@ -147,7 +147,7 @@ export function initializeCustomDropdown(customSelect, hiddenInput, onChangeCall
 export function populateDeviceDropdown(customSelect, devices) {
     const sortedDevices = devices.sort((a, b) => a.name.localeCompare(b.name));
     const options = [
-        {value: '', text: 'Select a device'},
+        { value: '', text: 'Select a device' },
         ...sortedDevices.map(device => ({
             value: device.codename,
             text: `${device.name} (${device.codename})`
@@ -166,18 +166,18 @@ export function populateDeviceDropdown(customSelect, devices) {
 
 export function populateVersionDropdown(versionSelect, hiddenVersionInput, softwareData) {
     const miuiRoms = softwareData.miui_roms || [];
-    const options = [{value: '', text: 'Select a version'}];
+    const options = [{ value: '', text: 'Select a version' }];
 
     if (miuiRoms.length > 0) {
         options.push(
-            {value: '---miui---', text: 'MIUI ROMs', isGroupLabel: true},
+            { value: '---miui---', text: 'MIUI ROMs', isGroupLabel: true },
             ...miuiRoms.map(rom => ({
                 value: rom.version || rom.miui,
                 text: rom.android ? `${rom.version} (Android ${rom.android})` : rom.version
             }))
         );
     } else {
-        options[0] = {value: '', text: 'No versions available'};
+        options[0] = { value: '', text: 'No versions available' };
     }
 
     if (versionSelect.dropdownInstance) {
@@ -196,6 +196,7 @@ export function populateVersionDropdown(versionSelect, hiddenVersionInput, softw
 export function updateAvailableFeatures(androidVersion) {
     const cnNotificationFeature = document.getElementById('cn-notification-feature');
     const secureFlagFeature = document.getElementById('secure-flag-feature');
+    const kaoriosToolboxFeature = document.getElementById('kaorios-toolbox-feature');
     const detectedAndroidInput = document.getElementById('detected-android');
     const patcherForm = document.getElementById('patcher-form');
 
@@ -213,6 +214,7 @@ export function updateAvailableFeatures(androidVersion) {
         // For now, we just hide features
         cnNotificationFeature.style.display = 'none';
         secureFlagFeature.style.display = 'none';
+        if (kaoriosToolboxFeature) kaoriosToolboxFeature.style.display = 'none';
 
         const submitButton = patcherForm.querySelector('button[type="submit"]');
         if (submitButton) {
@@ -238,16 +240,20 @@ export function updateAvailableFeatures(androidVersion) {
     if (version >= 15) {
         cnNotificationFeature.style.display = 'flex';
         secureFlagFeature.style.display = 'flex';
+        if (kaoriosToolboxFeature) kaoriosToolboxFeature.style.display = 'flex';
     } else {
         // Hide and uncheck features for Android 13-14
         cnNotificationFeature.style.display = 'none';
         secureFlagFeature.style.display = 'none';
+        if (kaoriosToolboxFeature) kaoriosToolboxFeature.style.display = 'none';
 
         // Uncheck the checkboxes
         const cnCheckbox = cnNotificationFeature.querySelector('input[type="checkbox"]');
         const secureCheckbox = secureFlagFeature.querySelector('input[type="checkbox"]');
+        const kaoriosCheckbox = kaoriosToolboxFeature?.querySelector('input[type="checkbox"]');
         if (cnCheckbox) cnCheckbox.checked = false;
         if (secureCheckbox) secureCheckbox.checked = false;
+        if (kaoriosCheckbox) kaoriosCheckbox.checked = false;
     }
 }
 
@@ -302,7 +308,7 @@ export function setDetectedInfo(version, apiLevel) {
 }
 
 export function getDetectedInfo() {
-    return {detectedAndroidVersion, detectedApiLevel};
+    return { detectedAndroidVersion, detectedApiLevel };
 }
 
 // Form submission handler

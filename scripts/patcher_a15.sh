@@ -14,6 +14,7 @@ mkdir -p "$BACKUP_DIR"
 FEATURE_DISABLE_SIGNATURE_VERIFICATION=0
 FEATURE_CN_NOTIFICATION_FIX=0
 FEATURE_DISABLE_SECURE_FLAG=0
+FEATURE_KAORIOS_TOOLBOX=0
 
 # Function to decompile JAR file
 decompile_jar() {
@@ -789,7 +790,8 @@ patch_framework() {
     # Check if any framework features are enabled
     if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] &&
         [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] &&
-        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
+        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ] &&
+        [ $FEATURE_KAORIOS_TOOLBOX -eq 0 ]; then
         echo "No framework features selected, skipping framework.jar"
         return 0
     fi
@@ -811,6 +813,13 @@ patch_framework() {
 
     if [ $FEATURE_DISABLE_SECURE_FLAG -eq 1 ]; then
         apply_framework_disable_secure_flag "$decompile_dir"
+    fi
+
+    if [ $FEATURE_KAORIOS_TOOLBOX -eq 1 ]; then
+        # Source the Kaorios patching functions
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        source "${SCRIPT_DIR}/core/kaorios_patches.sh"
+        apply_kaorios_toolbox_patches "$decompile_dir"
     fi
 
     # Recompile framework.jar
@@ -1201,6 +1210,9 @@ EOF
             --disable-secure-flag)
                 FEATURE_DISABLE_SECURE_FLAG=1
                 ;;
+            --kaorios-toolbox)
+                FEATURE_KAORIOS_TOOLBOX=1
+                ;;
             *)
                 echo "Unknown option: $1"
                 exit 1
@@ -1219,7 +1231,8 @@ EOF
     # If no feature specified, default to signature verification (backward compatibility)
     if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] &&
         [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] &&
-        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
+        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ] &&
+        [ $FEATURE_KAORIOS_TOOLBOX -eq 0 ]; then
         FEATURE_DISABLE_SIGNATURE_VERIFICATION=1
         echo "No feature specified, defaulting to --disable-signature-verification"
     fi
@@ -1230,6 +1243,7 @@ EOF
     [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 1 ] && echo "  ✓ Disable Signature Verification"
     [ $FEATURE_CN_NOTIFICATION_FIX -eq 1 ] && echo "  ✓ CN Notification Fix"
     [ $FEATURE_DISABLE_SECURE_FLAG -eq 1 ] && echo "  ✓ Disable Secure Flag"
+    [ $FEATURE_KAORIOS_TOOLBOX -eq 1 ] && echo "  ✓ Kaorios Toolbox (Play Integrity Fix)"
     echo "============================================"
 
     # Patch requested JARs

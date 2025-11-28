@@ -23,7 +23,8 @@ async def start_patch_command(bot: Client, message: Message):
         "features": {
             "enable_signature_bypass": False,
             "enable_cn_notification_fix": False,
-            "enable_disable_secure_flag": False
+            "enable_disable_secure_flag": False,
+            "enable_kaorios_toolbox": False
         }
     }
     await message.reply_text(
@@ -67,7 +68,8 @@ async def feature_toggle_handler(bot: Client, query: CallbackQuery):
     feature_map = {
         "feature_signature": "enable_signature_bypass",
         "feature_cn_notif": "enable_cn_notification_fix",
-        "feature_secure_flag": "enable_disable_secure_flag"
+        "feature_secure_flag": "enable_disable_secure_flag",
+        "feature_kaorios": "enable_kaorios_toolbox"
     }
     
     feature_key = feature_map.get(query.data)
@@ -96,6 +98,10 @@ async def feature_toggle_handler(bot: Client, query: CallbackQuery):
         buttons.append([InlineKeyboardButton(
             f"{'✓' if features['enable_disable_secure_flag'] else '☐'} Disable Secure Flag",
             callback_data="feature_secure_flag"
+        )])
+        buttons.append([InlineKeyboardButton(
+            f"{'✓' if features['enable_kaorios_toolbox'] else '☐'} 🧪 Kaorios Toolbox (Play Integrity) BETA",
+            callback_data="feature_kaorios"
         )])
 
     buttons.append([InlineKeyboardButton("Continue with selected features", callback_data="features_done")])
@@ -127,6 +133,8 @@ async def features_done_handler(bot: Client, query: CallbackQuery):
         selected_features.append("✓ CN Notification Fix")
     if features["enable_disable_secure_flag"]:
         selected_features.append("✓ Disable Secure Flag")
+    if features["enable_kaorios_toolbox"]:
+        selected_features.append("✓ Kaorios Toolbox (Play Integrity Fix) 🧪 BETA")
     
     features_text = "\n".join(selected_features)
     

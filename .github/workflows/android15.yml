@@ -132,6 +132,9 @@ jobs:
           if [[ "${{ github.event.inputs.features }}" == *disable_secure_flag* ]]; then
             FEATURE_FLAGS="$FEATURE_FLAGS --disable-secure-flag"
           fi
+          if [[ "${{ github.event.inputs.features }}" == *kaorios_toolbox* ]]; then
+            FEATURE_FLAGS="$FEATURE_FLAGS --kaorios-toolbox"
+          fi
           
           # If no features selected, default to signature bypass
           if [ -z "$FEATURE_FLAGS" ]; then
@@ -239,6 +242,9 @@ jobs:
           fi
           if [[ "${{ github.event.inputs.features }}" == *disable_secure_flag* ]]; then
             FEATURES_LIST+=("- Disable Secure Flag")
+          fi
+          if [[ "${{ github.event.inputs.features }}" == *kaorios_toolbox* ]]; then
+            FEATURES_LIST+=("- Kaorios Toolbox (Play Integrity Fix) 🧪 BETA")
           fi
 
           if [ ${#FEATURES_LIST[@]} -eq 0 ]; then

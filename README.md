@@ -52,6 +52,31 @@ Removes secure window flags that prevent screenshots and screen recordings.
 - **Default**: Disabled
 - **Warning**: Has security implications, use responsibly
 
+#### 4. Kaorios Toolbox (Play Integrity Fix) 🧪
+Integrates [Kaorios Toolbox](https://github.com/Wuang26/Kaorios-Toolbox) for Play Integrity attestation and device spoofing.
+
+> [!WARNING]
+> **BETA FEATURE** - Experimental and under active development.
+> - May not work on all frameworks
+> - ApplicationPackageManager patch disabled by default
+> - Test on non-production devices first
+> - Report issues with framework details
+
+- **Status**: Beta Implementation (3/4 patches)
+- **Affects**: framework.jar only
+- **Patches Applied**:
+  - ✅ Instrumentation.newApplication - Property spoofing
+  - ✅ KeyStore2.getKeyEntry - Keybox attestation
+  - ✅ AndroidKeyStoreSpi.engineGetCertificateChain - Certificate handling
+  - ⊘ ApplicationPackageManager.hasSystemFeature - Disabled
+- **Module Includes**:
+  - KaoriosToolbox APK → `/system/product/priv-app/`
+  - Privapp permissions XML
+  - System props configuration
+- **Use Case**: Pass Play Integrity checks, spoof device properties
+- **Default**: Disabled
+- **Update**: Use `./scripts/update_kaorios.sh` to fetch latest components
+
 ### Platform Support
 
 | Platform | Feature Selection | Status |

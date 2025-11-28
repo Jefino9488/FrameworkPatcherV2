@@ -12,6 +12,7 @@ source "${SCRIPT_DIR}/helper.sh"
 FEATURE_DISABLE_SIGNATURE_VERIFICATION=0
 FEATURE_CN_NOTIFICATION_FIX=0
 FEATURE_DISABLE_SECURE_FLAG=0
+FEATURE_KAORIOS_TOOLBOX=0
 
 # ----------------------------------------------
 # Internal helpers (python-powered transformations)
@@ -695,7 +696,8 @@ patch_framework() {
     # Check if any framework features are enabled
     if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] &&
         [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] &&
-        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
+        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ] &&
+        [ $FEATURE_KAORIOS_TOOLBOX -eq 0 ]; then
         log "No framework features selected, skipping framework.jar"
         return 0
     fi
@@ -715,6 +717,12 @@ patch_framework() {
 
     if [ $FEATURE_DISABLE_SECURE_FLAG -eq 1 ]; then
         apply_framework_disable_secure_flag "$decompile_dir"
+    fi
+
+    if [ $FEATURE_KAORIOS_TOOLBOX -eq 1 ]; then
+        # Source the Kaorios patching functions
+        source "${SCRIPT_DIR}/core/kaorios_patches.sh"
+        apply_kaorios_toolbox_patches "$decompile_dir"
     fi
 
     # Apply invoke-custom patches (common to all features)
@@ -1141,6 +1149,9 @@ EOF
             --disable-secure-flag)
                 FEATURE_DISABLE_SECURE_FLAG=1
                 ;;
+            --kaorios-toolbox)
+                FEATURE_KAORIOS_TOOLBOX=1
+                ;;
             *)
                 echo "Unknown option: $1" >&2
                 exit 1
@@ -1159,7 +1170,8 @@ EOF
     # If no feature specified, default to signature verification (backward compatibility)
     if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] &&
         [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] &&
-        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
+        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ] &&
+        [ $FEATURE_KAORIOS_TOOLBOX -eq 0 ]; then
         FEATURE_DISABLE_SIGNATURE_VERIFICATION=1
         log "No feature specified, defaulting to --disable-signature-verification"
     fi
@@ -1170,6 +1182,7 @@ EOF
     [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 1 ] && log "  ✓ Disable Signature Verification"
     [ $FEATURE_CN_NOTIFICATION_FIX -eq 1 ] && log "  ✓ CN Notification Fix"
     [ $FEATURE_DISABLE_SECURE_FLAG -eq 1 ] && log "  ✓ Disable Secure Flag"
+    [ $FEATURE_KAORIOS_TOOLBOX -eq 1 ] && log "  ✓ Kaorios Toolbox (Play Integrity Fix)"
     log "============================================"
 
     init_env
@@ -1184,13 +1197,19 @@ EOF
     fi
 
     if [ $patch_miui_services_flag -eq 1 ]; then
-        patch_miui_services
+        if [ ! -f "${WORK_DIR}/miui-services.jar" ] && [ -z "${MIUI_SERVICES_DECOMPILE_DIR:-}" ]; then
+            warn "miui-services.jar not found at ${WORK_DIR}/miui-services.jar and no MIUI_SERVICES_DECOMPILE_DIR provided"
+            log "Skipping miui-services.jar (not needed for non-MIUI devices)"
+        else
+            patch_miui_services
+        fi
     fi
 
     # Create module
+    log "Creating Magisk/KSU module..."
     create_module "$api_level" "$device_name" "$version_name"
 
-    log "Android 16 patching completed successfully"
+    log "✓ All operations completed successfully!"
 }
 
 main "$@"

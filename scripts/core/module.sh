@@ -74,6 +74,22 @@ REPLACE="\
     [ -f "services_patched.jar" ] && cp "services_patched.jar" "$build_dir/system/framework/services.jar"
     [ -f "miui-services_patched.jar" ] && cp "miui-services_patched.jar" "$build_dir/system/system_ext/framework/miui-services.jar"
 
+    # Copy Kaorios Toolbox files if present
+    if [ -d "kaorios_toolbox" ]; then
+        log "Including Kaorios Toolbox components in module"
+        mkdir -p "$build_dir/kaorios"
+        
+        # Copy APK and permission XML
+        [ -f "kaorios_toolbox/KaoriosToolbox.apk" ] && cp "kaorios_toolbox/KaoriosToolbox.apk" "$build_dir/kaorios/"
+        [ -f "kaorios_toolbox/privapp_whitelist_com.kousei.kaorios.xml" ] && cp "kaorios_toolbox/privapp_whitelist_com.kousei.kaorios.xml" "$build_dir/kaorios/"
+        
+        # Data files removed - app fetches from its own repository
+        # Version info for tracking
+        [ -f "kaorios_toolbox/version.txt" ] && cp "kaorios_toolbox/version.txt" "$build_dir/kaorios/"
+        
+        log "✓ Kaorios Toolbox files added to module"
+    fi
+
     local safe_version
     safe_version=$(printf "%s" "$version_name" | sed 's/[. ]/-/g')
     local zip_name="Framework-Patcher-${device_name}-${safe_version}.zip"

@@ -65,7 +65,8 @@ async def trigger_github_workflow_async(links: dict, device_name: str, device_co
         features = {
             "enable_signature_bypass": True,
             "enable_cn_notification_fix": False,
-            "enable_disable_secure_flag": False
+            "enable_disable_secure_flag": False,
+            "enable_kaorios_toolbox": False
         }
 
     feature_list = []
@@ -75,6 +76,8 @@ async def trigger_github_workflow_async(links: dict, device_name: str, device_co
         feature_list.append("cn_notification_fix")
     if features.get("enable_disable_secure_flag", False):
         feature_list.append("disable_secure_flag")
+    if features.get("enable_kaorios_toolbox", False):
+        feature_list.append("kaorios_toolbox")
 
     features_str = ",".join(feature_list)
     if not features_str:
