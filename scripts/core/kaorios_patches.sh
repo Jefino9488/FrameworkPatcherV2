@@ -66,6 +66,42 @@ patch_application_package_manager_has_system_feature() {
         warn "ApplicationPackageManager.smali not found"
         return 0
     fi
+
+    # Relocate ApplicationPackageManager to the last smali directory to avoid DEX limit in the primary dex
+    local current_smali_dir=$(echo "$target_file" | sed -E 's|(.*/smali(_classes[0-9]*)?)/.*|\1|')
+    
+    # Identify the last smali directory
+    local last_smali_dir="smali"
+    local max_num=0
+    for dir in "$decompile_dir"/smali_classes*; do
+        if [ -d "$dir" ]; then
+            local num=$(basename "$dir" | sed 's/smali_classes//')
+            if [[ "$num" =~ ^[0-9]+$ ]] && [ "$num" -gt "$max_num" ]; then
+                max_num=$num
+                last_smali_dir="smali_classes${num}"
+            fi
+        fi
+    done
+    
+    local target_root="$decompile_dir/$last_smali_dir"
+    
+    # Only move if it's not already in the last directory
+    if [ "$current_smali_dir" != "$target_root" ]; then
+        log "Relocating ApplicationPackageManager to $last_smali_dir to avoid DEX limit..."
+        
+        # Create destination directory
+        local rel_path="android/app"
+        local new_dir="$target_root/$rel_path"
+        mkdir -p "$new_dir"
+        
+        # Move the main class and all inner classes
+        local src_dir=$(dirname "$target_file")
+        mv "$src_dir"/ApplicationPackageManager*.smali "$new_dir/"
+        
+        # Update target_file to point to the new location
+        target_file="$new_dir/ApplicationPackageManager.smali"
+        log "✓ Relocated ApplicationPackageManager and inner classes to $last_smali_dir"
+    fi
     
     # Use Python to implement the exact changes
     python3 - "$target_file" <<'PYTHON'
