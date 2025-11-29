@@ -99,16 +99,16 @@ create_module() {
     if [ -d "kaorios_toolbox" ]; then
         log "Including Kaorios Toolbox components in module"
         
-        # 1. Install APK as system app (priv-app)
+        # 1. Install APK as system app (app)
         if [ -f "kaorios_toolbox/KaoriosToolbox.apk" ]; then
-            mkdir -p "$build_dir/system/product/priv-app/KaoriosToolbox"
-            cp "kaorios_toolbox/KaoriosToolbox.apk" "$build_dir/system/product/priv-app/KaoriosToolbox/KaoriosToolbox.apk"
+            mkdir -p "$build_dir/system/product/app/KaoriosToolbox"
+            cp "kaorios_toolbox/KaoriosToolbox.apk" "$build_dir/system/product/app/KaoriosToolbox/KaoriosToolbox.apk"
             
             # Extract native libraries
             log "  • Extracting native libraries from APK..."
-            mkdir -p "$build_dir/system/product/priv-app/KaoriosToolbox/lib"
+            mkdir -p "$build_dir/system/product/app/KaoriosToolbox/lib"
             # Extract lib/arm64-v8a or lib/armeabi-v7a to lib/
-            unzip -q "kaorios_toolbox/KaoriosToolbox.apk" "lib/*" -d "$build_dir/system/product/priv-app/KaoriosToolbox/" || true
+            unzip -q "kaorios_toolbox/KaoriosToolbox.apk" "lib/*" -d "$build_dir/system/product/app/KaoriosToolbox/" || true
         fi
 
         # 2. Install permissions
