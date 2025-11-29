@@ -122,7 +122,7 @@ create_module() {
             echo ""
             echo "# Kaorios Toolbox"
             echo "persist.sys.kaorios=kousei"
-            echo "ro.control_privapp_permissions=enforce"
+            echo "ro.control_privapp_permissions="
         } >> "$build_dir/system.prop"
 
         # 4. Add service script for user app update
