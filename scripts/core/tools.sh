@@ -27,5 +27,32 @@ ensure_tools() {
         warn "7z not found in PATH — create_magisk_module will try to use zip if available"
     fi
 
+    # Check for d8 (needed for optimization)
+    if [ -z "${D8_CMD:-}" ]; then
+        if command -v d8 >/dev/null 2>&1; then
+            export D8_CMD="d8"
+        elif [ -d "$HOME/android-sdk/build-tools" ]; then
+            # Find the latest build-tools version
+            local latest_build_tool
+            latest_build_tool=$(ls -1 "$HOME/android-sdk/build-tools" | sort -V | tail -n1)
+            if [ -n "$latest_build_tool" ] && [ -x "$HOME/android-sdk/build-tools/$latest_build_tool/d8" ]; then
+                export D8_CMD="$HOME/android-sdk/build-tools/$latest_build_tool/d8"
+                log "Found d8 at $D8_CMD"
+            fi
+        elif [ -n "${ANDROID_HOME:-}" ] && [ -d "${ANDROID_HOME}/build-tools" ]; then
+             # Try ANDROID_HOME if set
+            local latest_build_tool
+            latest_build_tool=$(ls -1 "${ANDROID_HOME}/build-tools" | sort -V | tail -n1)
+            if [ -n "$latest_build_tool" ] && [ -x "${ANDROID_HOME}/build-tools/$latest_build_tool/d8" ]; then
+                export D8_CMD="${ANDROID_HOME}/build-tools/$latest_build_tool/d8"
+                log "Found d8 at $D8_CMD"
+            fi
+        fi
+    fi
+    
+    if [ -z "${D8_CMD:-}" ]; then
+        warn "d8 not found. JAR optimization will be skipped."
+    fi
+
     return 0
 }

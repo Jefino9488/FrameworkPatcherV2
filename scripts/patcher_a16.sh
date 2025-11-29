@@ -729,6 +729,7 @@ patch_framework() {
     modify_invoke_custom_methods "$decompile_dir"
 
     recompile_jar "$framework_path" >/dev/null
+    d8_optimize_jar "framework_patched.jar"
     rm -rf "$decompile_dir" "$WORK_DIR/framework"
     log "Completed framework.jar patching"
 }
@@ -920,6 +921,7 @@ patch_services() {
 
     if [ $external_dir_flag -eq 0 ]; then
         recompile_jar "$services_path" >/dev/null
+        d8_optimize_jar "services_patched.jar"
         rm -rf "$decompile_dir" "$WORK_DIR/services"
         log "Completed services.jar patching"
     else
@@ -1070,6 +1072,7 @@ patch_miui_services() {
 
     if [ $external_dir_flag -eq 0 ]; then
         recompile_jar "$miui_services_path" >/dev/null
+        d8_optimize_jar "miui-services_patched.jar"
         rm -rf "$decompile_dir" "$WORK_DIR/miui-services"
         log "Completed miui-services.jar patching"
     else

@@ -824,6 +824,7 @@ patch_framework() {
 
     # Recompile framework.jar
     recompile_jar "$framework_path"
+    d8_optimize_jar "framework_patched.jar"
 
     # Clean up
     rm -rf "$WORK_DIR/framework" "$decompile_dir"
@@ -1003,6 +1004,7 @@ patch_services() {
 
     # Recompile services.jar
     recompile_jar "$services_path"
+    d8_optimize_jar "services_patched.jar"
 
     # Clean up
     rm -rf "$WORK_DIR/services" "$decompile_dir"
@@ -1131,6 +1133,7 @@ patch_miui_services() {
 
     # Recompile miui-services.jar
     recompile_jar "$miui_services_path"
+    d8_optimize_jar "miui-services_patched.jar"
 
     # Clean up
     rm -rf "$WORK_DIR/miui-services" "$decompile_dir"
