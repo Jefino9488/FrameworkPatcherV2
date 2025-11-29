@@ -314,7 +314,7 @@ while i < len(lines):
     line = lines[i]
     
     # Check if we're entering getKeyEntry method
-    if '.method ' in line and 'getKeyEntry' in line and 'KeyDescriptor' in line:
+    if '.method ' in line and 'getKeyEntry' in line and 'KeyDescriptor' in line and 'lambda' not in line:
         in_method = True
     
     # If we're in the method and find "return-object v0"
