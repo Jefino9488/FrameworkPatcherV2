@@ -158,6 +158,12 @@
 - Continued development and updates
 - Essential APK manipulation tool
 
+**[Wuang26](https://github.com/Wuang26)**
+
+- Creator of Kaorios Toolbox
+- Play Integrity fix implementation
+- Device spoofing logic
+
 ## Special Thanks
 
 ### Community Support

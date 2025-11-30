@@ -100,7 +100,7 @@ async def feature_toggle_handler(bot: Client, query: CallbackQuery):
             callback_data="feature_secure_flag"
         )])
         buttons.append([InlineKeyboardButton(
-            f"{'✓' if features['enable_kaorios_toolbox'] else '☐'} 🧪 Kaorios Toolbox (Play Integrity) BETA",
+            f"{'✓' if features['enable_kaorios_toolbox'] else '☐'} Kaorios Toolbox",
             callback_data="feature_kaorios"
         )])
 
@@ -134,7 +134,7 @@ async def features_done_handler(bot: Client, query: CallbackQuery):
     if features["enable_disable_secure_flag"]:
         selected_features.append("✓ Disable Secure Flag")
     if features["enable_kaorios_toolbox"]:
-        selected_features.append("✓ Kaorios Toolbox (Play Integrity Fix) 🧪 BETA")
+        selected_features.append("✓ Kaorios Toolbox (Play Integrity Fix)")
     
     features_text = "\n".join(selected_features)
     

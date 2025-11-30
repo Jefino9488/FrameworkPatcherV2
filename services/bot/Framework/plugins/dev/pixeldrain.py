@@ -213,6 +213,8 @@ async def handle_media_upload(bot: Client, message: Message):
                     selected_features.append("✓ CN Notification Fix")
                 if features.get("enable_disable_secure_flag"):
                     selected_features.append("✓ Disable Secure Flag")
+                if features.get("enable_kaorios_toolbox"):
+                    selected_features.append("✓ Kaorios Toolbox (Play Integrity Fix)")
 
                 features_summary = "\n".join(selected_features) if selected_features else "Default features"
 

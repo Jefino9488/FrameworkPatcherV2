@@ -189,7 +189,7 @@ async def handle_text_input(bot: Client, message: Message):
             if android_int >= 15:
                 buttons.append([InlineKeyboardButton("☐ CN Notification Fix", callback_data="feature_cn_notif")])
                 buttons.append([InlineKeyboardButton("☐ Disable Secure Flag", callback_data="feature_secure_flag")])
-                buttons.append([InlineKeyboardButton("☐ Kaorios Toolbox (Play Integrity) BETA", callback_data="feature_kaorios")])
+                buttons.append([InlineKeyboardButton("☐ Kaorios Toolbox (Play Integrity)", callback_data="feature_kaorios")])
 
             buttons.append([InlineKeyboardButton("Continue with selected features", callback_data="features_done")])
 
@@ -269,7 +269,7 @@ async def handle_text_input(bot: Client, message: Message):
             if android_int >= 15:
                 buttons.append([InlineKeyboardButton("☐ CN Notification Fix", callback_data="feature_cn_notif")])
                 buttons.append([InlineKeyboardButton("☐ Disable Secure Flag", callback_data="feature_secure_flag")])
-                buttons.append([InlineKeyboardButton("☐ 🧪 Kaorios Toolbox (Play Integrity) BETA", callback_data="feature_kaorios")])
+                buttons.append([InlineKeyboardButton("☐ Kaorios Toolbox", callback_data="feature_kaorios")])
 
             buttons.append([InlineKeyboardButton("Continue with selected features", callback_data="features_done")])
 
@@ -325,7 +325,7 @@ async def handle_text_input(bot: Client, message: Message):
                 if android_int >= 15:
                     buttons.append([InlineKeyboardButton("☐ CN Notification Fix", callback_data="feature_cn_notif")])
                     buttons.append([InlineKeyboardButton("☐ Disable Secure Flag", callback_data="feature_secure_flag")])
-                    buttons.append([InlineKeyboardButton("☐ 🧪 Kaorios Toolbox (Play Integrity) BETA", callback_data="feature_kaorios")])
+                    buttons.append([InlineKeyboardButton("☐ Kaorios Toolbox ", callback_data="feature_kaorios")])
 
                 buttons.append([InlineKeyboardButton("Continue with selected features", callback_data="features_done")])
 
@@ -513,7 +513,7 @@ async def version_selection_handler(bot: Client, query: CallbackQuery):
         if android_int >= 15:
             buttons.append([InlineKeyboardButton("☐ CN Notification Fix", callback_data="feature_cn_notif")])
             buttons.append([InlineKeyboardButton("☐ Disable Secure Flag", callback_data="feature_secure_flag")])
-            buttons.append([InlineKeyboardButton("☐ 🧪 Kaorios Toolbox (Play Integrity) BETA", callback_data="feature_kaorios")])
+            buttons.append([InlineKeyboardButton("☐ Kaorios Toolbox", callback_data="feature_kaorios")])
 
         buttons.append([InlineKeyboardButton("Continue with selected features", callback_data="features_done")])
 
