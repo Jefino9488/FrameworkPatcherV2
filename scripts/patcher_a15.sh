@@ -935,8 +935,8 @@ ${indent}const/4 v12, 0x1" "$file"
     echo "Patching matchSignaturesCompat..."
     patch_method_in_file "matchSignaturesCompat" 1 "$decompile_dir/smali_classes2/com/android/server/pm/PackageManagerServiceUtils.smali"
 
-    echo "Patching compareSignatures..."
-    patch_method_in_file "compareSignatures" 0 "$decompile_dir/smali_classes2/com/android/server/pm/PackageManagerServiceUtils.smali"
+    # echo "Patching compareSignatures..."
+    # patch_method_in_file "compareSignatures" 0 "$decompile_dir/smali_classes2/com/android/server/pm/PackageManagerServiceUtils.smali"
 
     echo "Signature verification patches applied to services.jar"
 }

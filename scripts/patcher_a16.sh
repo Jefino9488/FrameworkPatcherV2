@@ -771,7 +771,7 @@ apply_services_signature_patches() {
     if [ -n "$pms_utils_file" ] && [ -f "$pms_utils_file" ]; then
         patch_return_void_methods_all "checkDowngrade" "$decompile_dir"
         force_methods_return_const "$pms_utils_file" "verifySignatures" "0"
-        force_methods_return_const "$pms_utils_file" "compareSignatures" "0"
+        # force_methods_return_const "$pms_utils_file" "compareSignatures" "0"
         force_methods_return_const "$pms_utils_file" "matchSignaturesCompat" "1"
     else
         warn "PackageManagerServiceUtils.smali not found"
