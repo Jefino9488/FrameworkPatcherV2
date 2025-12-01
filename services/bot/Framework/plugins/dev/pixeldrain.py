@@ -8,6 +8,7 @@ import config
 from Framework import bot
 from Framework.helpers.decorators import owner
 from Framework.helpers.logger import LOGGER
+from Framework.helpers.owner_id import OWNER_ID
 from Framework.helpers.state import *
 
 
@@ -40,6 +41,10 @@ async def handle_media_upload(bot: Client, message: Message):
         return
 
     if user_id not in user_states or user_states[user_id]["state"] != STATE_WAITING_FOR_FILES:
+        # If user is owner, skip this error to allow device.py handler to process it
+        if user_id in OWNER_ID:
+            return
+
         await message.reply_text(
             "Please use the /start_patch command to begin the file upload process, "
             "or send a Pixeldrain ID/link for file info.",
