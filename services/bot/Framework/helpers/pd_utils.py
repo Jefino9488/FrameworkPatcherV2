@@ -1,4 +1,3 @@
-import httpx
 from pyrogram.types import Message, InlineKeyboardMarkup
 
 from Framework.helpers.buttons import *
@@ -80,7 +79,6 @@ async def send_data(file_id: str, message: Message):
 
 async def upload_file(file_path: str, message: Message):
     """Uploads a file to PixelDrain."""
-    import aiofiles
     import os
     import config
 
@@ -96,7 +94,7 @@ async def upload_file(file_path: str, message: Message):
 
     try:
         async with httpx.AsyncClient(timeout=None) as client:
-            async with aiofiles.open(file_path, "rb") as f:
+            with open(file_path, "rb") as f:
                 # We need to read the file to upload it. 
                 # httpx supports passing a file-like object or a generator.
                 # For simplicity with aiofiles, we can read it into memory if it's not too huge, 
@@ -105,8 +103,8 @@ async def upload_file(file_path: str, message: Message):
                 # but streaming is safer.
 
                 # Using a simple read for now as aiofiles + httpx streaming can be tricky without a wrapper
-                content = await f.read()
-
+                content = f.read()
+                
             response = await client.put(
                 f"https://pixeldrain.com/api/file/{file_name}",
                 content=content,
