@@ -29,9 +29,9 @@ def format_size(size: int) -> str:
     elif size < 1024 * 1024:
         return f"{size / 1024:.2f} KB"
     elif size < 1024 * 1024 * 1024:
-        return f"{size / (1024 * 1024)::.2f} MB"
+        return f"{size / (1024 * 1024):.2f} MB"
     else:
-        return f"{size / (1024 * 1024 * 1024)::.2f} GB"
+        return f"{size / (1024 * 1024 * 1024):.2f} GB"
 
 
 def format_date(date_str: str) -> str:

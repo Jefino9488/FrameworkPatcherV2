@@ -124,7 +124,9 @@ async def upload_file(file_path: str, message: Message):
                 )
                 await message.edit_text(text, disable_web_page_preview=True)
             else:
-                await message.edit_text(f"❌ Upload failed: {data.get('message', 'Unknown error')}")
+                LOGGER.error(f"PixelDrain upload failed. Response: {data}")
+                await message.edit_text(
+                    f"❌ Upload failed: {data.get('message', 'Unknown error')}\n\nResponse: `{data}`")
 
     except Exception as e:
         LOGGER.error(f"Error uploading to PixelDrain: {e}", exc_info=True)
