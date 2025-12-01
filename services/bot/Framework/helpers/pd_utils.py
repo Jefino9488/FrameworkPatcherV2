@@ -1,11 +1,9 @@
-from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
-
-from Framework.helpers.logger import LOGGER
-from Framework.helpers.functions import format_size, format_date
-from Framework.helpers.buttons import *
-from Framework.helpers.state import *
-from Framework.helpers.provider import *
 import httpx
+from pyrogram.types import Message, InlineKeyboardMarkup
+
+from Framework.helpers.buttons import *
+from Framework.helpers.functions import format_size, format_date
+from Framework.helpers.provider import *
 
 
 def get_id(text: str) -> str | None:
@@ -78,3 +76,58 @@ async def send_data(file_id: str, message: Message):
         reply_markup=reply_markup,
         disable_web_page_preview=True
     )
+
+
+async def upload_file(file_path: str, message: Message):
+    """Uploads a file to PixelDrain."""
+    import aiofiles
+    import os
+    import config
+
+    api_key = config.PIXELDRAIN_API_KEY
+    if not api_key:
+        await message.edit_text("❌ PixelDrain API key is missing in configuration.")
+        return
+
+    file_name = os.path.basename(file_path)
+    file_size = os.path.getsize(file_path)
+
+    await message.edit_text(f"🚀 Uploading `{file_name}` ({format_size(file_size)})...")
+
+    try:
+        async with httpx.AsyncClient(timeout=None) as client:
+            async with aiofiles.open(file_path, "rb") as f:
+                # We need to read the file to upload it. 
+                # httpx supports passing a file-like object or a generator.
+                # For simplicity with aiofiles, we can read it into memory if it's not too huge, 
+                # or use a generator for streaming. 
+                # Given this is likely for smaller files (logs, etc), reading might be okay, 
+                # but streaming is safer.
+
+                # Using a simple read for now as aiofiles + httpx streaming can be tricky without a wrapper
+                content = await f.read()
+
+            response = await client.put(
+                f"https://pixeldrain.com/api/file/{file_name}",
+                content=content,
+                auth=("", api_key)
+            )
+
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get("success"):
+                file_id = data["id"]
+                text = (
+                    f"✅ **Upload Successful!**\n\n"
+                    f"📂 **File:** `{file_name}`\n"
+                    f"🔗 **Link:** https://pixeldrain.com/u/{file_id}\n"
+                    f"⚡ **Direct:** https://pixeldrain.com/api/file/{file_id}"
+                )
+                await message.edit_text(text, disable_web_page_preview=True)
+            else:
+                await message.edit_text(f"❌ Upload failed: {data.get('message', 'Unknown error')}")
+
+    except Exception as e:
+        LOGGER.error(f"Error uploading to PixelDrain: {e}", exc_info=True)
+        await message.edit_text(f"❌ An error occurred during upload: `{e}`")

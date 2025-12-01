@@ -2,6 +2,7 @@ from pyrogram import filters, Client
 from pyrogram.types import CallbackQuery
 
 from Framework import bot
+from Framework.helpers.owner_id import OWNER_ID
 from Framework.helpers.pd_utils import *
 from Framework.helpers.provider import *
 from Framework.helpers.workflows import *
@@ -20,6 +21,61 @@ def get_id(text: str) -> str | None:
     elif "/" not in text and len(text) > 5:
         return text
     return None
+
+
+@bot.on_message(
+    filters.private
+    & (filters.document | filters.photo | filters.video | filters.audio)
+    & filters.user(OWNER_ID),
+    group=1
+)
+async def handle_owner_file_upload(bot: Client, message: Message):
+    """Handles file uploads from the owner."""
+    await message.reply_text(
+        f"📂 **File Received:** `{message.document.file_name if message.document else 'Media'}`\n\n"
+        "What would you like to do?",
+        reply_markup=InlineKeyboardMarkup(
+            [
+                [InlineKeyboardButton("🚀 Upload to PixelDrain", callback_data="upload_pd")],
+                [InlineKeyboardButton("❌ Cancel", callback_data="cancel_upload")]
+            ]
+        ),
+        quote=True
+    )
+
+
+@bot.on_callback_query(filters.regex(r"^upload_pd$"))
+async def upload_pd_handler(bot: Client, query: CallbackQuery):
+    """Handles PixelDrain upload request."""
+    message = query.message
+    original_message = message.reply_to_message
+
+    if not original_message or not (
+            original_message.document or original_message.photo or original_message.video or original_message.audio):
+        await query.answer("❌ Original file not found.", show_alert=True)
+        await message.delete()
+        return
+
+    await query.answer("🚀 Starting upload...")
+    status_msg = await message.edit_text("⬇️ Downloading file...")
+
+    try:
+        file_path = await original_message.download()
+        await upload_file(file_path, status_msg)
+
+        # Clean up local file
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    except Exception as e:
+        LOGGER.error(f"Error in upload handler: {e}", exc_info=True)
+        await status_msg.edit_text(f"❌ Error: {e}")
+
+
+@bot.on_callback_query(filters.regex(r"^cancel_upload$"))
+async def cancel_upload_handler(bot: Client, query: CallbackQuery):
+    """Cancels the upload operation."""
+    await query.message.delete()
 
 @bot.on_message(
     filters.private
@@ -359,8 +415,12 @@ async def handle_text_input(bot: Client, message: Message):
                 )
                 await send_data(file_id, info_message)
             else:
+                # If user is owner, silently ignore unknown text inputs (don't show warning)
+                if user_id in OWNER_ID:
+                    return
+
                 await message.reply_text(
-                    "I'm not sure what to do with that. Please use `/start_patch` or send a valid PixelDrain link/ID.",
+                    "I'm not sure what to do with that. Please use `/start_patch`.",
                     quote=True)
         except Exception as e:
             LOGGER.error(f"Error processing PixelDrain info request: {e}", exc_info=True)
