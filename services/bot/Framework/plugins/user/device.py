@@ -8,6 +8,14 @@ from Framework.helpers.provider import *
 from Framework.helpers.state import *
 from Framework.helpers.workflows import *
 
+# Ensure OWNER_ID is a list of integers
+if isinstance(OWNER_ID, str):
+    if "," in OWNER_ID:
+        OWNER_ID = [int(x) for x in OWNER_ID.split(",") if x.strip().isdigit()]
+    elif OWNER_ID.isdigit():
+        OWNER_ID = [int(OWNER_ID)]
+    else:
+        OWNER_ID = []
 
 def get_id(text: str) -> str | None:
     """Extracts PixelDrain ID from a URL or raw ID."""

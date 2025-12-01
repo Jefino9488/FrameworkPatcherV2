@@ -9,6 +9,15 @@ from Framework import bot
 from Framework.helpers.decorators import owner
 from Framework.helpers.logger import LOGGER
 from Framework.helpers.owner_id import OWNER_ID
+
+# Ensure OWNER_ID is a list of integers
+if isinstance(OWNER_ID, str):
+    if "," in OWNER_ID:
+        OWNER_ID = [int(x) for x in OWNER_ID.split(",") if x.strip().isdigit()]
+    elif OWNER_ID.isdigit():
+        OWNER_ID = [int(OWNER_ID)]
+    else:
+        OWNER_ID = []
 from Framework.helpers.state import *
 
 
