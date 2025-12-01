@@ -114,7 +114,7 @@ async def upload_file(file_path: str, message: Message):
             response.raise_for_status()
             data = response.json()
 
-            if data.get("success"):
+            if data.get("success") or data.get("id"):
                 file_id = data["id"]
                 text = (
                     f"✅ **Upload Successful!**\n\n"
@@ -124,9 +124,7 @@ async def upload_file(file_path: str, message: Message):
                 )
                 await message.edit_text(text, disable_web_page_preview=True)
             else:
-                LOGGER.error(f"PixelDrain upload failed. Response: {data}")
-                await message.edit_text(
-                    f"❌ Upload failed: {data.get('message', 'Unknown error')}\n\nResponse: `{data}`")
+                await message.edit_text(f"❌ Upload failed: {data.get('message', 'Unknown error')}")
 
     except Exception as e:
         LOGGER.error(f"Error uploading to PixelDrain: {e}", exc_info=True)
