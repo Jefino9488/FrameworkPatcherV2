@@ -78,6 +78,9 @@ async def handle_media_upload(bot: Client, message: Message):
         await message.reply_text(f"You have already sent '{file_name}'. Please send the remaining files.", quote=True)
         return
 
+    # Stop propagation to prevent device.py from handling this file
+    message.stop_propagation()
+
     processing_message = await message.reply_text(
         text=f"`Processing {file_name}...`",
         quote=True,
@@ -142,12 +145,6 @@ async def handle_media_upload(bot: Client, message: Message):
         received_count = len(user_states[user_id]["files"]) + 1  # +1 since current file will be counted
         required_files = ["framework.jar", "services.jar", "miui-services.jar"]
         missing_files = [f for f in required_files if f not in user_states[user_id]["files"] and f != file_name]
-
-        await message.reply_text(
-            f"Received {file_name}. You have {received_count}/3 files. "
-            f"Remaining: {', '.join(missing_files) if missing_files else 'None'}.",
-            quote=True
-        )
 
         await processing_message.edit_text(
             text=f"`Uploading {file_name} to PixelDrain...`",
