@@ -45,228 +45,239 @@ async def group_upload_command(bot: Client, message: Message):
 async def handle_media_upload(bot: Client, message: Message):
     """Handles media uploads for the framework patching process."""
     user_id = message.from_user.id
+    LOGGER.info(f"DEBUG: handle_media_upload triggered for user {user_id}")
 
     if message.from_user.is_bot:
         return
 
-    if user_id not in user_states or user_states[user_id]["state"] != STATE_WAITING_FOR_FILES:
-        # If user is owner, skip this error to allow device.py handler to process it
-        if user_id in OWNER_ID:
+    try:
+        if user_id not in user_states or user_states[user_id]["state"] != STATE_WAITING_FOR_FILES:
+            LOGGER.info(
+                f"DEBUG: User {user_id} not in STATE_WAITING_FOR_FILES. State: {user_states.get(user_id, {}).get('state')}")
+            # If user is owner, skip this error to allow device.py handler to process it
+            if user_id in OWNER_ID:
+                LOGGER.info(f"DEBUG: User {user_id} is owner, returning early.")
+                return
+
+            await message.reply_text(
+                "Please use the /start_patch command to begin the file upload process, "
+                "or send a Pixeldrain ID/link for file info.",
+                quote=True
+            )
             return
 
-        await message.reply_text(
-            "Please use the /start_patch command to begin the file upload process, "
-            "or send a Pixeldrain ID/link for file info.",
-            quote=True
-        )
-        return
+        if not (message.document and message.document.file_name.endswith(".jar")):
+            await message.reply_text("Please send a JAR file.", quote=True)
+            return
 
-    if not (message.document and message.document.file_name.endswith(".jar")):
-        await message.reply_text("Please send a JAR file.", quote=True)
-        return
+        file_name = message.document.file_name.lower()
 
-    file_name = message.document.file_name.lower()
+        if file_name not in ["framework.jar", "services.jar", "miui-services.jar"]:
+            await message.reply_text(
+                "Invalid file name. Please send 'framework.jar', 'services.jar', or 'miui-services.jar'.",
+                quote=True
+            )
+            return
 
-    if file_name not in ["framework.jar", "services.jar", "miui-services.jar"]:
-        await message.reply_text(
-            "Invalid file name. Please send 'framework.jar', 'services.jar', or 'miui-services.jar'.",
-            quote=True
-        )
-        return
+        if file_name in user_states[user_id]["files"]:
+            await message.reply_text(f"You have already sent '{file_name}'. Please send the remaining files.",
+                                     quote=True)
+            return
 
-    if file_name in user_states[user_id]["files"]:
-        await message.reply_text(f"You have already sent '{file_name}'. Please send the remaining files.", quote=True)
-        return
+        # Stop propagation to prevent device.py from handling this file
+        message.stop_propagation()
 
-    # Stop propagation to prevent device.py from handling this file
-    message.stop_propagation()
-
-    processing_message = await message.reply_text(
-        text=f"`Processing {file_name}...`",
-        quote=True,
-        disable_web_page_preview=True
-    )
-
-    logs = []
-    file_path = None
-
-    try:
-        await processing_message.edit_text(
-            text=f"`Downloading {file_name}...`",
+        processing_message = await message.reply_text(
+            text=f"`Processing {file_name}...`",
+            quote=True,
             disable_web_page_preview=True
         )
 
-        # Enhanced download with retry logic
-        max_download_attempts = 3
-        download_successful = False
+        logs = []
+        file_path = None
 
-        for download_attempt in range(max_download_attempts):
-            try:
-                LOGGER.info(f"Download attempt {download_attempt + 1}/{max_download_attempts} for {file_name}")
-                file_path = await message.download()
-                download_successful = True
-                logs.append(f"Downloaded {file_name} Successfully")
-                break
-            except Exception as e:
-                LOGGER.error(f"Download attempt {download_attempt + 1} failed for {file_name}: {e}")
-                if download_attempt < max_download_attempts - 1:
-                    wait_time = 2 ** download_attempt
-                    logs.append(f"Download failed, retrying in {wait_time} seconds...")
-                    await asyncio.sleep(wait_time)
-                else:
-                    raise e
-
-        if not download_successful:
-            raise Exception("Failed to download file after all attempts")
-
-        dir_name, old_file_name = os.path.split(file_path)
-        file_base, file_extension = os.path.splitext(old_file_name)  # Add this line
-        renamed_file_name = f"{file_base}_{user_id}_{os.urandom(4).hex()}{file_extension}"
-        renamed_file_path = os.path.join(dir_name, renamed_file_name)
-        os.rename(file_path, renamed_file_path)
-        file_path = renamed_file_path
-        logs.append(f"Renamed file to {os.path.basename(file_path)}")
-
-        # Initialize user state if not exists
-        if user_id not in user_states:
-            user_states[user_id] = {
-                "state": STATE_WAITING_FOR_FILES,
-                "files": {},
-                "device_name": None,
-                "version_name": None,
-                "api_level": None,
-                "features": {
-                    "enable_signature_bypass": True,
-                    "enable_cn_notification_fix": False,
-                    "enable_disable_secure_flag": False
-                }
-            }
-        
-        received_count = len(user_states[user_id]["files"]) + 1  # +1 since current file will be counted
-        required_files = ["framework.jar", "services.jar", "miui-services.jar"]
-        missing_files = [f for f in required_files if f not in user_states[user_id]["files"] and f != file_name]
-
-        await processing_message.edit_text(
-            text=f"`Uploading {file_name} to PixelDrain...`",
-            disable_web_page_preview=True
-        )
-
-        response_data, upload_logs = await upload_file_stream(file_path, config.PIXELDRAIN_API_KEY)
-        logs.extend(upload_logs)
-
-        if "error" in response_data:
+        try:
             await processing_message.edit_text(
-                text=f"Error uploading {file_name} to PixelDrain: `{response_data['error']}`\n\nLogs:\n" + '\n'.join(
-                    logs),
+                text=f"`Downloading {file_name}...`",
+                disable_web_page_preview=True
+            )
+
+            # Enhanced download with retry logic
+            max_download_attempts = 3
+            download_successful = False
+
+            for download_attempt in range(max_download_attempts):
+                try:
+                    LOGGER.info(f"Download attempt {download_attempt + 1}/{max_download_attempts} for {file_name}")
+                    file_path = await message.download()
+                    download_successful = True
+                    logs.append(f"Downloaded {file_name} Successfully")
+                    break
+                except Exception as e:
+                    LOGGER.error(f"Download attempt {download_attempt + 1} failed for {file_name}: {e}")
+                    if download_attempt < max_download_attempts - 1:
+                        wait_time = 2 ** download_attempt
+                        logs.append(f"Download failed, retrying in {wait_time} seconds...")
+                        await asyncio.sleep(wait_time)
+                    else:
+                        raise e
+
+            if not download_successful:
+                raise Exception("Failed to download file after all attempts")
+
+            dir_name, old_file_name = os.path.split(file_path)
+            file_base, file_extension = os.path.splitext(old_file_name)  # Add this line
+            renamed_file_name = f"{file_base}_{user_id}_{os.urandom(4).hex()}{file_extension}"
+            renamed_file_path = os.path.join(dir_name, renamed_file_name)
+            os.rename(file_path, renamed_file_path)
+            file_path = renamed_file_path
+            logs.append(f"Renamed file to {os.path.basename(file_path)}")
+
+            # Initialize user state if not exists
+            if user_id not in user_states:
+                user_states[user_id] = {
+                    "state": STATE_WAITING_FOR_FILES,
+                    "files": {},
+                    "device_name": None,
+                    "version_name": None,
+                    "api_level": None,
+                    "features": {
+                        "enable_signature_bypass": True,
+                        "enable_cn_notification_fix": False,
+                        "enable_disable_secure_flag": False
+                    }
+                }
+
+            received_count = len(user_states[user_id]["files"]) + 1  # +1 since current file will be counted
+            required_files = ["framework.jar", "services.jar", "miui-services.jar"]
+            missing_files = [f for f in required_files if f not in user_states[user_id]["files"] and f != file_name]
+
+            await processing_message.edit_text(
+                text=f"`Uploading {file_name} to PixelDrain...`",
+                disable_web_page_preview=True
+            )
+
+            response_data, upload_logs = await upload_file_stream(file_path, config.PIXELDRAIN_API_KEY)
+            logs.extend(upload_logs)
+
+            if "error" in response_data:
+                await processing_message.edit_text(
+                    text=f"Error uploading {file_name} to PixelDrain: `{response_data['error']}`\n\nLogs:\n" + '\n'.join(
+                        logs),
+                    disable_web_page_preview=True
+                )
+                user_states.pop(user_id, None)
+                return
+
+            pixeldrain_link = f"https://pixeldrain.com/u/{response_data['id']}"
+            user_states[user_id]["files"][file_name] = pixeldrain_link
+
+            received_count = len(user_states[user_id]["files"])
+            required_files = ["framework.jar", "services.jar", "miui-services.jar"]
+            missing_files = [f for f in required_files if f not in user_states[user_id]["files"]]
+
+            if received_count == 3:
+                # All files received, now trigger the workflow
+                from Framework.helpers.workflows import trigger_github_workflow_async
+                from datetime import datetime
+                from Framework.helpers.state import user_rate_limits
+
+                await message.reply_text(
+                    "✅ All 3 files received and uploaded!\n\n"
+                    "⏳ Triggering GitHub workflow...",
+                    quote=True
+                )
+
+                try:
+                    # Check daily rate limit
+                    today = datetime.now().date()
+                    triggers = user_rate_limits.get(user_id, [])
+                    triggers = [t for t in triggers if t.date() == today]
+
+                    # Skip limit check for owner
+                    if user_id not in OWNER_ID and len(triggers) >= 3:
+                        await message.reply_text(
+                            "❌ You have reached the daily limit of 3 workflow triggers. Try again tomorrow.",
+                            quote=True
+                        )
+                        user_states.pop(user_id, None)
+                        return
+
+                    # Get all required info from state
+                    device_name = user_states[user_id]["device_name"]
+                    device_codename = user_states[user_id]["device_codename"]
+                    version_name = user_states[user_id]["version_name"]
+                    api_level = user_states[user_id]["api_level"]
+                    android_version = user_states[user_id]["android_version"]
+                    features = user_states[user_id].get("features", {
+                        "enable_signature_bypass": True,
+                        "enable_cn_notification_fix": False,
+                        "enable_disable_secure_flag": False
+                    })
+
+                    links = user_states[user_id]["files"]
+                    # Trigger workflow
+                    status = await trigger_github_workflow_async(links, device_name, device_codename, version_name,
+                                                                 api_level, user_id,
+                                                                 features)
+                    triggers.append(datetime.now())
+                    user_rate_limits[user_id] = triggers
+
+                    # Build features summary for confirmation
+                    selected_features = []
+                    if features.get("enable_signature_bypass"):
+                        selected_features.append("✓ Signature Verification Bypass")
+                    if features.get("enable_cn_notification_fix"):
+                        selected_features.append("✓ CN Notification Fix")
+                    if features.get("enable_disable_secure_flag"):
+                        selected_features.append("✓ Disable Secure Flag")
+                    if features.get("enable_kaorios_toolbox"):
+                        selected_features.append("✓ Kaorios Toolbox (Play Integrity Fix)")
+
+                    features_summary = "\n".join(selected_features) if selected_features else "Default features"
+
+                    await message.reply_text(
+                        f"✅ **Workflow triggered successfully!**\n\n"
+                        f"📱 **Device:** {device_name}\n"
+                        f"📦 **Version:** {version_name}\n"
+                        f"🤖 **Android:** {android_version} (API {api_level})\n\n"
+                        f"**Features Applied:**\n{features_summary}\n\n"
+                        f"⏳ You will receive a notification when the process is complete.\n\n"
+                        f"Daily triggers used: {len(triggers)}/3",
+                        quote=True
+                    )
+
+                except Exception as e:
+                    LOGGER.error(f"Error triggering workflow for user {user_id}: {e}", exc_info=True)
+                    await message.reply_text(
+                        f"❌ **An unexpected error occurred while triggering workflow:**\n\n`{e}`",
+                        quote=True
+                    )
+
+                finally:
+                    user_states.pop(user_id, None)
+            else:
+                await message.reply_text(
+                    f"Received {file_name}. You have {received_count}/3 files. "
+                    f"Please send the remaining: {', '.join(missing_files)}.",
+                    quote=True
+                )
+
+        except Exception as error:
+            LOGGER.error(f"Error in handle_media_upload for user {user_id} and file {file_name}: {error}",
+                         exc_info=True)
+            await processing_message.edit_text(
+                text=f"An error occurred during processing {file_name}: `{error}`\n\nLogs:\n" + '\n'.join(logs),
                 disable_web_page_preview=True
             )
             user_states.pop(user_id, None)
-            return
+        finally:
+            if file_path and os.path.exists(file_path):
+                os.remove(file_path)
 
-        pixeldrain_link = f"https://pixeldrain.com/u/{response_data['id']}"
-        user_states[user_id]["files"][file_name] = pixeldrain_link
-
-        received_count = len(user_states[user_id]["files"])
-        required_files = ["framework.jar", "services.jar", "miui-services.jar"]
-        missing_files = [f for f in required_files if f not in user_states[user_id]["files"]]
-
-        if received_count == 3:
-            # All files received, now trigger the workflow
-            from Framework.helpers.workflows import trigger_github_workflow_async
-            from datetime import datetime
-            from Framework.helpers.state import user_rate_limits
-
-            await message.reply_text(
-                "✅ All 3 files received and uploaded!\n\n"
-                "⏳ Triggering GitHub workflow...",
-                quote=True
-            )
-
-            try:
-                # Check daily rate limit
-                today = datetime.now().date()
-                triggers = user_rate_limits.get(user_id, [])
-                triggers = [t for t in triggers if t.date() == today]
-
-                # Skip limit check for owner
-                if user_id not in OWNER_ID and len(triggers) >= 3:
-                    await message.reply_text(
-                        "❌ You have reached the daily limit of 3 workflow triggers. Try again tomorrow.",
-                        quote=True
-                    )
-                    user_states.pop(user_id, None)
-                    return
-
-                # Get all required info from state
-                device_name = user_states[user_id]["device_name"]
-                device_codename = user_states[user_id]["device_codename"]
-                version_name = user_states[user_id]["version_name"]
-                api_level = user_states[user_id]["api_level"]
-                android_version = user_states[user_id]["android_version"]
-                features = user_states[user_id].get("features", {
-                    "enable_signature_bypass": True,
-                    "enable_cn_notification_fix": False,
-                    "enable_disable_secure_flag": False
-                })
-
-                links = user_states[user_id]["files"]
-                # Trigger workflow
-                status = await trigger_github_workflow_async(links, device_name, device_codename, version_name,
-                                                             api_level, user_id,
-                                                             features)
-                triggers.append(datetime.now())
-                user_rate_limits[user_id] = triggers
-
-                # Build features summary for confirmation
-                selected_features = []
-                if features.get("enable_signature_bypass"):
-                    selected_features.append("✓ Signature Verification Bypass")
-                if features.get("enable_cn_notification_fix"):
-                    selected_features.append("✓ CN Notification Fix")
-                if features.get("enable_disable_secure_flag"):
-                    selected_features.append("✓ Disable Secure Flag")
-                if features.get("enable_kaorios_toolbox"):
-                    selected_features.append("✓ Kaorios Toolbox (Play Integrity Fix)")
-
-                features_summary = "\n".join(selected_features) if selected_features else "Default features"
-
-                await message.reply_text(
-                    f"✅ **Workflow triggered successfully!**\n\n"
-                    f"📱 **Device:** {device_name}\n"
-                    f"📦 **Version:** {version_name}\n"
-                    f"🤖 **Android:** {android_version} (API {api_level})\n\n"
-                    f"**Features Applied:**\n{features_summary}\n\n"
-                    f"⏳ You will receive a notification when the process is complete.\n\n"
-                    f"Daily triggers used: {len(triggers)}/3",
-                    quote=True
-                )
-
-            except Exception as e:
-                LOGGER.error(f"Error triggering workflow for user {user_id}: {e}", exc_info=True)
-                await message.reply_text(
-                    f"❌ **An unexpected error occurred while triggering workflow:**\n\n`{e}`",
-                    quote=True
-                )
-
-            finally:
-                user_states.pop(user_id, None)
-        else:
-            await message.reply_text(
-                f"Received {file_name}. You have {received_count}/3 files. "
-                f"Please send the remaining: {', '.join(missing_files)}.",
-                quote=True
-            )
-
-    except Exception as error:
-        LOGGER.error(f"Error in handle_media_upload for user {user_id} and file {file_name}: {error}", exc_info=True)
-        await processing_message.edit_text(
-            text=f"An error occurred during processing {file_name}: `{error}`\n\nLogs:\n" + '\n'.join(logs),
-            disable_web_page_preview=True
-        )
-        user_states.pop(user_id, None)
-    finally:
-        if file_path and os.path.exists(file_path):
-            os.remove(file_path)
+    except Exception as e:
+        LOGGER.error(f"Top-level error in handle_media_upload for user {user_id}: {e}", exc_info=True)
+        await message.reply_text(f"❌ An unexpected error occurred: {e}", quote=True)
 
 async def upload_file_stream(file_path: str, pixeldrain_api_key: str) -> tuple:
     """Upload file to PixelDrain with improved timeout and retry handling."""
