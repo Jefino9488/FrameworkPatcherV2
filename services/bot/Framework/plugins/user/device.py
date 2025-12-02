@@ -6,7 +6,6 @@ from Framework.helpers.owner_id import OWNER_ID
 from Framework.helpers.pd_utils import *
 from Framework.helpers.provider import *
 from Framework.helpers.state import *
-from Framework.helpers.workflows import *
 
 # Ensure OWNER_ID is a list of integers
 if isinstance(OWNER_ID, str):
@@ -40,6 +39,13 @@ def get_id(text: str) -> str | None:
 )
 async def handle_owner_file_upload(bot: Client, message: Message):
     """Handles file uploads from the owner."""
+    user_id = message.from_user.id
+    current_state = user_states.get(user_id, {}).get("state", STATE_NONE)
+
+    # If user is in an active session (not STATE_NONE), let other handlers process it
+    if current_state != STATE_NONE:
+        return
+
     await message.reply_text(
         f"📂 **File Received:** `{message.document.file_name if message.document else 'Media'}`\n\n"
         "What would you like to do?",
