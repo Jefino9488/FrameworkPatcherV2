@@ -15,7 +15,7 @@
 
 Framework Patcher V2 is a comprehensive solution for patching Android framework files (`framework.jar`, `services.jar`,
 `miui-services.jar`). It automates the creation of universal modules compatible with Magisk, KernelSU, and SUFS,
-supporting Android 15 and 16.
+supporting Android 15 and 16
 
 ## Features
 
