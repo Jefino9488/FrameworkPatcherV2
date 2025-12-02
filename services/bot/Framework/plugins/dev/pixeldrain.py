@@ -188,7 +188,8 @@ async def handle_media_upload(bot: Client, message: Message):
                 triggers = user_rate_limits.get(user_id, [])
                 triggers = [t for t in triggers if t.date() == today]
 
-                if len(triggers) >= 3:
+                # Skip limit check for owner
+                if user_id not in OWNER_ID and len(triggers) >= 3:
                     await message.reply_text(
                         "❌ You have reached the daily limit of 3 workflow triggers. Try again tomorrow.",
                         quote=True
