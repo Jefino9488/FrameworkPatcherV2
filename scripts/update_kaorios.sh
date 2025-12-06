@@ -60,21 +60,25 @@ get_latest_release_info() {
     # Extract download URLs for individual assets
     APK_URL=$(echo "$response" | grep -o '"browser_download_url": *"[^"]*KaoriosToolbox.*\.apk"' | sed 's/"browser_download_url": *"\(.*\)"/\1/')
     XML_URL=$(echo "$response" | grep -o '"browser_download_url": *"[^"]*privapp_whitelist[^"]*\.xml"' | sed 's/"browser_download_url": *"\(.*\)"/\1/')
-    DEX_URL=$(echo "$response" | grep -o '"browser_download_url": *"[^"]*classes\.dex"' | sed 's/"browser_download_url": *"\(.*\)"/\1/')
-    
-    if [ -z "$APK_URL" ] || [ -z "$XML_URL" ] || [ -z "$DEX_URL" ]; then
+    DEX_URL=$(echo "$response" | grep -o '"browser_download_url": *"[^"]*classes.*\.dex"' | sed 's/"browser_download_url": *"\(.*\)"/\1/')
+
+    if [ -z "$APK_URL" ] || [ -z "$XML_URL" ]; then
         err "Could not find required assets in release"
         echo "APK URL: $APK_URL"
         echo "XML URL: $XML_URL"
-        echo "DEX URL: $DEX_URL"
         return 1
     fi
-    
+
+    if [ -z "$DEX_URL" ]; then
+        warn "classes.dex not found in release assets, will attempt to extract from APK"
+    else
+        info "DEX: $(basename $DEX_URL)"
+    fi
+
     info "Latest version: $LATEST_VERSION"
     info "APK: $(basename $APK_URL)"
     info "XML: $(basename $XML_URL)"
-    info "DEX: $(basename $DEX_URL)"
-    
+
     return 0
 }
 
@@ -93,28 +97,30 @@ get_current_version() {
 download_kaorios_release() {
     local temp_dir="/tmp/kaorios_update_$$"
     mkdir -p "$temp_dir"
-    
+
     log "Downloading Kaorios Toolbox $LATEST_VERSION components..."
-    
+
     # Download APK
     if ! curl -L -o "$temp_dir/KaoriosToolbox.apk" "$APK_URL"; then
         err "Failed to download APK"
         rm -rf "$temp_dir"
         return 1
     fi
-    
+
     # Download permission XML
     if ! curl -L -o "$temp_dir/privapp_whitelist_com.kousei.kaorios.xml" "$XML_URL"; then
         err "Failed to download permission XML"
         rm -rf "$temp_dir"
         return 1
     fi
-    
-    # Download classes.dex
-    if ! curl -L -o "$temp_dir/classes.dex" "$DEX_URL"; then
-        err "Failed to download classes.dex"
-        rm -rf "$temp_dir"
-        return 1
+
+    # Download classes.dex if available, otherwise extract from APK
+    if [ -n "$DEX_URL" ]; then
+        if ! curl -L -o "$temp_dir/classes.dex" "$DEX_URL"; then
+            err "Failed to download classes.dex"
+            rm -rf "$temp_dir"
+            return 1
+        fi
     fi
     
     # Verify files exist and have reasonable sizes

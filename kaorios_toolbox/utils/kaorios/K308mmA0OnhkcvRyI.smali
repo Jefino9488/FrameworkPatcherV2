@@ -27,7 +27,7 @@
 .end method
 
 .method public final KmzodnwO1tUkgkS8cymEofiI()[B
-    .registers 3
+    .registers 4
 
     new-instance v0, Ljava/io/ByteArrayOutputStream;
 
@@ -43,7 +43,9 @@
 
     invoke-direct {v1, v0}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;-><init>(Ljava/io/OutputStream;)V
 
-    invoke-virtual {v1, p0}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->KcxerAdpv60xOdaR8bI(Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;)V
+    const/4 v2, 0x1
+
+    invoke-virtual {p0, v1, v2}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->Kgs66qnAfO491Ra48r7aI(Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;Z)V
 
     invoke-virtual {v0}, Ljava/io/ByteArrayOutputStream;->toByteArray()[B
 

@@ -1,18 +1,16 @@
-.class public abstract Lcom/android/internal/util/kaorios/Ki5gtOicUe92vt3S4fE7iI;
-.super Ljava/lang/Object;
+.class public final Lcom/android/internal/util/kaorios/Ki5gtOicUe92vt3S4fE7iI;
+.super Ljava/security/cert/CertificateException;
 
 
-# static fields
-.field public static final synthetic Ku5O3sihzbUhwSewE8uI:I
+# instance fields
+.field public Ku5O3sihzbUhwSewE8uI:Ljava/security/NoSuchProviderException;
 
 
-# direct methods
-.method private static constructor <clinit>()V
-    .registers 2
+# virtual methods
+.method public final getCause()Ljava/lang/Throwable;
+    .registers 1
 
-    const-wide v0, -0x23b8b49a02cfL
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/Ki5gtOicUe92vt3S4fE7iI;->Ku5O3sihzbUhwSewE8uI:Ljava/security/NoSuchProviderException;
 
-    invoke-static {v0, v1}, Lcom/android/internal/util/kaorios/Ks23qmqAooOtt2x0xRh6I;->K91vAo8w086Op21a5bR8uI(J)Ljava/lang/String;
-
-    return-void
+    return-object p0
 .end method

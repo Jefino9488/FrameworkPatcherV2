@@ -181,13 +181,13 @@
 
     if-eq v0, v1, :cond_2b
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kpo04bmO26rUo47oegSdg6ckElbvcI;
+    new-instance v0, Lcom/android/internal/util/kaorios/Klw9A9ypO39R14bjqbI;
 
     const/4 v1, 0x1
 
     const/4 v2, 0x0
 
-    invoke-direct {v0, p0, v1, v2}, Lcom/android/internal/util/kaorios/Kpo04bmO26rUo47oegSdg6ckElbvcI;-><init>([BIB)V
+    invoke-direct {v0, p0, v1, v2}, Lcom/android/internal/util/kaorios/Klw9A9ypO39R14bjqbI;-><init>([BIB)V
 
     return-object v0
 
@@ -201,13 +201,13 @@
     throw p0
 
     :cond_2b
-    new-instance v0, Lcom/android/internal/util/kaorios/Kpo04bmO26rUo47oegSdg6ckElbvcI;
+    new-instance v0, Lcom/android/internal/util/kaorios/Klw9A9ypO39R14bjqbI;
 
     const/4 v1, 0x0
 
     const/4 v2, 0x0
 
-    invoke-direct {v0, p0, v1, v2}, Lcom/android/internal/util/kaorios/Kpo04bmO26rUo47oegSdg6ckElbvcI;-><init>([BIB)V
+    invoke-direct {v0, p0, v1, v2}, Lcom/android/internal/util/kaorios/Klw9A9ypO39R14bjqbI;-><init>([BIB)V
 
     return-object v0
 
@@ -429,7 +429,9 @@
 
     move-result-object v1
 
-    invoke-direct {v0, v1, p0}, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;-><init>(Ljava/lang/String;Ljava/lang/Exception;)V
+    const/4 v2, 0x0
+
+    invoke-direct {v0, v1, p0, v2}, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;-><init>(Ljava/lang/String;Ljava/lang/Exception;I)V
 
     throw v0
 .end method
@@ -451,7 +453,7 @@
 .method public Kr021bO9Updrd4Sc925kEfdq29I()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
     .registers 4
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kpo04bmO26rUo47oegSdg6ckElbvcI;
+    new-instance v0, Lcom/android/internal/util/kaorios/Klw9A9ypO39R14bjqbI;
 
     const/4 v1, 0x1
 
@@ -459,7 +461,7 @@
 
     iget-object p0, p0, Lcom/android/internal/util/kaorios/KkjrAkO4etRm8g8I;->Ku5O3sihzbUhwSewE8uI:[B
 
-    invoke-direct {v0, p0, v1, v2}, Lcom/android/internal/util/kaorios/Kpo04bmO26rUo47oegSdg6ckElbvcI;-><init>([BIB)V
+    invoke-direct {v0, p0, v1, v2}, Lcom/android/internal/util/kaorios/Klw9A9ypO39R14bjqbI;-><init>([BIB)V
 
     return-object v0
 .end method
@@ -550,7 +552,7 @@
 .method public Kv20eAs5x8fqOila11RtI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
     .registers 4
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kpo04bmO26rUo47oegSdg6ckElbvcI;
+    new-instance v0, Lcom/android/internal/util/kaorios/Klw9A9ypO39R14bjqbI;
 
     const/4 v1, 0x0
 
@@ -558,7 +560,7 @@
 
     iget-object p0, p0, Lcom/android/internal/util/kaorios/KkjrAkO4etRm8g8I;->Ku5O3sihzbUhwSewE8uI:[B
 
-    invoke-direct {v0, p0, v1, v2}, Lcom/android/internal/util/kaorios/Kpo04bmO26rUo47oegSdg6ckElbvcI;-><init>([BIB)V
+    invoke-direct {v0, p0, v1, v2}, Lcom/android/internal/util/kaorios/Klw9A9ypO39R14bjqbI;-><init>([BIB)V
 
     return-object v0
 .end method

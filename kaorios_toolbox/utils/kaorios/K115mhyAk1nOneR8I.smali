@@ -1,84 +1,132 @@
-.class public Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;
-.super Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;
+.class public final Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;
+.super Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
+
+# interfaces
+.implements Lcom/android/internal/util/kaorios/K1ixbt5A89nOa1gzR0h1I;
+
+
+# instance fields
+.field public final Ku5O3sihzbUhwSewE8uI:[B
+
+
+# direct methods
+.method static constructor <clinit>()V
+    .registers 3
+
+    new-instance v0, Lcom/android/internal/util/kaorios/KqqOuUisf9SadffEvgI;
+
+    const-class v1, Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;
+
+    const/16 v2, 0x18
+
+    invoke-direct {v0, v1, v2}, Lcom/android/internal/util/kaorios/KqqOuUisf9SadffEvgI;-><init>(Ljava/lang/Class;I)V
+
+    return-void
+.end method
+
+.method public constructor <init>([B)V
+    .registers 2
+
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;->Ku5O3sihzbUhwSewE8uI:[B
+
+    return-void
+.end method
 
 
 # virtual methods
-.method public K7xuO3UlvknmcS4irn11EomI([Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;)V
-    .registers 6
-
-    array-length v0, p1
-
-    const/4 v1, 0x0
-
-    :goto_2
-    if-ge v1, v0, :cond_11
-
-    aget-object v2, p1, v1
-
-    invoke-virtual {v2}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->Kr021bO9Updrd4Sc925kEfdq29I()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
-
-    move-result-object v2
-
-    const/4 v3, 0x1
-
-    invoke-virtual {v2, p0, v3}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->Kgs66qnAfO491Ra48r7aI(Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;Z)V
-
-    add-int/lit8 v1, v1, 0x1
-
-    goto :goto_2
-
-    :cond_11
-    return-void
-.end method
-
-.method public KcxerAdpv60xOdaR8bI(Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;)V
-    .registers 3
-
-    const/4 v0, 0x1
-
-    invoke-virtual {p1}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->Kr021bO9Updrd4Sc925kEfdq29I()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
-
-    move-result-object p1
-
-    invoke-virtual {p1, p0, v0}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->Kgs66qnAfO491Ra48r7aI(Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;Z)V
-
-    return-void
-.end method
-
-.method public final Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;
+.method public final K8c63Ooauv32UndyuScEgI()Z
     .registers 1
+
+    const/4 p0, 0x0
+
+    return p0
+.end method
+
+.method public final Kgs66qnAfO491Ra48r7aI(Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;Z)V
+    .registers 4
+
+    const/16 v0, 0x1a
+
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;->Ku5O3sihzbUhwSewE8uI:[B
+
+    invoke-virtual {p1, p2, v0, p0}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->K8c63Ooauv32UndyuScEgI(ZI[B)V
+
+    return-void
+.end method
+
+.method public final KmwO02nawgUws9Syxnq2rElI()Ljava/lang/String;
+    .registers 1
+
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;->Ku5O3sihzbUhwSewE8uI:[B
+
+    invoke-static {p0}, Lcom/android/internal/util/kaorios/Kcllh8sA6e74OeguRstI;->Ku5O3sihzbUhwSewE8uI([B)Ljava/lang/String;
+
+    move-result-object p0
 
     return-object p0
 .end method
 
-.method public KtbuouOlomiUohgSxfezrEyv01I([Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;)V
-    .registers 6
+.method public final Krm6mrOepnol8UwzffcgSbspr9Ehpvxs5I(Z)I
+    .registers 2
 
-    array-length v0, p1
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;->Ku5O3sihzbUhwSewE8uI:[B
 
-    const/4 v1, 0x0
+    array-length p0, p0
 
-    :goto_2
-    if-ge v1, v0, :cond_15
+    invoke-static {p1, p0}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->KyqOjqyU2SoxvE3gI(ZI)I
 
-    aget-object v2, p1, v1
+    move-result p0
 
-    invoke-interface {v2}, Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;->Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
+    return p0
+.end method
 
-    move-result-object v2
+.method public final KtbuouOlomiUohgSxfezrEyv01I(Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;)Z
+    .registers 3
 
-    invoke-virtual {v2}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->Kr021bO9Updrd4Sc925kEfdq29I()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
+    instance-of v0, p1, Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;
 
-    move-result-object v2
+    if-nez v0, :cond_6
 
-    const/4 v3, 0x1
+    const/4 p0, 0x0
 
-    invoke-virtual {v2, p0, v3}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->Kgs66qnAfO491Ra48r7aI(Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;Z)V
+    return p0
 
-    add-int/lit8 v1, v1, 0x1
+    :cond_6
+    check-cast p1, Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;
 
-    goto :goto_2
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;->Ku5O3sihzbUhwSewE8uI:[B
 
-    :cond_15
-    return-void
+    iget-object p1, p1, Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;->Ku5O3sihzbUhwSewE8uI:[B
+
+    invoke-static {p0, p1}, Ljava/util/Arrays;->equals([B[B)Z
+
+    move-result p0
+
+    return p0
+.end method
+
+.method public final hashCode()I
+    .registers 1
+
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;->Ku5O3sihzbUhwSewE8uI:[B
+
+    invoke-static {p0}, Lcom/android/internal/util/kaorios/Ks23qmqAooOtt2x0xRh6I;->K91vAo8w086Op21a5bR8uI([B)I
+
+    move-result p0
+
+    return p0
+.end method
+
+.method public final toString()Ljava/lang/String;
+    .registers 1
+
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/K115mhyAk1nOneR8I;->Ku5O3sihzbUhwSewE8uI:[B
+
+    invoke-static {p0}, Lcom/android/internal/util/kaorios/Kcllh8sA6e74OeguRstI;->Ku5O3sihzbUhwSewE8uI([B)Ljava/lang/String;
+
+    move-result-object p0
+
+    return-object p0
 .end method

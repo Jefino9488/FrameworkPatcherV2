@@ -6,18 +6,18 @@
 inject_kaorios_utility_classes() {
     local decompile_dir="$1"
     local kaorios_source="${SCRIPT_DIR}/../kaorios_toolbox/utils/kaorios"
-    
+
     if [ ! -d "$kaorios_source" ]; then
         err "Kaorios utility classes not found at $kaorios_source"
         return 1
     fi
-    
+
     log "Injecting Kaorios utility classes into framework..."
-    
+
     # Find the highest numbered smali_classes directory (the LAST one)
     local target_smali_dir="smali"
     local max_num=0
-    
+
     # Check for smali_classes2, smali_classes3, etc.
     for dir in "$decompile_dir"/smali_classes*; do
         if [ -d "$dir" ]; then
@@ -29,39 +29,39 @@ inject_kaorios_utility_classes() {
             fi
         fi
     done
-    
+
     log "Injecting into last existing directory: $target_smali_dir"
-    
+
     # Create the package directory structure in com/android/internal/util/kaorios/
     local target_dir="$decompile_dir/$target_smali_dir/com/android/internal/util/kaorios"
     mkdir -p "$target_dir"
-    
+
     # Copy all utility classes
     if ! cp -r "$kaorios_source"/* "$target_dir/"; then
         err "Failed to copy Kaorios utility classes"
         return 1
     fi
-    
+
     local copied_count=$(find "$target_dir" -name "*.smali" | wc -l)
     log "✓ Injected $copied_count Kaorios utility classes into $target_smali_dir/com/android/internal/util/kaorios/"
-    
+
     return 0
 }
 
 # Patch ApplicationPackageManager.hasSystemFeature - Following Guide.md exactly
-# Per Guide: 
+# Per Guide:
 #   1. Replace .locals X with .registers 12
 #   2. Find mHasSystemFeatureCache line
 #   3. Insert entire Kaorios block (from template lines 72-407) ABOVE that line
 patch_application_package_manager_has_system_feature() {
     local decompile_dir="$1"
-    
+
     log "Patching ApplicationPackageManager.hasSystemFeature (per Guide.md)..."
-    
+
     # Find the ApplicationPackageManager.smali file
     local target_file
     target_file=$(find "$decompile_dir" -type f -path "*/android/app/ApplicationPackageManager.smali" | head -n1)
-    
+
     if [ -z "$target_file" ]; then
         warn "ApplicationPackageManager.smali not found"
         return 0
@@ -69,7 +69,7 @@ patch_application_package_manager_has_system_feature() {
 
     # Relocate ApplicationPackageManager to the last smali directory to avoid DEX limit in the primary dex
     local current_smali_dir=$(echo "$target_file" | sed -E 's|(.*/smali(_classes[0-9]*)?)/.*|\1|')
-    
+
     # Identify the last smali directory
     local last_smali_dir="smali"
     local max_num=0
@@ -82,27 +82,27 @@ patch_application_package_manager_has_system_feature() {
             fi
         fi
     done
-    
+
     local target_root="$decompile_dir/$last_smali_dir"
-    
+
     # Only move if it's not already in the last directory
     if [ "$current_smali_dir" != "$target_root" ]; then
         log "Relocating ApplicationPackageManager to $last_smali_dir to avoid DEX limit..."
-        
+
         # Create destination directory
         local rel_path="android/app"
         local new_dir="$target_root/$rel_path"
         mkdir -p "$new_dir"
-        
+
         # Move the main class and all inner classes
         local src_dir=$(dirname "$target_file")
         mv "$src_dir"/ApplicationPackageManager*.smali "$new_dir/"
-        
+
         # Update target_file to point to the new location
         target_file="$new_dir/ApplicationPackageManager.smali"
         log "✓ Relocated ApplicationPackageManager and inner classes to $last_smali_dir"
     fi
-    
+
     # Use Python to implement the exact changes
     python3 - "$target_file" <<'PYTHON'
 import sys
@@ -157,7 +157,7 @@ if not constructor_exists:
         if line.startswith(".method"):
             insert_idx = i
             break
-    
+
     if insert_idx != -1:
         lines.insert(insert_idx, "")
         for line in reversed(constructor_code):
@@ -518,7 +518,7 @@ if method_start is not None:
         if '.locals' in lines[i] or '.registers' in lines[i]:
             registers_line = i
             break
-    
+
     if registers_line:
         old_value = lines[registers_line].strip()
         if '.registers 12' not in lines[registers_line]:
@@ -526,14 +526,14 @@ if method_start is not None:
             lines[registers_line] = f'{indent}.registers 12'
             print(f"✓ Changed '{old_value}' to '.registers 12'")
             modified = True
-            
+
     # Find mHasSystemFeatureCache
     cache_line = None
     for i in range(method_start, len(lines)):
         if 'mHasSystemFeatureCache' in lines[i] and 'sget-object' in lines[i]:
             cache_line = i
             break
-            
+
     if cache_line:
         # Check if already patched
         already_patched = False
@@ -541,7 +541,7 @@ if method_start is not None:
             if 'KaoriFeaturesUtils' in lines[i]:
                 already_patched = True
                 break
-        
+
         if not already_patched:
             # Insert Kaorios block
             for line in reversed(kaorios_block):
@@ -561,7 +561,7 @@ PYTHON
     else
         warn "ApplicationPackageManager patch failed"
     fi
-    
+
     return 0
 }
 
@@ -569,18 +569,18 @@ PYTHON
 # Guide says: Find "return-object v0" before ".end method" and add invoke-static line above it
 patch_instrumentation_new_application() {
     local decompile_dir="$1"
-    
+
     log "Patching Instrumentation.newApplication methods..."
-    
+
     # Find the Instrumentation.smali file
     local target_file
     target_file=$(find "$decompile_dir" -type f -path "*/android/app/Instrumentation.smali" | head -n1)
-    
+
     if [ -z "$target_file" ]; then
         warn "Instrumentation.smali not found"
         return 0
     fi
-    
+
     # Patch: Add invoke-static line before "return-object v0" in both newApplication methods
     python3 - "$target_file" <<'PYTHON'
 import sys
@@ -602,7 +602,7 @@ i = 0
 
 while i < len(lines):
     line = lines[i]
-    
+
     # Check if we're entering a newApplication method
     if '.method ' in line and 'newApplication' in line:
         if 'Ljava/lang/Class;Landroid/content/Context;' in line:
@@ -611,7 +611,7 @@ while i < len(lines):
         elif 'Ljava/lang/ClassLoader;Ljava/lang/String;Landroid/content/Context;' in line:
             in_new_app_method = True
             method_param = 'p3'  # Context parameter is p3
-    
+
     # If we're in a newApplication method and find "return-object v0"
     if in_new_app_method and 'return-object v0' in line:
         # Check if next line is .end method (to ensure we're at method end)
@@ -621,10 +621,10 @@ while i < len(lines):
                 in_new_app_method = False
                 i += 1
                 continue
-            
+
             # Get indentation from current line
             indent = re.match(r'^\s*', line).group(0)
-            
+
             # Insert the patch line before return-object
             patch_line = f'{indent}invoke-static {{{method_param}}}, Lcom/android/internal/util/kaorios/ToolboxUtils;->KaoriosProps(Landroid/content/Context;)V'
             lines.insert(i, '')  # Add blank line
@@ -634,12 +634,12 @@ while i < len(lines):
             in_new_app_method = False
             method_param = None
             continue
-    
+
     # Exit method
     if '.end method' in line:
         in_new_app_method = False
         method_param = None
-    
+
     i += 1
 
 if modified:
@@ -654,7 +654,7 @@ PYTHON
     else
         warn "Failed to patch Instrumentation.newApplication methods"
     fi
-    
+
     return 0
 }
 
@@ -662,18 +662,18 @@ PYTHON
 # Guide says: Find "return-object v0" before ".end method" and add two lines above it
 patch_keystore2_get_key_entry() {
     local decompile_dir="$1"
-    
+
     log "Patching KeyStore2.getKeyEntry..."
-    
+
     # Find the KeyStore2.smali file
     local target_file
     target_file=$(find "$decompile_dir" -type f -path "*/android/security/KeyStore2.smali" | head -n1)
-    
+
     if [ -z "$target_file" ]; then
         warn "KeyStore2.smali not found"
         return 0
     fi
-    
+
     python3 - "$target_file" <<'PYTHON'
 import sys
 import re
@@ -693,11 +693,11 @@ i = 0
 
 while i < len(lines):
     line = lines[i]
-    
+
     # Check if we're entering getKeyEntry method
     if '.method ' in line and 'getKeyEntry' in line and 'KeyDescriptor' in line and 'lambda' not in line:
         in_method = True
-    
+
     # If we're in the method and find "return-object v0"
     if in_method and 'return-object v0' in line:
         # Check if next line is .end method
@@ -707,28 +707,28 @@ while i < len(lines):
                 in_method = False
                 i += 1
                 continue
-            
+
             # Get indentation
             indent = re.match(r'^\s*', line).group(0)
-            
+
             # Insert the two patch lines before return-object
             patch_lines = [
                 '',
                 f'{indent}invoke-static {{v0}}, Lcom/android/internal/util/kaorios/ToolboxUtils;->KaoriosKeybox(Landroid/system/keystore2/KeyEntryResponse;)Landroid/system/keystore2/KeyEntryResponse;',
                 f'{indent}move-result-object v0'
             ]
-            
+
             for j, patch_line in enumerate(patch_lines):
                 lines.insert(i + j, patch_line)
-            
+
             modified = True
             i += len(patch_lines)
             in_method = False
             continue
-    
+
     if '.end method' in line:
         in_method = False
-    
+
     i += 1
 
 if modified:
@@ -743,7 +743,7 @@ PYTHON
     else
         warn "Failed to patch KeyStore2.getKeyEntry"
     fi
-    
+
     return 0
 }
 
@@ -751,18 +751,18 @@ PYTHON
 # Guide says: Below ".registers XX" add invoke-static line
 patch_android_keystore_spi_engine_get_certificate_chain() {
     local decompile_dir="$1"
-    
+
     log "Patching AndroidKeyStoreSpi.engineGetCertificateChain..."
-    
+
     # Find the AndroidKeyStoreSpi.smali file
     local target_file
     target_file=$(find "$decompile_dir" -type f -path "*/android/security/keystore2/AndroidKeyStoreSpi.smali" | head -n1)
-    
+
     if [ -z "$target_file" ]; then
         warn "AndroidKeyStoreSpi.smali not found"
         return 0
     fi
-    
+
     python3 - "$target_file" <<'PYTHON'
 import sys
 import re
@@ -782,35 +782,78 @@ i = 0
 
 while i < len(lines):
     line = lines[i]
-    
+
     # Check if we're entering engineGetCertificateChain method
     if '.method ' in line and 'engineGetCertificateChain' in line:
         in_method = True
-    
-    # If we're in the method and find .registers or .locals line
-    if in_method and ('.registers' in line or '.locals' in line):
-        # Check if patch already exists on next line
-        if i + 1 < len(lines) and 'ToolboxUtils;->KaoriosPropsEngineGetCertificateChain' in lines[i+1]:
-            in_method = False
-            i += 1
-            continue
 
-        # Get indentation
-        indent = re.match(r'^\s*', line).group(0)
+    if in_method:
+        # Patch 1: Add KaoriosPropsEngineGetCertificateChain after .registers/.locals
+        if ('.registers' in line or '.locals' in line):
+            # Check if patch already exists in the next few lines
+            patch_exists = False
+            for k in range(1, 5):
+                if i + k < len(lines) and 'ToolboxUtils;->KaoriosPropsEngineGetCertificateChain' in lines[i+k]:
+                    patch_exists = True
+                    break
 
-        # Insert the patch line after .registers
-        patch_lines = [
-            '',
-            f'{indent}invoke-static {{}}, Lcom/android/internal/util/kaorios/ToolboxUtils;->KaoriosPropsEngineGetCertificateChain()V'
-        ]
+            if patch_exists:
+                pass # Already patched
+            else:
+                # Get indentation
+                indent = re.match(r'^\s*', line).group(0)
 
-        for j, patch_line in enumerate(patch_lines):
-            lines.insert(i + 1 + j, patch_line)
+                # Insert the patch line after .registers
+                patch_lines = [
+                    '',
+                    f'{indent}invoke-static {{}}, Lcom/android/internal/util/kaorios/ToolboxUtils;->KaoriosPropsEngineGetCertificateChain()V'
+                ]
 
-        modified = True
-        i += len(patch_lines) + 1
-        in_method = False
-        continue
+                for j, patch_line in enumerate(patch_lines):
+                    lines.insert(i + 1 + j, patch_line)
+
+                modified = True
+                i += len(patch_lines) # Skip inserted lines
+
+        # Patch 2: Add KaoriosKeybox AFTER "aput-object v2, v3, v4" (which follows "const/4 v4, 0x0")
+        if 'const/4 v4, 0x0' in line:
+            # Look ahead for aput-object, allowing for blank lines
+            found_aput_idx = -1
+            for k in range(1, 10): # Look ahead up to 9 lines
+                if i + k < len(lines):
+                    check_line = lines[i+k].strip()
+                    if check_line == 'aput-object v2, v3, v4':
+                        found_aput_idx = i + k
+                        break
+                    elif check_line and not check_line.startswith('.'): # Stop if we hit code that isn't aput-object
+                         pass
+
+            if found_aput_idx != -1:
+                # Check if patch already exists AFTER the aput-object line
+                patch_exists = False
+                for k in range(1, 5):
+                     if found_aput_idx + k < len(lines) and 'ToolboxUtils;->KaoriosKeybox' in lines[found_aput_idx+k]:
+                         patch_exists = True
+                         break
+
+                if not patch_exists:
+                    # Get indentation from the aput-object line
+                    indent = re.match(r'^\s*', lines[found_aput_idx]).group(0)
+
+                    # Insert patch AFTER aput-object
+                    patch_lines = [
+                        '',
+                        f'{indent}invoke-static {{v3}}, Lcom/android/internal/util/kaorios/ToolboxUtils;->KaoriosKeybox([Ljava/security/cert/Certificate;)[Ljava/security/cert/Certificate;',
+                        f'{indent}move-result-object v3'
+                    ]
+
+                    for j, patch_line in enumerate(patch_lines):
+                        lines.insert(found_aput_idx + 1 + j, patch_line)
+
+                    modified = True
+                    # Advance i to skip the inserted lines and avoid re-processing
+                    i = found_aput_idx + len(patch_lines) + 1
+                    continue
 
     if '.end method' in line:
         in_method = False
@@ -841,22 +884,17 @@ apply_kaorios_toolbox_patches() {
     log "Applying Kaorios Toolbox Patches"
     log "========================================="
 
-    # Inject utility classes first
     inject_kaorios_utility_classes "$decompile_dir" || return 1
-
-    # Apply surgical patches based on Guide.md
-    # NOTE: ApplicationPackageManager patch disabled due to DEX 65k limit in this framework
     patch_application_package_manager_has_system_feature "$decompile_dir"
-
     patch_instrumentation_new_application "$decompile_dir"
     patch_keystore2_get_key_entry "$decompile_dir"
     patch_android_keystore_spi_engine_get_certificate_chain "$decompile_dir"
-    
+
     log "✓ Kaorios Toolbox patches applied successfully (4/4 core patches)"
     log "  ✓ Instrumentation.newApplication - Property spoofing initialization"
     log "  ✓ KeyStore2.getKeyEntry - Keybox attestation spoofing"
     log "  ✓ AndroidKeyStoreSpi.engineGetCertificateChain - Certificate chain handling"
     log "  ✓ ApplicationPackageManager.hasSystemFeature"
-    
+
     return 0
 }

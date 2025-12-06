@@ -726,7 +726,7 @@ patch_framework() {
     fi
 
     # Apply invoke-custom patches (common to all features)
-    modify_invoke_custom_methods "$decompile_dir"
+    # modify_invoke_custom_methods "$decompile_dir"
 
     recompile_jar "$framework_path" >/dev/null
     d8_optimize_jar "framework_patched.jar"
@@ -812,7 +812,7 @@ apply_services_signature_patches() {
         warn "ReconcilePackageUtils.smali not found"
     fi
 
-    modify_invoke_custom_methods "$decompile_dir"
+    # modify_invoke_custom_methods "$decompile_dir"
 
     # Emit robust verification logs for CI (avoid brittle hardcoded file paths)
     log "[VERIFY] services: locating isLeavingSharedUser invoke (context)"
@@ -917,7 +917,7 @@ patch_services() {
     fi
 
     # Apply invoke-custom patches (common to all features)
-    modify_invoke_custom_methods "$decompile_dir"
+    # modify_invoke_custom_methods "$decompile_dir"
 
     if [ $external_dir_flag -eq 0 ]; then
         recompile_jar "$services_path" >/dev/null
@@ -1068,7 +1068,7 @@ patch_miui_services() {
     fi
 
     # Apply invoke-custom patches (common to all features)
-    modify_invoke_custom_methods "$decompile_dir"
+    # modify_invoke_custom_methods "$decompile_dir"
 
     if [ $external_dir_flag -eq 0 ]; then
         recompile_jar "$miui_services_path" >/dev/null

@@ -1,318 +1,60 @@
 .class public final Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;
-.super Ljava/lang/Object;
-
-# interfaces
-.implements Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;
-.implements Lcom/android/internal/util/kaorios/Kt1OskdsecUo2S278unEl8I;
-
-
-# instance fields
-.field public Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
-
-.field public final synthetic Ku5O3sihzbUhwSewE8uI:I
-
-
-# direct methods
-.method public synthetic constructor <init>(I)V
-    .registers 2
-
-    iput p1, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Ku5O3sihzbUhwSewE8uI:I
-
-    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
-
-    return-void
-.end method
-
-.method public constructor <init>(Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;)V
-    .registers 3
-
-    const/4 v0, 0x2
-
-    iput v0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Ku5O3sihzbUhwSewE8uI:I
-
-    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
-
-    iput-object p1, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
-
-    return-void
-.end method
-
-.method public static KmwO02nawgUws9Syxnq2rElI(Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;)Lcom/android/internal/util/kaorios/Kt9eAc1O9R0im9eI;
-    .registers 4
-
-    :try_start_0
-    new-instance v0, Lcom/android/internal/util/kaorios/Kt9eAc1O9R0im9eI;
-
-    new-instance v1, Lcom/android/internal/util/kaorios/KjAjghbOpRzicI;
-
-    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;->KmwO02nawgUws9Syxnq2rElI()Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
-
-    move-result-object p0
-
-    const/4 v2, 0x1
-
-    invoke-direct {v1, p0, v2}, Lcom/android/internal/util/kaorios/KjAjghbOpRzicI;-><init>(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;I)V
-
-    const/4 p0, -0x1
-
-    iput p0, v1, Lcom/android/internal/util/kaorios/KjAjghbOpRzicI;->Kq4snztAiatOsRsxI:I
-
-    const/4 p0, 0x1
-
-    invoke-direct {v0, v1, p0}, Lcom/android/internal/util/kaorios/Kt9eAc1O9R0im9eI;-><init>(Lcom/android/internal/util/kaorios/Kj2qcOcnkeU5uS40ab63Ex41pcI;I)V
-    :try_end_13
-    .catch Ljava/lang/IllegalArgumentException; {:try_start_0 .. :try_end_13} :catch_14
-
-    return-object v0
-
-    :catch_14
-    move-exception p0
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KwO2tU47S17b8EidmuilI;
-
-    invoke-virtual {p0}, Ljava/lang/Throwable;->getMessage()Ljava/lang/String;
-
-    move-result-object v1
-
-    const/4 v2, 0x0
-
-    invoke-direct {v0, v1, p0, v2}, Lcom/android/internal/util/kaorios/KwO2tU47S17b8EidmuilI;-><init>(Ljava/lang/String;Ljava/lang/RuntimeException;I)V
-
-    throw v0
-.end method
+.super Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;
 
 
 # virtual methods
-.method public final Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
-    .registers 3
+.method public final Kgs66qnAfO491Ra48r7aI(Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;Z)V
+    .registers 4
 
-    iget v0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Ku5O3sihzbUhwSewE8uI:I
+    const/16 v0, 0x31
 
-    packed-switch v0, :pswitch_data_6c
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;->Ku5O3sihzbUhwSewE8uI:[Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;
 
-    :try_start_5
-    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->KyqOjqyU2SoxvE3gI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
+    invoke-virtual {p1, p2, v0, p0}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->K8Ak17imO9w5w4RppI(ZI[Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;)V
 
-    move-result-object p0
-    :try_end_9
-    .catch Ljava/io/IOException; {:try_start_5 .. :try_end_9} :catch_a
-
-    return-object p0
-
-    :catch_a
-    move-exception p0
-
-    new-instance v0, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;
-
-    invoke-virtual {p0}, Ljava/lang/Throwable;->getMessage()Ljava/lang/String;
-
-    move-result-object v1
-
-    invoke-direct {v0, v1, p0}, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;-><init>(Ljava/lang/String;Ljava/lang/Exception;)V
-
-    throw v0
-
-    :pswitch_15
-    :try_start_15
-    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->KyqOjqyU2SoxvE3gI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
-
-    move-result-object p0
-    :try_end_19
-    .catch Ljava/io/IOException; {:try_start_15 .. :try_end_19} :catch_1a
-
-    return-object p0
-
-    :catch_1a
-    move-exception p0
-
-    new-instance v0, Ljava/lang/IllegalStateException;
-
-    invoke-virtual {p0}, Ljava/lang/Throwable;->getMessage()Ljava/lang/String;
-
-    move-result-object p0
-
-    invoke-direct {v0, p0}, Ljava/lang/IllegalStateException;-><init>(Ljava/lang/String;)V
-
-    throw v0
-
-    :pswitch_25
-    const-string v0, "unable to get DER object"
-
-    :try_start_27
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
-
-    invoke-static {p0}, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->KmwO02nawgUws9Syxnq2rElI(Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;)Lcom/android/internal/util/kaorios/Kt9eAc1O9R0im9eI;
-
-    move-result-object p0
-    :try_end_2d
-    .catch Ljava/io/IOException; {:try_start_27 .. :try_end_2d} :catch_30
-    .catch Ljava/lang/IllegalArgumentException; {:try_start_27 .. :try_end_2d} :catch_2e
-
-    return-object p0
-
-    :catch_2e
-    move-exception p0
-
-    goto :goto_32
-
-    :catch_30
-    move-exception p0
-
-    goto :goto_38
-
-    :goto_32
-    new-instance v1, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;
-
-    invoke-direct {v1, v0, p0}, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;-><init>(Ljava/lang/String;Ljava/lang/Exception;)V
-
-    throw v1
-
-    :goto_38
-    new-instance v1, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;
-
-    invoke-direct {v1, v0, p0}, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;-><init>(Ljava/lang/String;Ljava/lang/Exception;)V
-
-    throw v1
-
-    :pswitch_3e
-    :try_start_3e
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/K1kaA3tiqqO7ugRpbtrtI;
-
-    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;->KmwO02nawgUws9Syxnq2rElI()Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
-
-    move-result-object p0
-
-    invoke-direct {v0, p0}, Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;-><init>(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
-    :try_end_49
-    .catch Ljava/io/IOException; {:try_start_3e .. :try_end_49} :catch_4a
-
-    return-object v0
-
-    :catch_4a
-    move-exception p0
-
-    new-instance v0, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;
-
-    invoke-virtual {p0}, Ljava/lang/Throwable;->getMessage()Ljava/lang/String;
-
-    move-result-object v1
-
-    invoke-direct {v0, v1, p0}, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;-><init>(Ljava/lang/String;Ljava/lang/Exception;)V
-
-    throw v0
-
-    :pswitch_55
-    :try_start_55
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/Kj5uA54zOrbRqI;
-
-    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;->KmwO02nawgUws9Syxnq2rElI()Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
-
-    move-result-object p0
-
-    invoke-direct {v0, p0}, Lcom/android/internal/util/kaorios/Kj2qcOcnkeU5uS40ab63Ex41pcI;-><init>(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
-    :try_end_60
-    .catch Ljava/io/IOException; {:try_start_55 .. :try_end_60} :catch_61
-
-    return-object v0
-
-    :catch_61
-    move-exception p0
-
-    new-instance v0, Ljava/lang/IllegalStateException;
-
-    invoke-virtual {p0}, Ljava/lang/Throwable;->getMessage()Ljava/lang/String;
-
-    move-result-object p0
-
-    invoke-direct {v0, p0}, Ljava/lang/IllegalStateException;-><init>(Ljava/lang/String;)V
-
-    throw v0
-
-    :pswitch_data_6c
-    .packed-switch 0x0
-        :pswitch_55
-        :pswitch_3e
-        :pswitch_25
-        :pswitch_15
-    .end packed-switch
+    return-void
 .end method
 
-.method public final KyqOjqyU2SoxvE3gI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
-    .registers 2
+.method public final Krm6mrOepnol8UwzffcgSbspr9Ehpvxs5I(Z)I
+    .registers 6
 
-    iget v0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Ku5O3sihzbUhwSewE8uI:I
+    if-eqz p1, :cond_4
 
-    packed-switch v0, :pswitch_data_3a
+    const/4 p1, 0x4
 
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
+    goto :goto_5
 
-    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;->KmwO02nawgUws9Syxnq2rElI()Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
+    :cond_4
+    const/4 p1, 0x3
 
-    move-result-object p0
+    :goto_5
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;->Ku5O3sihzbUhwSewE8uI:[Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;
 
-    invoke-static {p0}, Lcom/android/internal/util/kaorios/K4vOqztUdvScmtEr4xjdzI;->Kq5pt6AeqxqwOjab0R8ioI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)Lcom/android/internal/util/kaorios/KqO3hvis4Uc4g2Skbh4fpE1693yI;
+    array-length v0, p0
 
-    move-result-object p0
+    const/4 v1, 0x0
 
-    return-object p0
+    :goto_9
+    if-ge v1, v0, :cond_1a
 
-    :pswitch_10
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
+    aget-object v2, p0, v1
 
-    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;->KmwO02nawgUws9Syxnq2rElI()Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
+    invoke-interface {v2}, Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;->Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
 
-    move-result-object p0
+    move-result-object v2
 
-    invoke-static {p0}, Lcom/android/internal/util/kaorios/K4vOqztUdvScmtEr4xjdzI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)Lcom/android/internal/util/kaorios/KjAjghbOpRzicI;
+    const/4 v3, 0x1
 
-    move-result-object p0
+    invoke-virtual {v2, v3}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->Krm6mrOepnol8UwzffcgSbspr9Ehpvxs5I(Z)I
 
-    return-object p0
+    move-result v2
 
-    :pswitch_1b
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
+    add-int/2addr p1, v2
 
-    invoke-static {p0}, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->KmwO02nawgUws9Syxnq2rElI(Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;)Lcom/android/internal/util/kaorios/Kt9eAc1O9R0im9eI;
+    add-int/lit8 v1, v1, 0x1
 
-    move-result-object p0
+    goto :goto_9
 
-    return-object p0
-
-    :pswitch_22
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/K1kaA3tiqqO7ugRpbtrtI;
-
-    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;->KmwO02nawgUws9Syxnq2rElI()Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
-
-    move-result-object p0
-
-    invoke-direct {v0, p0}, Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;-><init>(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
-
-    return-object v0
-
-    :pswitch_2e
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/Kj5uA54zOrbRqI;
-
-    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;->KmwO02nawgUws9Syxnq2rElI()Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
-
-    move-result-object p0
-
-    invoke-direct {v0, p0}, Lcom/android/internal/util/kaorios/Kj2qcOcnkeU5uS40ab63Ex41pcI;-><init>(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
-
-    return-object v0
-
-    :pswitch_data_3a
-    .packed-switch 0x0
-        :pswitch_2e
-        :pswitch_22
-        :pswitch_1b
-        :pswitch_10
-    .end packed-switch
+    :cond_1a
+    return p1
 .end method

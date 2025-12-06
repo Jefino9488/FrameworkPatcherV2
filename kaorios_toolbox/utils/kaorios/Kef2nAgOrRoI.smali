@@ -1,54 +1,89 @@
 .class public final Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
-.super Landroid/app/PropertyInvalidatedCache;
+.super Ljava/lang/Object;
+
+
+# instance fields
+.field public final Kq5pt6AeqxqwOjab0R8ioI:I
+
+.field public final Ku5O3sihzbUhwSewE8uI:Ljava/lang/String;
 
 
 # direct methods
-.method public constructor <init>(Landroid/app/PropertyInvalidatedCache$Args;Ljava/lang/String;)V
-    .registers 4
+.method public constructor <init>(Ljava/lang/String;I)V
+    .registers 3
 
-    const/4 v0, 0x0
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    invoke-direct {p0, p1, p2, v0}, Landroid/app/PropertyInvalidatedCache;-><init>(Landroid/app/PropertyInvalidatedCache$Args;Ljava/lang/String;Landroid/app/PropertyInvalidatedCache$QueryHandler;)V
+    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;->Ku5O3sihzbUhwSewE8uI:Ljava/lang/String;
+
+    iput p2, p0, Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;->Kq5pt6AeqxqwOjab0R8ioI:I
 
     return-void
 .end method
 
 
 # virtual methods
-.method public final recompute(Ljava/lang/Object;)Ljava/lang/Object;
-    .registers 3
+.method public final equals(Ljava/lang/Object;)Z
+    .registers 6
 
-    check-cast p1, Lcom/android/internal/util/kaorios/K00Ot02yU5hknSc6Ev87I;
+    const/4 v0, 0x1
 
-    :try_start_2
-    invoke-static {}, Landroid/app/ActivityThread;->currentActivityThread()Landroid/app/ActivityThread;
+    if-ne p0, p1, :cond_4
 
-    invoke-static {}, Landroid/app/ActivityThread;->getPackageManager()Landroid/content/pm/IPackageManager;
+    return v0
 
-    move-result-object p0
+    :cond_4
+    instance-of v1, p1, Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
 
-    iget-object v0, p1, Lcom/android/internal/util/kaorios/K00Ot02yU5hknSc6Ev87I;->Ku5O3sihzbUhwSewE8uI:Ljava/lang/String;
+    const/4 v2, 0x0
 
-    iget p1, p1, Lcom/android/internal/util/kaorios/K00Ot02yU5hknSc6Ev87I;->Kq5pt6AeqxqwOjab0R8ioI:I
+    if-nez v1, :cond_a
 
-    invoke-interface {p0, v0, p1}, Landroid/content/pm/IPackageManager;->hasSystemFeature(Ljava/lang/String;I)Z
+    return v2
+
+    :cond_a
+    check-cast p1, Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
+
+    iget v1, p0, Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;->Kq5pt6AeqxqwOjab0R8ioI:I
+
+    iget v3, p1, Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;->Kq5pt6AeqxqwOjab0R8ioI:I
+
+    if-ne v1, v3, :cond_1d
+
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;->Ku5O3sihzbUhwSewE8uI:Ljava/lang/String;
+
+    iget-object p1, p1, Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;->Ku5O3sihzbUhwSewE8uI:Ljava/lang/String;
+
+    invoke-static {p0, p1}, Ljava/util/Objects;->equals(Ljava/lang/Object;Ljava/lang/Object;)Z
 
     move-result p0
 
-    invoke-static {p0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+    if-eqz p0, :cond_1d
+
+    return v0
+
+    :cond_1d
+    return v2
+.end method
+
+.method public final hashCode()I
+    .registers 2
+
+    iget v0, p0, Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;->Kq5pt6AeqxqwOjab0R8ioI:I
+
+    invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v0
+
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;->Ku5O3sihzbUhwSewE8uI:Ljava/lang/String;
+
+    filled-new-array {p0, v0}, [Ljava/lang/Object;
 
     move-result-object p0
-    :try_end_15
-    .catch Landroid/os/RemoteException; {:try_start_2 .. :try_end_15} :catch_16
 
-    return-object p0
+    invoke-static {p0}, Ljava/util/Objects;->hash([Ljava/lang/Object;)I
 
-    :catch_16
-    move-exception p0
+    move-result p0
 
-    invoke-virtual {p0}, Landroid/os/RemoteException;->rethrowFromSystemServer()Ljava/lang/RuntimeException;
-
-    move-result-object p0
-
-    throw p0
+    return p0
 .end method

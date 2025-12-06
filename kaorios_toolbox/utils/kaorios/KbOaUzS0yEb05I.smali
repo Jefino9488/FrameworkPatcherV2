@@ -1,60 +1,91 @@
-.class public interface abstract Lcom/android/internal/util/kaorios/KbOaUzS0yEb05I;
+.class public final Lcom/android/internal/util/kaorios/KbOaUzS0yEb05I;
 .super Ljava/lang/Object;
 
-
-# static fields
-.field public static final KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-.field public static final Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-.field public static final Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+# interfaces
+.implements Ljava/util/Enumeration;
 
 
-# direct methods
-.method static constructor <clinit>()V
-    .registers 2
+# instance fields
+.field public Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
 
-    new-instance v0, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+.field public Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/KvqgmuOqdUlf9xSryE9m6ac0I;
 
-    const-string v1, "1.2.392.200011.61.1.1.1.2"
 
-    invoke-direct {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;-><init>(Ljava/lang/String;)V
+# virtual methods
+.method public final Ku5O3sihzbUhwSewE8uI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
+    .registers 4
 
-    new-instance v0, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    :try_start_0
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/KbOaUzS0yEb05I;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/KvqgmuOqdUlf9xSryE9m6ac0I;
 
-    const-string v1, "1.2.392.200011.61.1.1.1.3"
+    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/KvqgmuOqdUlf9xSryE9m6ac0I;->K7b6cynAykO75yzw1Ri5kI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
 
-    invoke-direct {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;-><init>(Ljava/lang/String;)V
+    move-result-object p0
+    :try_end_6
+    .catch Ljava/io/IOException; {:try_start_0 .. :try_end_6} :catch_7
 
-    new-instance v0, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    return-object p0
 
-    const-string v1, "1.2.392.200011.61.1.1.1.4"
+    :catch_7
+    move-exception p0
 
-    invoke-direct {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;-><init>(Ljava/lang/String;)V
+    new-instance v0, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;
 
-    new-instance v0, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    new-instance v1, Ljava/lang/StringBuilder;
 
-    const-string v1, "1.2.392.200011.61.1.1.3.2"
+    const-string v2, "malformed ASN.1: "
 
-    invoke-direct {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;-><init>(Ljava/lang/String;)V
+    invoke-direct {v1, v2}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
 
-    sput-object v0, Lcom/android/internal/util/kaorios/KbOaUzS0yEb05I;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    invoke-virtual {v1, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
 
-    new-instance v0, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
 
-    const-string v1, "1.2.392.200011.61.1.1.3.3"
+    move-result-object v1
 
-    invoke-direct {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;-><init>(Ljava/lang/String;)V
+    const/4 v2, 0x0
 
-    sput-object v0, Lcom/android/internal/util/kaorios/KbOaUzS0yEb05I;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    invoke-direct {v0, v1, p0, v2}, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;-><init>(Ljava/lang/String;Ljava/lang/Exception;I)V
 
-    new-instance v0, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    throw v0
+.end method
 
-    const-string v1, "1.2.392.200011.61.1.1.3.4"
+.method public final hasMoreElements()Z
+    .registers 1
 
-    invoke-direct {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;-><init>(Ljava/lang/String;)V
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/KbOaUzS0yEb05I;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
 
-    sput-object v0, Lcom/android/internal/util/kaorios/KbOaUzS0yEb05I;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    if-eqz p0, :cond_6
 
-    return-void
+    const/4 p0, 0x1
+
+    return p0
+
+    :cond_6
+    const/4 p0, 0x0
+
+    return p0
+.end method
+
+.method public final nextElement()Ljava/lang/Object;
+    .registers 3
+
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KbOaUzS0yEb05I;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
+
+    if-eqz v0, :cond_b
+
+    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/KbOaUzS0yEb05I;->Ku5O3sihzbUhwSewE8uI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
+
+    move-result-object v1
+
+    iput-object v1, p0, Lcom/android/internal/util/kaorios/KbOaUzS0yEb05I;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
+
+    return-object v0
+
+    :cond_b
+    new-instance p0, Ljava/util/NoSuchElementException;
+
+    invoke-direct {p0}, Ljava/util/NoSuchElementException;-><init>()V
+
+    throw p0
 .end method
