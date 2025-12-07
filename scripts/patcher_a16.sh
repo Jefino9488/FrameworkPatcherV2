@@ -731,6 +731,11 @@ patch_framework() {
     recompile_jar "$framework_path" >/dev/null
     d8_optimize_jar "framework_patched.jar"
     rm -rf "$decompile_dir" "$WORK_DIR/framework"
+
+    if [ ! -f "framework_patched.jar" ]; then
+        err "Critical Error: framework_patched.jar was not created."
+        return 1
+    fi
     log "Completed framework.jar patching"
 }
 

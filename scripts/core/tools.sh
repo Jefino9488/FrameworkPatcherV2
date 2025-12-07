@@ -27,6 +27,15 @@ ensure_tools() {
         warn "7z not found in PATH — create_magisk_module will try to use zip if available"
     fi
 
+    if ! command -v zip >/dev/null 2>&1; then
+        warn "zip not found in PATH — D8 optimization and module creation may fail"
+    fi
+
+    if ! command -v unzip >/dev/null 2>&1; then
+        err "unzip not found in PATH"
+        return 1
+    fi
+
     # Check for d8 (needed for optimization)
     if [ -z "${D8_CMD:-}" ]; then
         if command -v d8 >/dev/null 2>&1; then

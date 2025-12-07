@@ -829,6 +829,11 @@ patch_framework() {
     # Clean up
     rm -rf "$WORK_DIR/framework" "$decompile_dir"
 
+    if [ ! -f "framework_patched.jar" ]; then
+        err "Critical Error: framework_patched.jar was not created."
+        return 1
+    fi
+
     echo "Framework patching completed."
 }
 
@@ -1009,6 +1014,11 @@ patch_services() {
     # Clean up
     rm -rf "$WORK_DIR/services" "$decompile_dir"
 
+    if [ ! -f "services_patched.jar" ]; then
+        err "Critical Error: services_patched.jar was not created."
+        return 1
+    fi
+
     echo "Services.jar patching completed."
 }
 
@@ -1137,6 +1147,11 @@ patch_miui_services() {
 
     # Clean up
     rm -rf "$WORK_DIR/miui-services" "$decompile_dir"
+
+    if [ ! -f "miui-services_patched.jar" ]; then
+        err "Critical Error: miui-services_patched.jar was not created."
+        return 1
+    fi
 
     echo "Miui-services.jar patching completed."
 }
