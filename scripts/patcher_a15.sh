@@ -1264,6 +1264,10 @@ EOF
     [ $FEATURE_KAORIOS_TOOLBOX -eq 1 ] && echo "  ✓ Kaorios Toolbox (Play Integrity Fix)"
     echo "============================================"
 
+    # Initialize environment and check tools
+    init_env
+    ensure_tools || exit 1
+
     # Patch requested JARs
     if [ $PATCH_FRAMEWORK -eq 1 ]; then
         patch_framework

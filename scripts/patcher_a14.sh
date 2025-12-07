@@ -626,6 +626,10 @@ EOF
     [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 1 ] && echo "  ✓ Disable Signature Verification"
     echo "============================================"
 
+    # Initialize environment and check tools
+    init_env
+    ensure_tools || exit 1
+
     # Patch requested JARs
     if [ $PATCH_FRAMEWORK -eq 1 ]; then
         patch_framework
