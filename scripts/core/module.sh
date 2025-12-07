@@ -6,6 +6,7 @@ create_module() {
     # local api_level="$1"  # Currently unused but kept for future use
     local device_name="$2"
     local version_name="$3"
+    local kaorios_enabled="${4:-0}"
 
     log "Creating module using FrameworkPatcherModule for $device_name (v$version_name)"
 
@@ -95,8 +96,8 @@ create_module() {
         }' "$customize_sh" > "${customize_sh}.tmp" && mv "${customize_sh}.tmp" "$customize_sh"
     fi
 
-    # Copy Kaorios Toolbox files if present
-    if [ -d "kaorios_toolbox" ]; then
+    # Copy Kaorios Toolbox files if present (only if enabled)
+    if [ "$kaorios_enabled" -eq 1 ] && [ -d "kaorios_toolbox" ]; then
         log "Including Kaorios Toolbox components in module"
         
         # 1. Install APK as system app (priv-app)

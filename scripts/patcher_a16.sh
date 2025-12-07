@@ -1215,7 +1215,7 @@ EOF
 
     # Create module
     log "Creating Magisk/KSU module..."
-    create_module "$api_level" "$device_name" "$version_name"
+    create_module "$api_level" "$device_name" "$version_name" "$FEATURE_KAORIOS_TOOLBOX"
 
     log "✓ All operations completed successfully!"
 }

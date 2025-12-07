@@ -561,13 +561,14 @@ JAR OPTIONS (specify which JARs to patch):
 
 FEATURE OPTIONS (specify which features to apply):
   --disable-signature-verification    Disable signature verification (default if no feature specified)
+  --enable-kaorios-toolbox            Include Kaorios Toolbox and permissions
 
 EXAMPLES:
   # Apply signature verification bypass to all JARs (backward compatible)
   $0 34 xiaomi 1.0.0
 
   # Apply signature verification to framework only
-  $0 34 xiaomi 1.0.0 --framework --disable-signature-verification
+  $0 34 xiaomi 1.0.0 --framework --disable-signature-verification --enable-kaorios-toolbox
 
 Creates a single module compatible with Magisk, KSU, and SUFS
 EOF
@@ -584,6 +585,7 @@ EOF
     PATCH_FRAMEWORK=0
     PATCH_SERVICES=0
     PATCH_MIUI_SERVICES=0
+    FEATURE_KAORIOS_TOOLBOX=0
 
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -598,6 +600,9 @@ EOF
                 ;;
             --disable-signature-verification)
                 FEATURE_DISABLE_SIGNATURE_VERIFICATION=1
+                ;;
+            --enable-kaorios-toolbox)
+                FEATURE_KAORIOS_TOOLBOX=1
                 ;;
             *)
                 echo "Unknown option: $1"
@@ -615,7 +620,7 @@ EOF
     fi
 
     # If no feature specified, default to signature verification (backward compatibility)
-    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ]; then
+    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] && [ $FEATURE_KAORIOS_TOOLBOX -eq 0 ]; then
         FEATURE_DISABLE_SIGNATURE_VERIFICATION=1
         echo "No feature specified, defaulting to --disable-signature-verification"
     fi
@@ -624,6 +629,7 @@ EOF
     echo "============================================"
     echo "Selected Features:"
     [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 1 ] && echo "  ✓ Disable Signature Verification"
+    [ $FEATURE_KAORIOS_TOOLBOX -eq 1 ] && echo "  ✓ Include Kaorios Toolbox"
     echo "============================================"
 
     # Initialize environment and check tools
@@ -644,7 +650,7 @@ EOF
     fi
 
     # Create module
-    create_module "$API_LEVEL" "$DEVICE_NAME" "$VERSION_NAME"
+    create_module "$API_LEVEL" "$DEVICE_NAME" "$VERSION_NAME" "$FEATURE_KAORIOS_TOOLBOX"
 
     echo "All patching completed successfully!"
 }

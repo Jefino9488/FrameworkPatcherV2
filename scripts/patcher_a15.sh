@@ -1282,7 +1282,7 @@ EOF
     fi
 
     # Create module
-    create_module "$API_LEVEL" "$DEVICE_NAME" "$VERSION_NAME"
+    create_module "$API_LEVEL" "$DEVICE_NAME" "$VERSION_NAME" "$FEATURE_KAORIOS_TOOLBOX"
 
     echo "All patching completed successfully!"
 }
