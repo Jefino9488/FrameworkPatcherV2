@@ -1,71 +1,110 @@
 .class public final Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;
-.super Landroid/app/TaskStackListener;
+.super Ljava/lang/Object;
 
 
 # instance fields
-.field public final synthetic Ku5O3sihzbUhwSewE8uI:Z
+.field public KmwO02nawgUws9Syxnq2rElI:Ljava/math/BigInteger;
 
+.field public Kq5pt6AeqxqwOjab0R8ioI:Ljava/math/BigInteger;
 
-# direct methods
-.method public constructor <init>(Z)V
-    .registers 2
-
-    iput-boolean p1, p0, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->Ku5O3sihzbUhwSewE8uI:Z
-
-    invoke-direct {p0}, Landroid/app/TaskStackListener;-><init>()V
-
-    return-void
-.end method
+.field public Ku5O3sihzbUhwSewE8uI:Ljava/math/BigInteger;
 
 
 # virtual methods
-.method public final onTaskStackChanged()V
+.method public final equals(Ljava/lang/Object;)Z
     .registers 5
 
-    invoke-static {}, Lcom/android/internal/util/kaorios/Ktq7kOsU09e30ySmxm7wEpm9I;->KmwO02nawgUws9Syxnq2rElI()Z
+    instance-of v0, p1, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;
+
+    const/4 v1, 0x0
+
+    if-nez v0, :cond_6
+
+    return v1
+
+    :cond_6
+    check-cast p1, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;
+
+    iget-object v0, p1, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->KmwO02nawgUws9Syxnq2rElI:Ljava/math/BigInteger;
+
+    iget-object v2, p0, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->KmwO02nawgUws9Syxnq2rElI:Ljava/math/BigInteger;
+
+    if-eqz v2, :cond_15
+
+    invoke-virtual {v2, v0}, Ljava/math/BigInteger;->equals(Ljava/lang/Object;)Z
 
     move-result v0
 
-    iget-boolean v1, p0, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->Ku5O3sihzbUhwSewE8uI:Z
+    if-nez v0, :cond_18
 
-    xor-int/2addr v1, v0
+    return v1
 
-    if-eqz v1, :cond_33
+    :cond_15
+    if-eqz v0, :cond_18
 
-    const-wide v1, -0x2346c885e6b8L
+    return v1
 
-    invoke-static {v1, v2}, Lcom/android/internal/util/kaorios/Ks23qmqAooOtt2x0xRh6I;->K7b6cynAykO75yzw1Ri5kI(J)Ljava/lang/String;
+    :cond_18
+    iget-object v0, p1, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->Kq5pt6AeqxqwOjab0R8ioI:Ljava/math/BigInteger;
 
-    move-result-object v1
+    iget-object v2, p0, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->Kq5pt6AeqxqwOjab0R8ioI:Ljava/math/BigInteger;
 
-    const-wide v2, -0x2374c885e6b8L
+    invoke-virtual {v0, v2}, Ljava/math/BigInteger;->equals(Ljava/lang/Object;)Z
 
-    invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/Ks23qmqAooOtt2x0xRh6I;->K7b6cynAykO75yzw1Ri5kI(J)Ljava/lang/String;
+    move-result v0
 
-    move-result-object v2
+    if-eqz v0, :cond_2e
 
-    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+    iget-object p1, p1, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->Ku5O3sihzbUhwSewE8uI:Ljava/math/BigInteger;
 
-    move-result-object v0
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->Ku5O3sihzbUhwSewE8uI:Ljava/math/BigInteger;
 
-    iget-boolean p0, p0, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->Ku5O3sihzbUhwSewE8uI:Z
-
-    invoke-static {p0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
-
-    move-result-object p0
-
-    filled-new-array {v2, v0, p0}, [Ljava/lang/Object;
-
-    move-result-object p0
-
-    invoke-static {v1, p0}, Ljava/lang/String;->format(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
-
-    invoke-static {}, Landroid/os/Process;->myPid()I
+    invoke-virtual {p1, p0}, Ljava/math/BigInteger;->equals(Ljava/lang/Object;)Z
 
     move-result p0
 
-    invoke-static {p0}, Landroid/os/Process;->killProcess(I)V
+    if-eqz p0, :cond_2e
 
-    :cond_33
-    return-void
+    const/4 p0, 0x1
+
+    return p0
+
+    :cond_2e
+    return v1
+.end method
+
+.method public final hashCode()I
+    .registers 3
+
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->Kq5pt6AeqxqwOjab0R8ioI:Ljava/math/BigInteger;
+
+    invoke-virtual {v0}, Ljava/math/BigInteger;->hashCode()I
+
+    move-result v0
+
+    iget-object v1, p0, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->Ku5O3sihzbUhwSewE8uI:Ljava/math/BigInteger;
+
+    invoke-virtual {v1}, Ljava/math/BigInteger;->hashCode()I
+
+    move-result v1
+
+    xor-int/2addr v0, v1
+
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/Kes91ouA0hqkcO77vRud3phoI;->KmwO02nawgUws9Syxnq2rElI:Ljava/math/BigInteger;
+
+    if-eqz p0, :cond_16
+
+    invoke-virtual {p0}, Ljava/math/BigInteger;->hashCode()I
+
+    move-result p0
+
+    goto :goto_17
+
+    :cond_16
+    const/4 p0, 0x0
+
+    :goto_17
+    xor-int/2addr p0, v0
+
+    return p0
 .end method

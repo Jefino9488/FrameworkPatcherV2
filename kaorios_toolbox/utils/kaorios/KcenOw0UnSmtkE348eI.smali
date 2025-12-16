@@ -1,250 +1,137 @@
 .class public final Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;
-.super Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+.super Ljava/lang/Object;
+
+# interfaces
+.implements Ljava/security/PrivateKey;
+.implements Ljava/security/Key;
 
 
 # instance fields
-.field public final Kq4snztAiatOsRsxI:I
+.field public transient KmwO02nawgUws9Syxnq2rElI:[B
 
-.field public final KyqOjqyU2SoxvE3gI:[Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+.field public transient Kq4snztAiatOsRsxI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
 
+.field public transient Kq5pt6AeqxqwOjab0R8ioI:Ljava/lang/String;
 
-# direct methods
-.method public constructor <init>([B[Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;)V
-    .registers 3
-
-    invoke-direct {p0, p1}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;-><init>([B)V
-
-    iput-object p2, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->KyqOjqyU2SoxvE3gI:[Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
-
-    const/16 p1, 0x3e8
-
-    iput p1, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->Kq4snztAiatOsRsxI:I
-
-    return-void
-.end method
-
-.method public static Kvvx152O1Uo652lSpg5iE1I([Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;)[B
-    .registers 8
-
-    array-length v0, p0
-
-    if-eqz v0, :cond_2d
-
-    const/4 v1, 0x1
-
-    const/4 v2, 0x0
-
-    if-eq v0, v1, :cond_28
-
-    move v1, v2
-
-    move v3, v1
-
-    :goto_9
-    if-ge v1, v0, :cond_14
-
-    aget-object v4, p0, v1
-
-    iget-object v4, v4, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Ku5O3sihzbUhwSewE8uI:[B
-
-    array-length v4, v4
-
-    add-int/2addr v3, v4
-
-    add-int/lit8 v1, v1, 0x1
-
-    goto :goto_9
-
-    :cond_14
-    new-array v1, v3, [B
-
-    move v3, v2
-
-    move v4, v3
-
-    :goto_18
-    if-ge v3, v0, :cond_27
-
-    aget-object v5, p0, v3
-
-    iget-object v5, v5, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Ku5O3sihzbUhwSewE8uI:[B
-
-    array-length v6, v5
-
-    invoke-static {v5, v2, v1, v4, v6}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
-
-    array-length v5, v5
-
-    add-int/2addr v4, v5
-
-    add-int/lit8 v3, v3, 0x1
-
-    goto :goto_18
-
-    :cond_27
-    return-object v1
-
-    :cond_28
-    aget-object p0, p0, v2
-
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Ku5O3sihzbUhwSewE8uI:[B
-
-    return-object p0
-
-    :cond_2d
-    sget-object p0, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->KmwO02nawgUws9Syxnq2rElI:[B
-
-    return-object p0
-.end method
+.field public transient Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K3g0AvpO6RjfrI;
 
 
 # virtual methods
-.method public final K8c63Ooauv32UndyuScEgI()Z
-    .registers 1
+.method public final equals(Ljava/lang/Object;)Z
+    .registers 3
+
+    if-ne p1, p0, :cond_4
 
     const/4 p0, 0x1
 
     return p0
-.end method
-
-.method public final Kgs66qnAfO491Ra48r7aI(Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;Z)V
-    .registers 8
-
-    const/16 v0, 0x24
-
-    invoke-virtual {p1, p2, v0}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->KcxerAdpv60xOdaR8bI(ZI)V
-
-    const/16 p2, 0x80
-
-    invoke-virtual {p1, p2}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->KmzodnwO1tUkgkS8cymEofiI(I)V
-
-    const/4 p2, 0x0
-
-    iget-object v0, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->KyqOjqyU2SoxvE3gI:[Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
-
-    if-eqz v0, :cond_13
-
-    invoke-virtual {p1, v0}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->Kv20eAs5x8fqOila11RtI([Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;)V
-
-    goto :goto_2e
-
-    :cond_13
-    move v0, p2
-
-    :goto_14
-    iget-object v1, p0, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Ku5O3sihzbUhwSewE8uI:[B
-
-    array-length v2, v1
-
-    if-ge v0, v2, :cond_2e
-
-    array-length v2, v1
-
-    sub-int/2addr v2, v0
-
-    iget v3, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->Kq4snztAiatOsRsxI:I
-
-    invoke-static {v2, v3}, Ljava/lang/Math;->min(II)I
-
-    move-result v2
-
-    const/4 v3, 0x1
-
-    const/4 v4, 0x4
-
-    invoke-virtual {p1, v3, v4}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->KcxerAdpv60xOdaR8bI(ZI)V
-
-    invoke-virtual {p1, v2}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->KtbuouOlomiUohgSxfezrEyv01I(I)V
-
-    invoke-virtual {p1, v1, v0, v2}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->K91vAo8w086Op21a5bR8uI([BII)V
-
-    add-int/2addr v0, v2
-
-    goto :goto_14
-
-    :cond_2e
-    :goto_2e
-    invoke-virtual {p1, p2}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->KmzodnwO1tUkgkS8cymEofiI(I)V
-
-    invoke-virtual {p1, p2}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->KmzodnwO1tUkgkS8cymEofiI(I)V
-
-    return-void
-.end method
-
-.method public final Krm6mrOepnol8UwzffcgSbspr9Ehpvxs5I(Z)I
-    .registers 6
-
-    if-eqz p1, :cond_4
-
-    const/4 p1, 0x4
-
-    goto :goto_5
 
     :cond_4
-    const/4 p1, 0x3
+    instance-of v0, p1, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;
 
-    :goto_5
-    iget-object v0, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->KyqOjqyU2SoxvE3gI:[Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    if-eqz v0, :cond_17
 
-    const/4 v1, 0x1
+    check-cast p1, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;
 
-    if-eqz v0, :cond_19
+    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->getEncoded()[B
 
-    const/4 p0, 0x0
+    move-result-object p0
 
-    :goto_b
-    array-length v2, v0
+    invoke-virtual {p1}, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->getEncoded()[B
 
-    if-ge p0, v2, :cond_18
+    move-result-object p1
 
-    aget-object v2, v0, p0
-
-    invoke-virtual {v2, v1}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->Krm6mrOepnol8UwzffcgSbspr9Ehpvxs5I(Z)I
-
-    move-result v2
-
-    add-int/2addr p1, v2
-
-    add-int/lit8 p0, p0, 0x1
-
-    goto :goto_b
-
-    :cond_18
-    return p1
-
-    :cond_19
-    iget-object v0, p0, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Ku5O3sihzbUhwSewE8uI:[B
-
-    array-length v2, v0
-
-    iget p0, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->Kq4snztAiatOsRsxI:I
-
-    div-int/2addr v2, p0
-
-    invoke-static {v1, p0}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->KyqOjqyU2SoxvE3gI(ZI)I
-
-    move-result v3
-
-    mul-int/2addr v3, v2
-
-    add-int/2addr v3, p1
-
-    array-length p1, v0
-
-    mul-int/2addr v2, p0
-
-    sub-int/2addr p1, v2
-
-    if-lez p1, :cond_30
-
-    invoke-static {v1, p1}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->KyqOjqyU2SoxvE3gI(ZI)I
+    invoke-static {p0, p1}, Ljava/util/Arrays;->equals([B[B)Z
 
     move-result p0
 
-    add-int/2addr p0, v3
-
     return p0
 
-    :cond_30
-    return v3
+    :cond_17
+    const/4 p0, 0x0
+
+    return p0
+.end method
+
+.method public final getAlgorithm()Ljava/lang/String;
+    .registers 1
+
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->Kq5pt6AeqxqwOjab0R8ioI:Ljava/lang/String;
+
+    return-object p0
+.end method
+
+.method public final getEncoded()[B
+    .registers 4
+
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->KmwO02nawgUws9Syxnq2rElI:[B
+
+    if-nez v0, :cond_20
+
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K3g0AvpO6RjfrI;
+
+    iget-object v1, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->Kq4snztAiatOsRsxI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
+
+    iget-boolean v2, v0, Lcom/android/internal/util/kaorios/K00oaOwyUnS4yEwadcr4I;->Ku5O3sihzbUhwSewE8uI:Z
+
+    if-eqz v2, :cond_18
+
+    const/4 v2, 0x0
+
+    :try_start_d
+    invoke-static {v0, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6okO5hUclibxShsEkbgopaI(Lcom/android/internal/util/kaorios/K00oaOwyUnS4yEwadcr4I;Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;)Lcom/android/internal/util/kaorios/KbidnAazihOzyfdRihubI;
+
+    move-result-object v0
+
+    invoke-virtual {v0}, Lcom/android/internal/util/kaorios/K4jO0jUdoSdqE9pI;->KmzodnwO1tUkgkS8cymEofiI()[B
+
+    move-result-object v2
+    :try_end_15
+    .catch Ljava/lang/Exception; {:try_start_d .. :try_end_15} :catch_15
+
+    :catch_15
+    iput-object v2, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->KmwO02nawgUws9Syxnq2rElI:[B
+
+    goto :goto_20
+
+    :cond_18
+    new-instance p0, Ljava/lang/IllegalArgumentException;
+
+    const-string v0, "public key found"
+
+    invoke-direct {p0, v0}, Ljava/lang/IllegalArgumentException;-><init>(Ljava/lang/String;)V
+
+    throw p0
+
+    :cond_20
+    :goto_20
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->KmwO02nawgUws9Syxnq2rElI:[B
+
+    invoke-static {p0}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K8c63Ooauv32UndyuScEgI([B)[B
+
+    move-result-object p0
+
+    return-object p0
+.end method
+
+.method public final getFormat()Ljava/lang/String;
+    .registers 1
+
+    const-string p0, "PKCS#8"
+
+    return-object p0
+.end method
+
+.method public final hashCode()I
+    .registers 1
+
+    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/KcenOw0UnSmtkE348eI;->getEncoded()[B
+
+    move-result-object p0
+
+    invoke-static {p0}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->Ky0abxO2fU9ohS4ffktqEzfvq0bI([B)I
+
+    move-result p0
+
+    return p0
 .end method

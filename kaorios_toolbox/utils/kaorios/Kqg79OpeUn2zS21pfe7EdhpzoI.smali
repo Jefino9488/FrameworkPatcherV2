@@ -1,68 +1,76 @@
-.class public interface abstract Lcom/android/internal/util/kaorios/Kqg79OpeUn2zS21pfe7EdhpzoI;
-.super Ljava/lang/Object;
+.class public final Lcom/android/internal/util/kaorios/Kqg79OpeUn2zS21pfe7EdhpzoI;
+.super Lcom/android/internal/util/kaorios/KjfkAcnq7O6Rwho3yI;
 
 
-# static fields
-.field public static final KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-.field public static final Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-.field public static final Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+# instance fields
+.field public final KmwO02nawgUws9Syxnq2rElI:[B
 
 
 # direct methods
-.method static constructor <clinit>()V
-    .registers 2
+.method public constructor <init>(Lcom/android/internal/util/kaorios/Kt1OskdsecUo2S278unEl8I;[B[B[B[B[B)V
+    .registers 8
 
-    new-instance v0, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    const/4 v0, 0x1
 
-    const-string v1, "1.0.10118"
+    invoke-direct {p0, v0, p1}, Lcom/android/internal/util/kaorios/KjfkAcnq7O6Rwho3yI;-><init>(ZLjava/lang/Object;)V
 
-    invoke-direct {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;-><init>(Ljava/lang/String;)V
+    array-length p1, p2
 
-    const-string v1, "3.0"
+    array-length v0, p3
 
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;->K0wipv9AtliO55qRn6mI(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    add-int/2addr p1, v0
 
-    move-result-object v0
+    array-length v0, p4
 
-    const-string v1, "49"
+    add-int/2addr p1, v0
 
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;->K0wipv9AtliO55qRn6mI(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    array-length v0, p5
 
-    move-result-object v1
+    add-int/2addr p1, v0
 
-    sput-object v1, Lcom/android/internal/util/kaorios/Kqg79OpeUn2zS21pfe7EdhpzoI;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    array-length v0, p6
 
-    const-string v1, "50"
+    add-int/2addr p1, v0
 
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;->K0wipv9AtliO55qRn6mI(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    new-array p1, p1, [B
 
-    move-result-object v1
+    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kqg79OpeUn2zS21pfe7EdhpzoI;->KmwO02nawgUws9Syxnq2rElI:[B
 
-    sput-object v1, Lcom/android/internal/util/kaorios/Kqg79OpeUn2zS21pfe7EdhpzoI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    array-length p0, p2
 
-    const-string v1, "55"
+    const/4 v0, 0x0
 
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;->K0wipv9AtliO55qRn6mI(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    invoke-static {p2, v0, p1, v0, p0}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
 
-    move-result-object v0
+    array-length p0, p2
 
-    sput-object v0, Lcom/android/internal/util/kaorios/Kqg79OpeUn2zS21pfe7EdhpzoI;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    array-length p2, p3
 
-    new-instance v0, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    invoke-static {p3, v0, p1, p0, p2}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
 
-    const-string v1, "1.0.18033.2"
+    array-length p2, p3
 
-    invoke-direct {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;-><init>(Ljava/lang/String;)V
+    add-int/2addr p0, p2
 
-    const-string v1, "1.2"
+    array-length p2, p4
 
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;->K0wipv9AtliO55qRn6mI(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    invoke-static {p4, v0, p1, p0, p2}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
 
-    const-string v1, "2.4"
+    array-length p2, p4
 
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;->K0wipv9AtliO55qRn6mI(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    add-int/2addr p0, p2
+
+    array-length p2, p5
+
+    invoke-static {p5, v0, p1, p0, p2}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
+
+    array-length p2, p5
+
+    add-int/2addr p0, p2
+
+    array-length p2, p6
+
+    invoke-static {p6, v0, p1, p0, p2}, Ljava/lang/System;->arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V
 
     return-void
 .end method

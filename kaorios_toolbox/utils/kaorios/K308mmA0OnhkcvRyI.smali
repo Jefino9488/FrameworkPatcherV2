@@ -1,105 +1,53 @@
 .class public abstract Lcom/android/internal/util/kaorios/K308mmA0OnhkcvRyI;
-.super Ljava/lang/Object;
+.super Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;
 
-# interfaces
-.implements Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;
+
+# direct methods
+.method static constructor <clinit>()V
+    .registers 3
+
+    new-instance v0, Lcom/android/internal/util/kaorios/KkjrAkO4etRm8g8I;
+
+    const-class v1, Lcom/android/internal/util/kaorios/K308mmA0OnhkcvRyI;
+
+    const/16 v2, 0xa
+
+    invoke-direct {v0, v1, v2}, Lcom/android/internal/util/kaorios/KkjrAkO4etRm8g8I;-><init>(Ljava/lang/Class;I)V
+
+    return-void
+.end method
 
 
 # virtual methods
-.method public final K91vAo8w086Op21a5bR8uI()[B
+.method public final K91vAo8w086Op21a5bR8uI(Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;)Z
     .registers 2
 
-    new-instance v0, Ljava/io/ByteArrayOutputStream;
+    instance-of p0, p1, Lcom/android/internal/util/kaorios/K308mmA0OnhkcvRyI;
 
-    invoke-direct {v0}, Ljava/io/ByteArrayOutputStream;-><init>()V
-
-    invoke-interface {p0}, Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;->Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
-
-    move-result-object p0
-
-    invoke-virtual {p0, v0}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->K8Ak17imO9w5w4RppI(Ljava/io/OutputStream;)V
-
-    invoke-virtual {v0}, Ljava/io/ByteArrayOutputStream;->toByteArray()[B
-
-    move-result-object p0
-
-    return-object p0
-.end method
-
-.method public final KmzodnwO1tUkgkS8cymEofiI()[B
-    .registers 4
-
-    new-instance v0, Ljava/io/ByteArrayOutputStream;
-
-    invoke-direct {v0}, Ljava/io/ByteArrayOutputStream;-><init>()V
-
-    invoke-interface {p0}, Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;->Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
-
-    move-result-object p0
-
-    invoke-virtual {p0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
-
-    new-instance v1, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;
-
-    invoke-direct {v1, v0}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;-><init>(Ljava/io/OutputStream;)V
-
-    const/4 v2, 0x1
-
-    invoke-virtual {p0, v1, v2}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->Kgs66qnAfO491Ra48r7aI(Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;Z)V
-
-    invoke-virtual {v0}, Ljava/io/ByteArrayOutputStream;->toByteArray()[B
-
-    move-result-object p0
-
-    return-object p0
-.end method
-
-.method public equals(Ljava/lang/Object;)Z
-    .registers 3
-
-    if-ne p0, p1, :cond_4
-
-    const/4 p0, 0x1
-
-    return p0
-
-    :cond_4
-    instance-of v0, p1, Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;
-
-    if-nez v0, :cond_a
+    if-nez p0, :cond_6
 
     const/4 p0, 0x0
 
     return p0
 
-    :cond_a
-    check-cast p1, Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;
-
-    invoke-interface {p0}, Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;->Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
-
-    move-result-object p0
-
-    invoke-interface {p1}, Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;->Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
-
-    move-result-object p1
-
-    invoke-virtual {p0, p1}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->KcxerAdpv60xOdaR8bI(Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;)Z
-
-    move-result p0
+    :cond_6
+    const/4 p0, 0x1
 
     return p0
 .end method
 
-.method public hashCode()I
+.method public final hashCode()I
     .registers 1
 
-    invoke-interface {p0}, Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;->Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
-
-    move-result-object p0
-
-    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->hashCode()I
-
-    move-result p0
+    const/4 p0, -0x1
 
     return p0
+.end method
+
+.method public final toString()Ljava/lang/String;
+    .registers 1
+
+    const-string p0, "NULL"
+
+    return-object p0
 .end method

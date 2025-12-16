@@ -1,59 +1,84 @@
-.class public final Lcom/android/internal/util/kaorios/Kay4jO6l5qmpUoxj3S2EgxquI;
-.super Ljava/lang/Object;
-
-# interfaces
-.implements Ljava/security/PrivilegedAction;
-
-
-# instance fields
-.field public final synthetic Kq5pt6AeqxqwOjab0R8ioI:Ljava/lang/String;
-
-.field public final synthetic Ku5O3sihzbUhwSewE8uI:I
-
-
-# direct methods
-.method public synthetic constructor <init>(Ljava/lang/String;I)V
-    .registers 3
-
-    iput p2, p0, Lcom/android/internal/util/kaorios/Kay4jO6l5qmpUoxj3S2EgxquI;->Ku5O3sihzbUhwSewE8uI:I
-
-    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kay4jO6l5qmpUoxj3S2EgxquI;->Kq5pt6AeqxqwOjab0R8ioI:Ljava/lang/String;
-
-    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
-
-    return-void
-.end method
+.class public Lcom/android/internal/util/kaorios/Kay4jO6l5qmpUoxj3S2EgxquI;
+.super Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;
 
 
 # virtual methods
-.method public final run()Ljava/lang/Object;
-    .registers 2
+.method public K4cv12eOhp5UsS8gpsE2q2z1I([Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;)V
+    .registers 6
 
-    iget v0, p0, Lcom/android/internal/util/kaorios/Kay4jO6l5qmpUoxj3S2EgxquI;->Ku5O3sihzbUhwSewE8uI:I
+    array-length v0, p1
 
-    packed-switch v0, :pswitch_data_14
+    const/4 v1, 0x0
 
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/Kay4jO6l5qmpUoxj3S2EgxquI;->Kq5pt6AeqxqwOjab0R8ioI:Ljava/lang/String;
+    :goto_2
+    if-ge v1, v0, :cond_11
 
-    invoke-static {p0}, Ljava/lang/System;->getProperty(Ljava/lang/String;)Ljava/lang/String;
+    aget-object v2, p1, v1
 
-    move-result-object p0
+    invoke-virtual {v2}, Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;->Kv20eAs5x8fqOila11RtI()Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;
+
+    move-result-object v2
+
+    const/4 v3, 0x1
+
+    invoke-virtual {v2, p0, v3}, Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;->KtbuouOlomiUohgSxfezrEyv01I(Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;Z)V
+
+    add-int/lit8 v1, v1, 0x1
+
+    goto :goto_2
+
+    :cond_11
+    return-void
+.end method
+
+.method public final K7b6cynAykO75yzw1Ri5kI()Lcom/android/internal/util/kaorios/Kay4jO6l5qmpUoxj3S2EgxquI;
+    .registers 1
 
     return-object p0
+.end method
 
-    :pswitch_c
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/Kay4jO6l5qmpUoxj3S2EgxquI;->Kq5pt6AeqxqwOjab0R8ioI:Ljava/lang/String;
+.method public K7xuO3UlvknmcS4irn11EomI([Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
+    .registers 6
 
-    invoke-static {p0}, Ljava/security/Security;->getProperty(Ljava/lang/String;)Ljava/lang/String;
+    array-length v0, p1
 
-    move-result-object p0
+    const/4 v1, 0x0
 
-    return-object p0
+    :goto_2
+    if-ge v1, v0, :cond_15
 
-    nop
+    aget-object v2, p1, v1
 
-    :pswitch_data_14
-    .packed-switch 0x0
-        :pswitch_c
-    .end packed-switch
+    invoke-interface {v2}, Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;->Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;
+
+    move-result-object v2
+
+    invoke-virtual {v2}, Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;->Kv20eAs5x8fqOila11RtI()Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;
+
+    move-result-object v2
+
+    const/4 v3, 0x1
+
+    invoke-virtual {v2, p0, v3}, Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;->KtbuouOlomiUohgSxfezrEyv01I(Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;Z)V
+
+    add-int/lit8 v1, v1, 0x1
+
+    goto :goto_2
+
+    :cond_15
+    return-void
+.end method
+
+.method public KvyA01pu5yOryrRk3kI(Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;)V
+    .registers 3
+
+    const/4 v0, 0x1
+
+    invoke-virtual {p1}, Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;->Kv20eAs5x8fqOila11RtI()Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;
+
+    move-result-object p1
+
+    invoke-virtual {p1, p0, v0}, Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;->KtbuouOlomiUohgSxfezrEyv01I(Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;Z)V
+
+    return-void
 .end method

@@ -1,49 +1,10 @@
-.class public final synthetic Lcom/android/internal/util/kaorios/Ko0kyA0iz1caO1R62tI;
+.class public interface abstract Lcom/android/internal/util/kaorios/Ko0kyA0iz1caO1R62tI;
 .super Ljava/lang/Object;
-
-# interfaces
-.implements Ljava/util/function/BiConsumer;
-
-
-# instance fields
-.field public final synthetic Ku5O3sihzbUhwSewE8uI:I
-
-
-# direct methods
-.method public synthetic constructor <init>(I)V
-    .registers 2
-
-    iput p1, p0, Lcom/android/internal/util/kaorios/Ko0kyA0iz1caO1R62tI;->Ku5O3sihzbUhwSewE8uI:I
-
-    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
-
-    return-void
-.end method
 
 
 # virtual methods
-.method public final accept(Ljava/lang/Object;Ljava/lang/Object;)V
-    .registers 3
+.method public abstract Kq5pt6AeqxqwOjab0R8ioI(Lcom/android/internal/util/kaorios/KbidnAazihOzyfdRihubI;)Ljava/security/PrivateKey;
+.end method
 
-    iget p0, p0, Lcom/android/internal/util/kaorios/Ko0kyA0iz1caO1R62tI;->Ku5O3sihzbUhwSewE8uI:I
-
-    check-cast p1, Ljava/lang/String;
-
-    packed-switch p0, :pswitch_data_10
-
-    invoke-static {p1, p2}, Lcom/android/internal/util/kaorios/Ktq7kOsU09e30ySmxm7wEpm9I;->K7b6cynAykO75yzw1Ri5kI(Ljava/lang/String;Ljava/lang/Object;)V
-
-    return-void
-
-    :pswitch_b
-    invoke-static {p1, p2}, Lcom/android/internal/util/kaorios/K00oaOwyUnS4yEwadcr4I;->Ku5O3sihzbUhwSewE8uI(Ljava/lang/String;Ljava/lang/Object;)V
-
-    return-void
-
-    nop
-
-    :pswitch_data_10
-    .packed-switch 0x0
-        :pswitch_b
-    .end packed-switch
+.method public abstract Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/Kth0O0gysUn819SjfucdEu1dktjI;)Ljava/security/PublicKey;
 .end method

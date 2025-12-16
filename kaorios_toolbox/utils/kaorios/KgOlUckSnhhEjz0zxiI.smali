@@ -1,296 +1,62 @@
-.class public abstract Lcom/android/internal/util/kaorios/KgOlUckSnhhEjz0zxiI;
-.super Ljava/lang/Object;
+.class public final Lcom/android/internal/util/kaorios/KgOlUckSnhhEjz0zxiI;
+.super Lcom/android/internal/util/kaorios/K308mmA0OnhkcvRyI;
 
 
 # static fields
-.field public static final Ku5O3sihzbUhwSewE8uI:Ljava/util/HashMap;
+.field public static final Kq5pt6AeqxqwOjab0R8ioI:[B
+
+.field public static final Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/KgOlUckSnhhEjz0zxiI;
 
 
 # direct methods
 .method static constructor <clinit>()V
-    .registers 23
+    .registers 1
 
-    new-instance v0, Ljava/util/HashMap;
+    new-instance v0, Lcom/android/internal/util/kaorios/KgOlUckSnhhEjz0zxiI;
 
-    invoke-direct {v0}, Ljava/util/HashMap;-><init>()V
+    invoke-direct {v0}, Ljava/lang/Object;-><init>()V
 
-    sput-object v0, Lcom/android/internal/util/kaorios/KgOlUckSnhhEjz0zxiI;->Ku5O3sihzbUhwSewE8uI:Ljava/util/HashMap;
+    sput-object v0, Lcom/android/internal/util/kaorios/KgOlUckSnhhEjz0zxiI;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/KgOlUckSnhhEjz0zxiI;
 
-    new-instance v1, Ljava/util/HashMap;
+    const/4 v0, 0x0
 
-    invoke-direct {v1}, Ljava/util/HashMap;-><init>()V
+    new-array v0, v0, [B
 
-    sget-object v2, Lcom/android/internal/util/kaorios/Kc9owcxAxqOk8w32gRufijsI;->K0wipv9AtliO55qRn6mI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    sput-object v0, Lcom/android/internal/util/kaorios/KgOlUckSnhhEjz0zxiI;->Kq5pt6AeqxqwOjab0R8ioI:[B
 
-    const-string v3, "MD2"
+    return-void
+.end method
 
-    invoke-virtual {v0, v2, v3}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    sget-object v2, Lcom/android/internal/util/kaorios/Kc9owcxAxqOk8w32gRufijsI;->Kvvx152O1Uo652lSpg5iE1I:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+# virtual methods
+.method public final K8Ak17imO9w5w4RppI(Z)I
+    .registers 2
 
-    const-string v3, "MD4"
+    const/4 p0, 0x0
 
-    invoke-virtual {v0, v2, v3}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    invoke-static {p1, p0}, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;->K91vAo8w086Op21a5bR8uI(ZI)I
 
-    sget-object v2, Lcom/android/internal/util/kaorios/Kc9owcxAxqOk8w32gRufijsI;->KvyA01pu5yOryrRk3kI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    move-result p0
 
-    const-string v3, "MD5"
+    return p0
+.end method
 
-    invoke-virtual {v0, v2, v3}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+.method public final Kgs66qnAfO491Ra48r7aI()Z
+    .registers 1
 
-    sget-object v2, Lcom/android/internal/util/kaorios/K7lh6v7AbOdjRexccI;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    const/4 p0, 0x0
 
-    const-string v3, "SHA-1"
+    return p0
+.end method
 
-    invoke-virtual {v0, v2, v3}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+.method public final KtbuouOlomiUohgSxfezrEyv01I(Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;Z)V
+    .registers 4
 
-    sget-object v4, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->Kq4snztAiatOsRsxI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
+    const/4 p0, 0x5
 
-    const-string v5, "SHA-224"
+    sget-object v0, Lcom/android/internal/util/kaorios/KgOlUckSnhhEjz0zxiI;->Kq5pt6AeqxqwOjab0R8ioI:[B
 
-    invoke-virtual {v0, v4, v5}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v6, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v7, "SHA-256"
-
-    invoke-virtual {v0, v6, v7}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v8, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v9, "SHA-384"
-
-    invoke-virtual {v0, v8, v9}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v10, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v11, "SHA-512"
-
-    invoke-virtual {v0, v10, v11}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v12, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->KyqOjqyU2SoxvE3gI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v13, "SHA-512(224)"
-
-    invoke-virtual {v0, v12, v13}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v12, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->K7b6cynAykO75yzw1Ri5kI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v13, "SHA-512(256)"
-
-    invoke-virtual {v0, v12, v13}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v12, Lcom/android/internal/util/kaorios/KwOa6gUaivScyvcwxEj9b4I;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v13, "RIPEMD-128"
-
-    invoke-virtual {v0, v12, v13}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v12, Lcom/android/internal/util/kaorios/KwOa6gUaivScyvcwxEj9b4I;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v14, "RIPEMD-160"
-
-    invoke-virtual {v0, v12, v14}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v12, Lcom/android/internal/util/kaorios/KwOa6gUaivScyvcwxEj9b4I;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    invoke-virtual {v0, v12, v13}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v12, Lcom/android/internal/util/kaorios/Kqg79OpeUn2zS21pfe7EdhpzoI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    invoke-virtual {v0, v12, v13}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v12, Lcom/android/internal/util/kaorios/Kqg79OpeUn2zS21pfe7EdhpzoI;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    invoke-virtual {v0, v12, v14}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v12, Lcom/android/internal/util/kaorios/K6a92xAemyjt9OiR1rcukI;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v13, "GOST3411"
-
-    invoke-virtual {v0, v12, v13}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v12, Lcom/android/internal/util/kaorios/Kt1OskdsecUo2S278unEl8I;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v13, "Tiger"
-
-    invoke-virtual {v0, v12, v13}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v12, Lcom/android/internal/util/kaorios/Kqg79OpeUn2zS21pfe7EdhpzoI;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v13, "Whirlpool"
-
-    invoke-virtual {v0, v12, v13}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v12, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->KmzodnwO1tUkgkS8cymEofiI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v13, "SHA3-224"
-
-    invoke-virtual {v0, v12, v13}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v14, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->K91vAo8w086Op21a5bR8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v15, "SHA3-256"
-
-    invoke-virtual {v0, v14, v15}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    move-object/from16 v16, v15
-
-    sget-object v15, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->KtbuouOlomiUohgSxfezrEyv01I:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    move-object/from16 v17, v14
-
-    const-string v14, "SHA3-384"
-
-    invoke-virtual {v0, v15, v14}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    move-object/from16 v18, v14
-
-    sget-object v14, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->Kgs66qnAfO491Ra48r7aI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    move-object/from16 v19, v15
-
-    const-string v15, "SHA3-512"
-
-    invoke-virtual {v0, v14, v15}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    move-object/from16 v20, v15
-
-    sget-object v15, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->K8c63Ooauv32UndyuScEgI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    move-object/from16 v21, v14
-
-    const-string v14, "SHAKE128"
-
-    invoke-virtual {v0, v15, v14}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v14, Lcom/android/internal/util/kaorios/KsAmmbt8OcdwRq3bI;->K8Ak17imO9w5w4RppI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v15, "SHAKE256"
-
-    invoke-virtual {v0, v14, v15}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v14, Lcom/android/internal/util/kaorios/Kcsn4Ag3mf6fO9R0I;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v15, "SM3"
-
-    invoke-virtual {v0, v14, v15}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    sget-object v14, Lcom/android/internal/util/kaorios/KkbsxtrAsfeaO4ugbRpi62vI;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;
-
-    const-string v15, "BLAKE3-256"
-
-    invoke-virtual {v0, v14, v15}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    move-object/from16 v22, v15
-
-    sget-object v15, Lcom/android/internal/util/kaorios/KjoyeaAjm7q9O1Rm6ydI;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/KjoyeaAjm7q9O1Rm6ydI;
-
-    invoke-direct {v0, v2, v15}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;)V
-
-    invoke-virtual {v1, v3, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    invoke-direct {v0, v4}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    invoke-virtual {v1, v5, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    invoke-direct {v0, v4}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    const-string v2, "SHA224"
-
-    invoke-virtual {v1, v2, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    invoke-direct {v0, v6}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    invoke-virtual {v1, v7, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    invoke-direct {v0, v6}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    const-string v2, "SHA256"
-
-    invoke-virtual {v1, v2, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    invoke-direct {v0, v8}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    invoke-virtual {v1, v9, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    invoke-direct {v0, v8}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    const-string v2, "SHA384"
-
-    invoke-virtual {v1, v2, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    invoke-direct {v0, v10}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    invoke-virtual {v1, v11, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    invoke-direct {v0, v10}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    const-string v2, "SHA512"
-
-    invoke-virtual {v1, v2, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    invoke-direct {v0, v12}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    invoke-virtual {v1, v13, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    move-object/from16 v2, v17
-
-    invoke-direct {v0, v2}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    move-object/from16 v2, v16
-
-    invoke-virtual {v1, v2, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    move-object/from16 v2, v19
-
-    invoke-direct {v0, v2}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    move-object/from16 v2, v18
-
-    invoke-virtual {v1, v2, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    move-object/from16 v2, v21
-
-    invoke-direct {v0, v2}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    move-object/from16 v2, v20
-
-    invoke-virtual {v1, v2, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
-    new-instance v0, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;
-
-    invoke-direct {v0, v14}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;-><init>(Lcom/android/internal/util/kaorios/K7xdw7xO1k54Urug1zqSa2csE398xxI;)V
-
-    move-object/from16 v2, v22
-
-    invoke-virtual {v1, v2, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    invoke-virtual {p1, p0, p2, v0}, Lcom/android/internal/util/kaorios/Kpjiil0OnkfUpeq5t2SlhceEqI;->Kv20eAs5x8fqOila11RtI(IZ[B)V
 
     return-void
 .end method

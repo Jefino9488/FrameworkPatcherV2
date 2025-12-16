@@ -1,60 +1,108 @@
 .class public final Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;
-.super Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;
+.super Ljava/lang/Object;
+
+# interfaces
+.implements Ljava/security/PrivateKey;
+.implements Ljava/security/Key;
+
+
+# instance fields
+.field public transient KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
+
+.field public transient Kq5pt6AeqxqwOjab0R8ioI:Ljava/lang/String;
+
+.field public transient Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/Kwlc8AjpvtO1if97Rhzo5I;
 
 
 # virtual methods
-.method public final Kgs66qnAfO491Ra48r7aI(Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;Z)V
-    .registers 4
+.method public final equals(Ljava/lang/Object;)Z
+    .registers 3
 
-    const/16 v0, 0x31
+    if-ne p1, p0, :cond_4
 
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;->Ku5O3sihzbUhwSewE8uI:[Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;
+    const/4 p0, 0x1
 
-    invoke-virtual {p1, p2, v0, p0}, Lcom/android/internal/util/kaorios/Kzw7Ay0nghOr56cl7R0kI;->K8Ak17imO9w5w4RppI(ZI[Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;)V
-
-    return-void
-.end method
-
-.method public final Krm6mrOepnol8UwzffcgSbspr9Ehpvxs5I(Z)I
-    .registers 6
-
-    if-eqz p1, :cond_4
-
-    const/4 p1, 0x4
-
-    goto :goto_5
+    return p0
 
     :cond_4
-    const/4 p1, 0x3
+    instance-of v0, p1, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;
 
-    :goto_5
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;->Ku5O3sihzbUhwSewE8uI:[Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;
+    if-eqz v0, :cond_17
 
-    array-length v0, p0
+    check-cast p1, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;
 
-    const/4 v1, 0x0
+    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->getEncoded()[B
 
-    :goto_9
-    if-ge v1, v0, :cond_1a
+    move-result-object p0
 
-    aget-object v2, p0, v1
+    invoke-virtual {p1}, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->getEncoded()[B
 
-    invoke-interface {v2}, Lcom/android/internal/util/kaorios/Kl7kjAp088ObenrihR5I;->Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;
+    move-result-object p1
 
-    move-result-object v2
+    invoke-static {p0, p1}, Ljava/util/Arrays;->equals([B[B)Z
 
-    const/4 v3, 0x1
+    move-result p0
 
-    invoke-virtual {v2, v3}, Lcom/android/internal/util/kaorios/Ks96gdAhg0O5g3zRn1c11I;->Krm6mrOepnol8UwzffcgSbspr9Ehpvxs5I(Z)I
+    return p0
 
-    move-result v2
+    :cond_17
+    const/4 p0, 0x0
 
-    add-int/2addr p1, v2
+    return p0
+.end method
 
-    add-int/lit8 v1, v1, 0x1
+.method public final getAlgorithm()Ljava/lang/String;
+    .registers 1
 
-    goto :goto_9
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Kq5pt6AeqxqwOjab0R8ioI:Ljava/lang/String;
 
-    :cond_1a
-    return p1
+    return-object p0
+.end method
+
+.method public final getEncoded()[B
+    .registers 2
+
+    :try_start_0
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/Kwlc8AjpvtO1if97Rhzo5I;
+
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;
+
+    invoke-static {v0, p0}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6okO5hUclibxShsEkbgopaI(Lcom/android/internal/util/kaorios/K00oaOwyUnS4yEwadcr4I;Lcom/android/internal/util/kaorios/Ko71969OwomUfSqsxsgrEyI;)Lcom/android/internal/util/kaorios/KbidnAazihOzyfdRihubI;
+
+    move-result-object p0
+
+    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/K4jO0jUdoSdqE9pI;->getEncoded()[B
+
+    move-result-object p0
+    :try_end_c
+    .catch Ljava/io/IOException; {:try_start_0 .. :try_end_c} :catch_d
+
+    return-object p0
+
+    :catch_d
+    const/4 p0, 0x0
+
+    return-object p0
+.end method
+
+.method public final getFormat()Ljava/lang/String;
+    .registers 1
+
+    const-string p0, "PKCS#8"
+
+    return-object p0
+.end method
+
+.method public final hashCode()I
+    .registers 1
+
+    invoke-virtual {p0}, Lcom/android/internal/util/kaorios/KdgOo6einU027SfEsfI;->getEncoded()[B
+
+    move-result-object p0
+
+    invoke-static {p0}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->Ky0abxO2fU9ohS4ffktqEzfvq0bI([B)I
+
+    move-result p0
+
+    return p0
 .end method
