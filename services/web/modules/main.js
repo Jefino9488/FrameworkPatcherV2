@@ -1,6 +1,6 @@
 // services/web/modules/main.js
-import {androidVersionToApiLevel, extractBaseCodename} from './utils.js';
-import {fetchDevices, fetchDeviceSoftware} from './api.js';
+import { androidVersionToApiLevel, extractBaseCodename } from './utils.js';
+import { fetchDevices, fetchDeviceSoftware } from './api.js';
 import {
     clearForm,
     closeModal,
@@ -12,7 +12,8 @@ import {
     populateVersionDropdown,
     setDetectedInfo,
     showErrorModal,
-    updateAvailableFeatures
+    updateAvailableFeatures,
+    updateRequiredJars
 } from './ui.js';
 
 // Cache for software data to avoid repeated API calls
@@ -48,7 +49,7 @@ async function loadDeviceVersions(codename, versionSelect, hiddenVersionInput) {
         const baseCodename = extractBaseCodename(codename);
 
         if (devicesWithNoVersions.has(codename)) {
-            populateVersionDropdown(versionSelect, hiddenVersionInput, {firmware_versions: [], miui_roms: []});
+            populateVersionDropdown(versionSelect, hiddenVersionInput, { firmware_versions: [], miui_roms: [] });
             return;
         }
 
@@ -163,7 +164,7 @@ function setupEventListeners() {
             e.preventDefault();
 
             const isManualMode = document.getElementById('manual-mode-toggle')?.checked;
-            const {detectedAndroidVersion, detectedApiLevel} = getDetectedInfo();
+            const { detectedAndroidVersion, detectedApiLevel } = getDetectedInfo();
 
             // Validation Logic
             if (!detectedAndroidVersion || !detectedApiLevel) {
@@ -185,4 +186,17 @@ function setupEventListeners() {
             handleFormSubmit(workflowVersion, this);
         });
     }
+
+    // Add event listeners to feature checkboxes to update required JARs
+    const featureCheckboxes = document.querySelectorAll('.feature-checkbox input[type="checkbox"]');
+    featureCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            updateRequiredJars();
+        });
+    });
+
+    // Initialize required JARs on page load (after a small delay to ensure DOM is ready)
+    setTimeout(() => {
+        updateRequiredJars();
+    }, 100);
 }

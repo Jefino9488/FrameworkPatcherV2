@@ -9,6 +9,7 @@ from Framework import bot
 from Framework.helpers.decorators import owner
 from Framework.helpers.logger import LOGGER
 from Framework.helpers.state import *
+from Framework.plugins.user.patch import get_required_jars
 
 
 @bot.on_message(filters.command("pdup") & filters.group & filters.reply)
@@ -53,11 +54,22 @@ async def handle_media_upload(bot: Client, message: Message):
 
     file_name = message.document.file_name.lower()
 
-    if file_name not in ["framework.jar", "services.jar", "miui-services.jar"]:
-        await message.reply_text(
-            "Invalid file name. Please send 'framework.jar', 'services.jar', or 'miui-services.jar'.",
-            quote=True
-        )
+    # Get required JARs from user state, or default to all 3
+    required_jars = user_states[user_id].get("required_jars", {"framework.jar", "services.jar", "miui-services.jar"})
+    
+    if file_name not in required_jars:
+        if file_name in ["framework.jar", "services.jar", "miui-services.jar"]:
+            await message.reply_text(
+                f"'{file_name}' is not needed for your selected features.\n"
+                f"Required files: {', '.join(sorted(required_jars))}",
+                quote=True
+            )
+        else:
+            await message.reply_text(
+                "Invalid file name. Please send one of the required JAR files:\n"
+                f"• {chr(10).join(sorted(required_jars))}",
+                quote=True
+            )
         return
 
     if file_name in user_states[user_id]["files"]:
@@ -121,17 +133,22 @@ async def handle_media_upload(bot: Client, message: Message):
                 "features": {
                     "enable_signature_bypass": True,
                     "enable_cn_notification_fix": False,
-                    "enable_disable_secure_flag": False
-                }
+                    "enable_disable_secure_flag": False,
+                    "enable_kaorios_toolbox": False
+                },
+                "required_jars": {"framework.jar", "services.jar", "miui-services.jar"}
             }
         
+        # Use dynamic required JARs
+        required_jars = user_states[user_id].get("required_jars", {"framework.jar", "services.jar", "miui-services.jar"})
+        total_required = len(required_jars)
+        
         received_count = len(user_states[user_id]["files"]) + 1  # +1 since current file will be counted
-        required_files = ["framework.jar", "services.jar", "miui-services.jar"]
-        missing_files = [f for f in required_files if f not in user_states[user_id]["files"] and f != file_name]
+        missing_files = [f for f in required_jars if f not in user_states[user_id]["files"] and f != file_name]
 
         await message.reply_text(
-            f"Received {file_name}. You have {received_count}/3 files. "
-            f"Remaining: {', '.join(missing_files) if missing_files else 'None'}.",
+            f"Received {file_name}. You have {received_count}/{total_required} files. "
+            f"Remaining: {', '.join(sorted(missing_files)) if missing_files else 'None'}.",
             quote=True
         )
 
@@ -156,17 +173,16 @@ async def handle_media_upload(bot: Client, message: Message):
         user_states[user_id]["files"][file_name] = pixeldrain_link
 
         received_count = len(user_states[user_id]["files"])
-        required_files = ["framework.jar", "services.jar", "miui-services.jar"]
-        missing_files = [f for f in required_files if f not in user_states[user_id]["files"]]
+        missing_files = [f for f in required_jars if f not in user_states[user_id]["files"]]
 
-        if received_count == 3:
+        if received_count == total_required:
             # All files received, now trigger the workflow
             from Framework.helpers.workflows import trigger_github_workflow_async
             from datetime import datetime
             from Framework.helpers.state import user_rate_limits
 
             await message.reply_text(
-                "✅ All 3 files received and uploaded!\n\n"
+                f"✅ All {total_required} required file(s) received and uploaded!\n\n"
                 "⏳ Triggering GitHub workflow...",
                 quote=True
             )
@@ -240,8 +256,8 @@ async def handle_media_upload(bot: Client, message: Message):
                 user_states.pop(user_id, None)
         else:
             await message.reply_text(
-                f"Received {file_name}. You have {received_count}/3 files. "
-                f"Please send the remaining: {', '.join(missing_files)}.",
+                f"Received {file_name}. You have {received_count}/{total_required} files. "
+                f"Please send the remaining: {', '.join(sorted(missing_files))}.",
                 quote=True
             )
 

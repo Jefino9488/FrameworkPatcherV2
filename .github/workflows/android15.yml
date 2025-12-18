@@ -21,16 +21,16 @@ on:
         required: true
         type: string
       framework_url:
-        description: 'URL to framework.jar'
-        required: true
+        description: 'URL to framework.jar (required for: signature_verification, kaorios_toolbox)'
+        required: false
         type: string
       services_url:
-        description: 'URL to services.jar'
-        required: true
+        description: 'URL to services.jar (required for: signature_verification, disable_secure_flag)'
+        required: false
         type: string
       miui_services_url:
-        description: 'URL to miui-services.jar'
-        required: true
+        description: 'URL to miui-services.jar (required for: signature_verification, cn_notification_fix, disable_secure_flag)'
+        required: false
         type: string
       user_id:
         description: 'Telegram User ID to notify (optional)'
@@ -82,30 +82,83 @@ jobs:
             fi
           }
           
-          echo "Downloading JAR files..."
-          download_file "${{ github.event.inputs.framework_url }}" "framework.jar"
-          download_file "${{ github.event.inputs.services_url }}" "services.jar"
-          download_file "${{ github.event.inputs.miui_services_url }}" "miui-services.jar"
+          # Determine which JARs are needed based on features
+          FEATURES="${{ github.event.inputs.features }}"
+          NEED_FRAMEWORK=0
+          NEED_SERVICES=0
+          NEED_MIUI_SERVICES=0
+          
+          # Signature verification needs all 3
+          if [[ "$FEATURES" == *"disable_signature_verification"* ]]; then
+            NEED_FRAMEWORK=1
+            NEED_SERVICES=1
+            NEED_MIUI_SERVICES=1
+          fi
+          
+          # Kaorios toolbox only needs framework.jar
+          if [[ "$FEATURES" == *"kaorios_toolbox"* ]]; then
+            NEED_FRAMEWORK=1
+          fi
+          
+          # CN notification fix only needs miui-services.jar
+          if [[ "$FEATURES" == *"cn_notification_fix"* ]]; then
+            NEED_MIUI_SERVICES=1
+          fi
+          
+          # Disable secure flag needs services.jar and miui-services.jar
+          if [[ "$FEATURES" == *"disable_secure_flag"* ]]; then
+            NEED_SERVICES=1
+            NEED_MIUI_SERVICES=1
+          fi
+          
+          echo "============================================"
+          echo "Feature-based JAR requirements:"
+          echo "  framework.jar: $([ $NEED_FRAMEWORK -eq 1 ] && echo 'REQUIRED' || echo 'not needed')"
+          echo "  services.jar: $([ $NEED_SERVICES -eq 1 ] && echo 'REQUIRED' || echo 'not needed')"
+          echo "  miui-services.jar: $([ $NEED_MIUI_SERVICES -eq 1 ] && echo 'REQUIRED' || echo 'not needed')"
+          echo "============================================"
+          
+          # Download required JARs
+          if [ $NEED_FRAMEWORK -eq 1 ]; then
+            if [ -z "${{ github.event.inputs.framework_url }}" ]; then
+              echo "❌ framework.jar URL is required but not provided!"
+              exit 1
+            fi
+            download_file "${{ github.event.inputs.framework_url }}" "framework.jar"
+          fi
+          
+          if [ $NEED_SERVICES -eq 1 ]; then
+            if [ -z "${{ github.event.inputs.services_url }}" ]; then
+              echo "❌ services.jar URL is required but not provided!"
+              exit 1
+            fi
+            download_file "${{ github.event.inputs.services_url }}" "services.jar"
+          fi
+          
+          if [ $NEED_MIUI_SERVICES -eq 1 ]; then
+            if [ -z "${{ github.event.inputs.miui_services_url }}" ]; then
+              echo "❌ miui-services.jar URL is required but not provided!"
+              exit 1
+            fi
+            download_file "${{ github.event.inputs.miui_services_url }}" "miui-services.jar"
+          fi
           
           echo "Validating downloaded JAR files..."
           for jar in framework.jar services.jar miui-services.jar; do
-            if [ ! -f "$jar" ]; then
-              echo "❌ $jar not found!"
-              exit 1
+            if [ -f "$jar" ]; then
+              file_size=$(stat -c%s "$jar")
+              echo "Checking $jar (${file_size} bytes)..."
+              
+              if [ $file_size -lt 1500000 ]; then
+                echo "❌ Error: $jar is too small (${file_size} bytes). Download might have failed."
+                exit 1
+              fi
+              
+              echo "✅ $jar validated successfully"
             fi
-            
-            file_size=$(stat -c%s "$jar")
-            echo "Checking $jar (${file_size} bytes)..."
-            
-            if [ $file_size -lt 1500000 ]; then
-              echo "❌ Error: $jar is too small (${file_size} bytes). Download might have failed."
-              exit 1
-            fi
-            
-            echo "✅ $jar validated successfully"
           done
           
-          echo "All JAR files validated successfully!"
+          echo "All required JAR files downloaded and validated!"
 
       - name: Set safe device codename
         id: set_codename
@@ -141,11 +194,26 @@ jobs:
             FEATURE_FLAGS="--disable-signature-verification"
           fi
           
+          # Build JAR flags based on which JARs are present
+          JAR_FLAGS=""
+          if [ -f "framework.jar" ]; then
+            JAR_FLAGS="$JAR_FLAGS --framework"
+          fi
+          if [ -f "services.jar" ]; then
+            JAR_FLAGS="$JAR_FLAGS --services"
+          fi
+          if [ -f "miui-services.jar" ]; then
+            JAR_FLAGS="$JAR_FLAGS --miui-services"
+          fi
+          
+          echo "Running patcher with JAR flags: $JAR_FLAGS"
+          echo "Feature flags: $FEATURE_FLAGS"
+          
           ./scripts/patcher_a15.sh \
             ${{ github.event.inputs.api_level }} \
             "${{ steps.set_codename.outputs.codename }}" \
             "${{ github.event.inputs.version_name }}" \
-            --framework --services --miui-services $FEATURE_FLAGS
+            $JAR_FLAGS $FEATURE_FLAGS
 
       - name: Verify module creation
         run: |

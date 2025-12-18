@@ -6,6 +6,15 @@ import { triggerWorkflow } from './api.js';
 let detectedAndroidVersion = null;
 let detectedApiLevel = null;
 
+// Feature to JAR requirements mapping
+// Defines which JAR files are required for each feature
+const FEATURE_JAR_REQUIREMENTS = {
+    "enable_signature_bypass": ["framework.jar", "services.jar", "miui-services.jar"],
+    "enable_cn_notification_fix": ["miui-services.jar"],
+    "enable_disable_secure_flag": ["services.jar", "miui-services.jar"],
+    "enable_kaorios_toolbox": ["framework.jar"]
+};
+
 // Modal functions
 export function showModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -193,6 +202,77 @@ export function populateVersionDropdown(versionSelect, hiddenVersionInput, softw
     input.value = options.length > 1 ? 'Select a version' : 'No versions available';
 }
 
+// Calculate which JARs are required based on selected features
+export function getRequiredJars() {
+    const requiredJars = new Set();
+
+    // Check each feature checkbox
+    const signatureCheckbox = document.querySelector('input[name="enable_signature_bypass"]');
+    const cnNotifCheckbox = document.querySelector('input[name="enable_cn_notification_fix"]');
+    const secureCheckbox = document.querySelector('input[name="enable_disable_secure_flag"]');
+    const kaoriosCheckbox = document.querySelector('input[name="enable_kaorios_toolbox"]');
+
+    if (signatureCheckbox?.checked) {
+        FEATURE_JAR_REQUIREMENTS["enable_signature_bypass"].forEach(jar => requiredJars.add(jar));
+    }
+    if (cnNotifCheckbox?.checked) {
+        FEATURE_JAR_REQUIREMENTS["enable_cn_notification_fix"].forEach(jar => requiredJars.add(jar));
+    }
+    if (secureCheckbox?.checked) {
+        FEATURE_JAR_REQUIREMENTS["enable_disable_secure_flag"].forEach(jar => requiredJars.add(jar));
+    }
+    if (kaoriosCheckbox?.checked) {
+        FEATURE_JAR_REQUIREMENTS["enable_kaorios_toolbox"].forEach(jar => requiredJars.add(jar));
+    }
+
+    // Default to signature bypass if nothing selected
+    if (requiredJars.size === 0) {
+        FEATURE_JAR_REQUIREMENTS["enable_signature_bypass"].forEach(jar => requiredJars.add(jar));
+    }
+
+    return requiredJars;
+}
+
+// Update JAR input fields visibility and required status based on selected features
+export function updateRequiredJars() {
+    const requiredJars = getRequiredJars();
+
+    const frameworkInput = document.getElementById('framework-url');
+    const servicesInput = document.getElementById('services-url');
+    const miuiServicesInput = document.getElementById('miui-services-url');
+
+    const frameworkGroup = frameworkInput?.closest('.form-group');
+    const servicesGroup = servicesInput?.closest('.form-group');
+    const miuiServicesGroup = miuiServicesInput?.closest('.form-group');
+
+    // Update framework.jar
+    if (frameworkGroup && frameworkInput) {
+        const isRequired = requiredJars.has('framework.jar');
+        frameworkGroup.style.display = isRequired ? 'block' : 'none';
+        frameworkInput.required = isRequired;
+        if (!isRequired) frameworkInput.value = '';
+    }
+
+    // Update services.jar
+    if (servicesGroup && servicesInput) {
+        const isRequired = requiredJars.has('services.jar');
+        servicesGroup.style.display = isRequired ? 'block' : 'none';
+        servicesInput.required = isRequired;
+        if (!isRequired) servicesInput.value = '';
+    }
+
+    // Update miui-services.jar
+    if (miuiServicesGroup && miuiServicesInput) {
+        const isRequired = requiredJars.has('miui-services.jar');
+        miuiServicesGroup.style.display = isRequired ? 'block' : 'none';
+        miuiServicesInput.required = isRequired;
+        if (!isRequired) miuiServicesInput.value = '';
+    }
+
+    // Log for debugging
+    console.log('Required JARs:', Array.from(requiredJars));
+}
+
 export function updateAvailableFeatures(androidVersion) {
     const cnNotificationFeature = document.getElementById('cn-notification-feature');
     const secureFlagFeature = document.getElementById('secure-flag-feature');
@@ -255,6 +335,9 @@ export function updateAvailableFeatures(androidVersion) {
         if (secureCheckbox) secureCheckbox.checked = false;
         if (kaoriosCheckbox) kaoriosCheckbox.checked = false;
     }
+
+    // Update required JAR fields based on current feature selection
+    updateRequiredJars();
 }
 
 export function initializeManualMode() {
@@ -341,10 +424,26 @@ export async function handleFormSubmit(version, form) {
             }
         }
 
-        // --- COMMON INPUTS (URLs, Features) ---
-        inputs.framework_url = document.getElementById('framework-url').value;
-        inputs.services_url = document.getElementById('services-url').value;
-        inputs.miui_services_url = document.getElementById('miui-services-url').value;
+        // --- COMMON INPUTS (JAR URLs - only include required ones) ---
+        const requiredJars = getRequiredJars();
+
+        const frameworkUrl = document.getElementById('framework-url').value;
+        const servicesUrl = document.getElementById('services-url').value;
+        const miuiServicesUrl = document.getElementById('miui-services-url').value;
+
+        // Only include JAR URLs that are required
+        if (requiredJars.has('framework.jar')) {
+            if (!frameworkUrl) throw new Error('framework.jar URL is required for the selected features.');
+            inputs.framework_url = frameworkUrl;
+        }
+        if (requiredJars.has('services.jar')) {
+            if (!servicesUrl) throw new Error('services.jar URL is required for the selected features.');
+            inputs.services_url = servicesUrl;
+        }
+        if (requiredJars.has('miui-services.jar')) {
+            if (!miuiServicesUrl) throw new Error('miui-services.jar URL is required for the selected features.');
+            inputs.miui_services_url = miuiServicesUrl;
+        }
 
         // Get User ID (optional)
         const userId = document.getElementById('user-id').value;
@@ -354,9 +453,10 @@ export async function handleFormSubmit(version, form) {
 
         // Handle feature flags manually to ensure checkboxes are caught
         const feature_list = [];
-        if (document.querySelector('input[name="enable_signature_bypass"]').checked) feature_list.push('disable_signature_verification');
-        if (document.querySelector('input[name="enable_cn_notification_fix"]').checked) feature_list.push('cn_notification_fix');
-        if (document.querySelector('input[name="enable_disable_secure_flag"]').checked) feature_list.push('disable_secure_flag');
+        if (document.querySelector('input[name="enable_signature_bypass"]')?.checked) feature_list.push('disable_signature_verification');
+        if (document.querySelector('input[name="enable_cn_notification_fix"]')?.checked) feature_list.push('cn_notification_fix');
+        if (document.querySelector('input[name="enable_disable_secure_flag"]')?.checked) feature_list.push('disable_secure_flag');
+        if (document.querySelector('input[name="enable_kaorios_toolbox"]')?.checked) feature_list.push('kaorios_toolbox');
 
         inputs.features = feature_list.join(',');
         if (!inputs.features) inputs.features = 'disable_signature_verification';

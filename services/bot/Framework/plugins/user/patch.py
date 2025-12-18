@@ -4,6 +4,35 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 from Framework import bot
 from Framework.helpers.state import *
 
+# Feature to JAR requirements mapping
+# Defines which JAR files are required for each feature
+FEATURE_JAR_REQUIREMENTS = {
+    "enable_signature_bypass": ["framework.jar", "services.jar", "miui-services.jar"],
+    "enable_cn_notification_fix": ["miui-services.jar"],
+    "enable_disable_secure_flag": ["services.jar", "miui-services.jar"],
+    "enable_kaorios_toolbox": ["framework.jar"]
+}
+
+
+def get_required_jars(features: dict) -> set:
+    """Calculate which JARs are required based on selected features."""
+    required_jars = set()
+    
+    if features.get("enable_signature_bypass", False):
+        required_jars.update(FEATURE_JAR_REQUIREMENTS["enable_signature_bypass"])
+    if features.get("enable_cn_notification_fix", False):
+        required_jars.update(FEATURE_JAR_REQUIREMENTS["enable_cn_notification_fix"])
+    if features.get("enable_disable_secure_flag", False):
+        required_jars.update(FEATURE_JAR_REQUIREMENTS["enable_disable_secure_flag"])
+    if features.get("enable_kaorios_toolbox", False):
+        required_jars.update(FEATURE_JAR_REQUIREMENTS["enable_kaorios_toolbox"])
+    
+    # Default to signature bypass if no features selected
+    if not required_jars:
+        required_jars.update(FEATURE_JAR_REQUIREMENTS["enable_signature_bypass"])
+    
+    return required_jars
+
 
 @bot.on_message(filters.private & filters.command("start_patch"))
 async def start_patch_command(bot: Client, message: Message):
@@ -138,12 +167,17 @@ async def features_done_handler(bot: Client, query: CallbackQuery):
     
     features_text = "\n".join(selected_features)
     
+    # Get required JARs based on selected features
+    required_jars = get_required_jars(features)
+    user_states[user_id]["required_jars"] = required_jars
+    
+    # Build JAR list message
+    jar_list = "\n".join([f"• {jar}" for jar in sorted(required_jars)])
+    
     user_states[user_id]["state"] = STATE_WAITING_FOR_FILES
     await query.message.edit_text(
         f"✅ Features selected:\n\n{features_text}\n\n"
-        "Now, please send all 3 JAR files:\n"
-        "• framework.jar\n"
-        "• services.jar\n"
-        "• miui-services.jar"
+        f"📦 **Required JAR files ({len(required_jars)}):**\n{jar_list}\n\n"
+        "Please send the JAR files listed above."
     )
     await query.answer("Features confirmed!")

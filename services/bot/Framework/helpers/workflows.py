@@ -90,13 +90,22 @@ async def trigger_github_workflow_async(links: dict, device_name: str, device_co
             "device_name": device_name,
             "device_codename": device_codename,
             "version_name": version_name,
-            "framework_url": links.get("framework.jar"),
-            "services_url": links.get("services.jar"),
-            "miui_services_url": links.get("miui-services.jar"),
             "user_id": str(user_id),
             "features": features_str
         }
     }
+    
+    # Only include JAR URLs if they are provided (not empty or None)
+    framework_url = links.get("framework.jar")
+    services_url = links.get("services.jar")
+    miui_services_url = links.get("miui-services.jar")
+    
+    if framework_url:
+        data["inputs"]["framework_url"] = framework_url
+    if services_url:
+        data["inputs"]["services_url"] = services_url
+    if miui_services_url:
+        data["inputs"]["miui_services_url"] = miui_services_url
 
     LOGGER.info(
         f"Attempting to dispatch GitHub workflow to {url} for device {device_name} version {version_name} for user {user_id}")
