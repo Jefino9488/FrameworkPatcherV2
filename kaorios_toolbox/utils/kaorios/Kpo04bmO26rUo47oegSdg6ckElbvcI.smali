@@ -74,9 +74,9 @@
 .method public static Kq4snztAiatOsRsxI(Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;)V
     .registers 2
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Khj2fnO0qthlwU2iSeaEr8euxgI;
+    new-instance v0, Lcom/android/internal/util/kaorios/Kf96m5A24OfhebtlRp1bI;
 
-    invoke-direct {v0}, Lcom/android/internal/util/kaorios/Khj2fnO0qthlwU2iSeaEr8euxgI;-><init>()V
+    invoke-direct {v0}, Lcom/android/internal/util/kaorios/Kf96m5A24OfhebtlRp1bI;-><init>()V
 
     invoke-static {p0, v0}, Lcom/android/internal/util/kaorios/KfnbAx4hOi2gabRo66I;->KmwO02nawgUws9Syxnq2rElI(Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;Lcom/android/internal/util/kaorios/Ko0kyA0iz1caO1R62tI;)V
 
@@ -86,9 +86,9 @@
 .method public static Kq5pt6AeqxqwOjab0R8ioI(IILcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;Ljava/util/HashMap;Ljava/lang/Integer;)V
     .registers 6
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kxo9yoAstbO418xbRrdbwI;
+    new-instance v0, Lcom/android/internal/util/kaorios/Kb6izOkpUeaf3lSjrynmqEz7qmiI;
 
-    invoke-direct {v0, p0, p1, p2}, Lcom/android/internal/util/kaorios/Kxo9yoAstbO418xbRrdbwI;-><init>(IILcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;)V
+    invoke-direct {v0, p0, p1, p2}, Lcom/android/internal/util/kaorios/Kb6izOkpUeaf3lSjrynmqEz7qmiI;-><init>(IILcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;)V
 
     invoke-virtual {p3, p4, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 

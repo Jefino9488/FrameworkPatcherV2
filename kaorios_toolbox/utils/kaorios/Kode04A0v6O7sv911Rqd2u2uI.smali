@@ -2,13 +2,13 @@
 .super Ljava/lang/Object;
 
 # interfaces
-.implements Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;
+.implements Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;
 
 
 # instance fields
 .field public final synthetic KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
 
-.field public final synthetic Kq4snztAiatOsRsxI:J
+.field public final synthetic Kq4snztAiatOsRsxI:I
 
 .field public final synthetic Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
 
@@ -16,16 +16,16 @@
 
 
 # direct methods
-.method public synthetic constructor <init>(Landroid/content/Context;Ljava/lang/String;JI)V
-    .registers 6
+.method public synthetic constructor <init>(Landroid/content/Context;Ljava/lang/String;II)V
+    .registers 5
 
-    iput p5, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Ku5O3sihzbUhwSewE8uI:I
+    iput p4, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Ku5O3sihzbUhwSewE8uI:I
 
     iput-object p1, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
 
     iput-object p2, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
 
-    iput-wide p3, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq4snztAiatOsRsxI:J
+    iput p3, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq4snztAiatOsRsxI:I
 
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
@@ -35,7 +35,7 @@
 
 # virtual methods
 .method public final run()Z
-    .registers 4
+    .registers 3
 
     iget v0, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Ku5O3sihzbUhwSewE8uI:I
 
@@ -43,11 +43,11 @@
 
     iget-object v0, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
 
-    iget-wide v1, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq4snztAiatOsRsxI:J
+    iget v1, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq4snztAiatOsRsxI:I
 
     iget-object p0, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
 
-    invoke-static {p0, v0, v1, v2}, Lcom/android/internal/util/kaorios/SettingsHelper;->Kq5pt6AeqxqwOjab0R8ioI(Landroid/content/Context;Ljava/lang/String;J)Z
+    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->Kgs66qnAfO491Ra48r7aI(Landroid/content/Context;Ljava/lang/String;I)Z
 
     move-result p0
 
@@ -56,11 +56,11 @@
     :pswitch_10
     iget-object v0, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
 
-    iget-wide v1, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq4snztAiatOsRsxI:J
+    iget v1, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq4snztAiatOsRsxI:I
 
     iget-object p0, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
 
-    invoke-static {p0, v0, v1, v2}, Lcom/android/internal/util/kaorios/SettingsHelper;->K91vAo8w086Op21a5bR8uI(Landroid/content/Context;Ljava/lang/String;J)Z
+    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->KmzodnwO1tUkgkS8cymEofiI(Landroid/content/Context;Ljava/lang/String;I)Z
 
     move-result p0
 
@@ -69,11 +69,11 @@
     :pswitch_1b
     iget-object v0, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
 
-    iget-wide v1, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq4snztAiatOsRsxI:J
+    iget v1, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq4snztAiatOsRsxI:I
 
     iget-object p0, p0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;->Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
 
-    invoke-static {p0, v0, v1, v2}, Lcom/android/internal/util/kaorios/SettingsHelper;->KyqOjqyU2SoxvE3gI(Landroid/content/Context;Ljava/lang/String;J)Z
+    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->K7b6cynAykO75yzw1Ri5kI(Landroid/content/Context;Ljava/lang/String;I)Z
 
     move-result p0
 

@@ -40,7 +40,7 @@
 
     sput-object v1, Lcom/android/internal/util/kaorios/SettingsHelper;->SECURE_KEYS:Ljava/util/Set;
 
-    const-wide v2, -0x3d5265922ce2L
+    const-wide v2, -0x3f3d3f05a1e113a6L    # -9601.955997338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -48,7 +48,7 @@
 
     invoke-interface {v0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3d6365922ce2L
+    const-wide v2, -0x3f3d3f16a1e113a6L    # -9601.823184838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -56,7 +56,7 @@
 
     invoke-interface {v0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3d7565922ce2L
+    const-wide v2, -0x3f3d3f28a1e113a6L    # -9601.682559838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -64,7 +64,7 @@
 
     invoke-interface {v0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3d8c65922ce2L
+    const-wide v2, -0x3f3d3f3fa1e113a6L    # -9601.502872338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -72,7 +72,7 @@
 
     invoke-interface {v0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3da665922ce2L
+    const-wide v2, -0x3f3d3f59a1e113a6L    # -9601.299747338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -80,7 +80,7 @@
 
     invoke-interface {v0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3dbb65922ce2L
+    const-wide v2, -0x3f3d3f6ea1e113a6L    # -9601.135684838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -88,7 +88,7 @@
 
     invoke-interface {v0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3dcb65922ce2L
+    const-wide v2, -0x3f3d3f7ea1e113a6L    # -9601.010684838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -96,7 +96,7 @@
 
     invoke-interface {v0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3ddb65922ce2L
+    const-wide v2, -0x3f3d3f8ea1e113a6L    # -9600.885684838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -104,7 +104,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3de565922ce2L
+    const-wide v2, -0x3f3d3f98a1e113a6L    # -9600.807559838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -112,7 +112,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3df065922ce2L
+    const-wide v2, -0x3f3d3fa3a1e113a6L    # -9600.721622338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -120,7 +120,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3e0565922ce2L
+    const-wide v2, -0x3f3d3fb8a1e113a6L    # -9600.557559838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -128,7 +128,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3e1765922ce2L
+    const-wide v2, -0x3f3d3fcaa1e113a6L    # -9600.416934838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -136,7 +136,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3e2b65922ce2L
+    const-wide v2, -0x3f3d3fdea1e113a6L    # -9600.260684838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -144,7 +144,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3e4165922ce2L
+    const-wide v2, -0x3f3d3ff4a1e113a6L    # -9600.088809838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -152,7 +152,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3e5465922ce2L
+    const-wide v2, -0x3f3d4007a1e113a6L    # -9599.940372338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -160,7 +160,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3e6a65922ce2L
+    const-wide v2, -0x3f3d401da1e113a6L    # -9599.768497338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -168,7 +168,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3e8065922ce2L
+    const-wide v2, -0x3f3d4033a1e113a6L    # -9599.596622338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -176,7 +176,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3e9265922ce2L
+    const-wide v2, -0x3f3d4045a1e113a6L    # -9599.455997338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -184,7 +184,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3ea865922ce2L
+    const-wide v2, -0x3f3d405ba1e113a6L    # -9599.284122338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -192,7 +192,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3eb865922ce2L
+    const-wide v2, -0x3f3d406ba1e113a6L    # -9599.159122338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -200,7 +200,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3ecc65922ce2L
+    const-wide v2, -0x3f3d407fa1e113a6L    # -9599.002872338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -208,7 +208,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3ee065922ce2L
+    const-wide v2, -0x3f3d4093a1e113a6L    # -9598.846622338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -216,7 +216,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3ef065922ce2L
+    const-wide v2, -0x3f3d40a3a1e113a6L    # -9598.721622338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -224,7 +224,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3f0865922ce2L
+    const-wide v2, -0x3f3d40bba1e113a6L    # -9598.534122338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -232,7 +232,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3f1b65922ce2L
+    const-wide v2, -0x3f3d40cea1e113a6L    # -9598.385684838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -240,7 +240,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3f3465922ce2L
+    const-wide v2, -0x3f3d40e7a1e113a6L    # -9598.190372338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -248,7 +248,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3f4665922ce2L
+    const-wide v2, -0x3f3d40f9a1e113a6L    # -9598.049747338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -256,7 +256,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3f5d65922ce2L
+    const-wide v2, -0x3f3d4110a1e113a6L    # -9597.870059838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -264,7 +264,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3f7065922ce2L
+    const-wide v2, -0x3f3d4123a1e113a6L    # -9597.721622338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -272,7 +272,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3f8565922ce2L
+    const-wide v2, -0x3f3d4138a1e113a6L    # -9597.557559838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -280,7 +280,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3f9c65922ce2L
+    const-wide v2, -0x3f3d414fa1e113a6L    # -9597.377872338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -288,7 +288,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3fb165922ce2L
+    const-wide v2, -0x3f3d4164a1e113a6L    # -9597.213809838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -296,7 +296,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3fc565922ce2L
+    const-wide v2, -0x3f3d4178a1e113a6L    # -9597.057559838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -304,7 +304,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3fde65922ce2L
+    const-wide v2, -0x3f3d4191a1e113a6L    # -9596.862247338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -312,7 +312,7 @@
 
     invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
 
-    const-wide v2, -0x3ff565922ce2L
+    const-wide v2, -0x3f3d41a8a1e113a6L    # -9596.682559838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -618,7 +618,7 @@
 
     iget-object v5, v2, Landroid/content/pm/PackageInfo;->packageName:Ljava/lang/String;
 
-    const-wide v6, -0x3c6165922ce2L
+    const-wide v6, -0x3f3d3e14a1e113a6L    # -9603.838809838682
 
     invoke-static {v6, v7}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -626,7 +626,7 @@
 
     invoke-virtual {v4, v6, v5}, Lorg/json/JSONObject;->put(Ljava/lang/String;Ljava/lang/Object;)Lorg/json/JSONObject;
 
-    const-wide v6, -0x3c6d65922ce2L
+    const-wide v6, -0x3f3d3e20a1e113a6L    # -9603.745059838682
 
     invoke-static {v6, v7}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -642,7 +642,7 @@
 
     move-result v6
 
-    const-wide v7, -0x3c7365922ce2L
+    const-wide v7, -0x3f3d3e26a1e113a6L    # -9603.698184838682
 
     invoke-static {v7, v8}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -672,7 +672,7 @@
     move v6, v7
 
     :goto_6c
-    const-wide v9, -0x3c7a65922ce2L
+    const-wide v9, -0x3f3d3e2da1e113a6L    # -9603.643497338682
 
     invoke-static {v9, v10}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -680,7 +680,7 @@
 
     invoke-virtual {v4, v9, v6}, Lorg/json/JSONObject;->put(Ljava/lang/String;Z)Lorg/json/JSONObject;
 
-    const-wide v9, -0x3c8265922ce2L
+    const-wide v9, -0x3f3d3e35a1e113a6L    # -9603.580997338682
 
     invoke-static {v9, v10}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -697,7 +697,7 @@
     :cond_88
     invoke-virtual {v4, v6, v7}, Lorg/json/JSONObject;->put(Ljava/lang/String;Z)Lorg/json/JSONObject;
 
-    const-wide v5, -0x3c8e65922ce2L
+    const-wide v5, -0x3f3d3e41a1e113a6L    # -9603.487247338682
 
     invoke-static {v5, v6}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -715,7 +715,7 @@
     :goto_9b
     invoke-virtual {v4, v5, v6}, Lorg/json/JSONObject;->put(Ljava/lang/String;Ljava/lang/Object;)Lorg/json/JSONObject;
 
-    const-wide v5, -0x3c9a65922ce2L
+    const-wide v5, -0x3f3d3e4da1e113a6L    # -9603.393497338682
 
     invoke-static {v5, v6}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -727,7 +727,7 @@
 
     invoke-virtual {v4, v5, v6, v7}, Lorg/json/JSONObject;->put(Ljava/lang/String;J)Lorg/json/JSONObject;
 
-    const-wide v5, -0x3ca665922ce2L
+    const-wide v5, -0x3f3d3e59a1e113a6L    # -9603.299747338682
 
     invoke-static {v5, v6}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -737,7 +737,7 @@
 
     invoke-virtual {v4, v5, v6, v7}, Lorg/json/JSONObject;->put(Ljava/lang/String;J)Lorg/json/JSONObject;
 
-    const-wide v5, -0x3cb765922ce2L
+    const-wide v5, -0x3f3d3e6aa1e113a6L    # -9603.166934838682
 
     invoke-static {v5, v6}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -747,7 +747,7 @@
 
     invoke-virtual {v4, v5, v6, v7}, Lorg/json/JSONObject;->put(Ljava/lang/String;J)Lorg/json/JSONObject;
 
-    const-wide v5, -0x3cc665922ce2L
+    const-wide v5, -0x3f3d3e79a1e113a6L    # -9603.049747338682
 
     invoke-static {v5, v6}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -998,6 +998,58 @@
     return p2
 .end method
 
+.method public static getKaoriLong(Landroid/content/Context;Ljava/lang/String;J)J
+    .registers 5
+
+    if-eqz p0, :cond_23
+
+    invoke-static {p1}, Landroid/text/TextUtils;->isEmpty(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_9
+
+    goto :goto_23
+
+    :cond_9
+    :try_start_9
+    sget-object v0, Lcom/android/internal/util/kaorios/SettingsHelper;->GLOBAL_KEYS:Ljava/util/Set;
+
+    invoke-interface {v0, p1}, Ljava/util/Set;->contains(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_1a
+
+    invoke-virtual {p0}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
+
+    move-result-object p0
+
+    invoke-static {p0, p1, p2, p3}, Landroid/provider/Settings$Global;->getLong(Landroid/content/ContentResolver;Ljava/lang/String;J)J
+
+    move-result-wide p0
+
+    return-wide p0
+
+    :cond_1a
+    invoke-virtual {p0}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
+
+    move-result-object p0
+
+    invoke-static {p0, p1, p2, p3}, Landroid/provider/Settings$Secure;->getLong(Landroid/content/ContentResolver;Ljava/lang/String;J)J
+
+    move-result-wide p0
+    :try_end_22
+    .catch Ljava/lang/Exception; {:try_start_9 .. :try_end_22} :catch_23
+
+    return-wide p0
+
+    :catch_23
+    :cond_23
+    :goto_23
+    return-wide p2
+.end method
+
 .method public static getKaoriString(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
     .registers 4
 
@@ -1204,7 +1256,7 @@
 .method public static getToolboxStatus()Ljava/lang/String;
     .registers 2
 
-    const-wide v0, -0x3d1565922ce2L
+    const-wide v0, -0x3f3d3ec8a1e113a6L    # -9602.432559838682
 
     invoke-static {v0, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1251,7 +1303,7 @@
 .method public static isBootCompleted()Z
     .registers 2
 
-    const-wide v0, -0x3d0265922ce2L
+    const-wide v0, -0x3f3d3eb5a1e113a6L    # -9602.580997338682
 
     invoke-static {v0, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1359,7 +1411,7 @@
 
     invoke-direct {p0}, Ljava/lang/StringBuilder;-><init>()V
 
-    const-wide v0, -0x3cd065922ce2L
+    const-wide v0, -0x3f3d3e83a1e113a6L    # -9602.971622338682
 
     invoke-static {v0, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1611,13 +1663,26 @@
         }
     .end annotation
 
+    sget v0, Landroid/os/Build$VERSION;->SDK_INT:I
+
+    const/16 v1, 0x21
+
+    if-lt v0, v1, :cond_10
+
     int-to-long v0, p1
 
-    invoke-static {v0, v1}, Landroid/content/pm/PackageManager$PackageInfoFlags;->of(J)Landroid/content/pm/PackageManager$PackageInfoFlags;
+    invoke-static {v0, v1}, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Ku5O3sihzbUhwSewE8uI(J)Landroid/content/pm/PackageManager$PackageInfoFlags;
 
     move-result-object p1
 
-    invoke-virtual {p0, p1}, Landroid/content/pm/PackageManager;->getInstalledPackages(Landroid/content/pm/PackageManager$PackageInfoFlags;)Ljava/util/List;
+    invoke-static {p0, p1}, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Kq5pt6AeqxqwOjab0R8ioI(Landroid/content/pm/PackageManager;Landroid/content/pm/PackageManager$PackageInfoFlags;)Ljava/util/List;
+
+    move-result-object p0
+
+    return-object p0
+
+    :cond_10
+    invoke-virtual {p0, p1}, Landroid/content/pm/PackageManager;->getInstalledPackages(I)Ljava/util/List;
 
     move-result-object p0
 
@@ -1775,7 +1840,7 @@
 
     move-result-object p0
 
-    const-wide v2, -0x3ce565922ce2L
+    const-wide v2, -0x3f3d3e98a1e113a6L    # -9602.807559838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1787,7 +1852,7 @@
 
     if-nez v0, :cond_95
 
-    const-wide v2, -0x3ce765922ce2L
+    const-wide v2, -0x3f3d3e9aa1e113a6L    # -9602.791934838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1799,7 +1864,7 @@
 
     if-nez v0, :cond_95
 
-    const-wide v2, -0x3cec65922ce2L
+    const-wide v2, -0x3f3d3e9fa1e113a6L    # -9602.752872338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1811,7 +1876,7 @@
 
     if-nez v0, :cond_95
 
-    const-wide v2, -0x3cf065922ce2L
+    const-wide v2, -0x3f3d3ea3a1e113a6L    # -9602.721622338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1826,7 +1891,7 @@
     goto :goto_95
 
     :cond_54
-    const-wide v2, -0x3cf365922ce2L
+    const-wide v2, -0x3f3d3ea6a1e113a6L    # -9602.698184838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1838,7 +1903,7 @@
 
     if-nez v0, :cond_92
 
-    const-wide v2, -0x3cf565922ce2L
+    const-wide v2, -0x3f3d3ea8a1e113a6L    # -9602.682559838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1850,7 +1915,7 @@
 
     if-nez v0, :cond_92
 
-    const-wide v2, -0x3cfb65922ce2L
+    const-wide v2, -0x3f3d3eaea1e113a6L    # -9602.635684838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1862,7 +1927,7 @@
 
     if-nez v0, :cond_92
 
-    const-wide v2, -0x3cfe65922ce2L
+    const-wide v2, -0x3f3d3eb1a1e113a6L    # -9602.612247338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1897,7 +1962,7 @@
 
     if-nez p1, :cond_b
 
-    const-wide v0, -0x3d3065922ce2L
+    const-wide v0, -0x3f3d3ee3a1e113a6L    # -9602.221622338682
 
     invoke-static {v0, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1921,7 +1986,7 @@
 
     invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
 
-    const-wide v1, -0x3d3165922ce2L
+    const-wide v1, -0x3f3d3ee4a1e113a6L    # -9602.213809838682
 
     invoke-static {v1, v2}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -1943,7 +2008,7 @@
 
     invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
 
-    const-wide v2, -0x3d3e65922ce2L
+    const-wide v2, -0x3f3d3ef1a1e113a6L    # -9602.112247338682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -2324,13 +2389,13 @@
     return v0
 .end method
 
-.method public static runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+.method public static runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
     .registers 2
 
     const/4 v0, 0x0
 
     :try_start_1
-    invoke-interface {p0}, Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;->run()Z
+    invoke-interface {p0}, Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;->run()Z
 
     move-result p0
     :try_end_5
@@ -2617,7 +2682,7 @@
 
     if-eqz v0, :cond_10
 
-    const-wide p0, -0x3c1c65922ce2L
+    const-wide p0, -0x3f3d3dcfa1e113a6L    # -9604.377872338682
 
     invoke-static {p0, p1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -2628,7 +2693,7 @@
     :cond_10
     if-nez p1, :cond_1b
 
-    const-wide v0, -0x3c3165922ce2L
+    const-wide v0, -0x3f3d3de4a1e113a6L    # -9604.213809838682
 
     invoke-static {v0, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -2646,7 +2711,7 @@
 
     if-eqz v0, :cond_2f
 
-    const-wide p0, -0x3c3265922ce2L
+    const-wide p0, -0x3f3d3de5a1e113a6L    # -9604.205997338682
 
     invoke-static {p0, p1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -2657,7 +2722,7 @@
     :cond_2f
     invoke-static {p0, p1}, Landroid/os/SystemProperties;->set(Ljava/lang/String;Ljava/lang/String;)V
 
-    const-wide p0, -0x3c4565922ce2L
+    const-wide p0, -0x3f3d3df8a1e113a6L    # -9604.057559838682
 
     invoke-static {p0, p1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -2668,7 +2733,7 @@
     return-object p0
 
     :catchall_3c
-    const-wide p0, -0x3c5165922ce2L
+    const-wide p0, -0x3f3d3e04a1e113a6L    # -9603.963809838682
 
     invoke-static {p0, p1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -2680,13 +2745,13 @@
 .method public static tryPutGlobalFloat(Landroid/content/Context;Ljava/lang/String;F)Z
     .registers 5
 
-    new-instance v0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;
+    new-instance v0, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;
 
-    const/4 v1, 0x2
+    const/4 v1, 0x0
 
-    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;-><init>(Landroid/content/Context;Ljava/lang/String;FI)V
+    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;-><init>(Landroid/content/Context;Ljava/lang/String;FI)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 
@@ -2696,13 +2761,13 @@
 .method public static tryPutGlobalInt(Landroid/content/Context;Ljava/lang/String;I)Z
     .registers 5
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;
+    new-instance v0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;
 
     const/4 v1, 0x0
 
-    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;-><init>(Landroid/content/Context;Ljava/lang/String;II)V
+    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;-><init>(Landroid/content/Context;Ljava/lang/String;II)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 
@@ -2712,7 +2777,7 @@
 .method public static tryPutGlobalLong(Landroid/content/Context;Ljava/lang/String;J)Z
     .registers 10
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;
+    new-instance v0, Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;
 
     const/4 v5, 0x2
 
@@ -2722,9 +2787,9 @@
 
     move-wide v3, p2
 
-    invoke-direct/range {v0 .. v5}, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;-><init>(Landroid/content/Context;Ljava/lang/String;JI)V
+    invoke-direct/range {v0 .. v5}, Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;-><init>(Landroid/content/Context;Ljava/lang/String;JI)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 
@@ -2734,13 +2799,13 @@
 .method public static tryPutGlobalString(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Z
     .registers 5
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;
+    new-instance v0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;
 
-    const/4 v1, 0x0
+    const/4 v1, 0x1
 
-    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;-><init>(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;I)V
+    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;-><init>(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;I)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 
@@ -2750,13 +2815,13 @@
 .method public static tryPutSecureFloat(Landroid/content/Context;Ljava/lang/String;F)Z
     .registers 5
 
-    new-instance v0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;
+    new-instance v0, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;
 
-    const/4 v1, 0x1
+    const/4 v1, 0x2
 
-    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;-><init>(Landroid/content/Context;Ljava/lang/String;FI)V
+    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;-><init>(Landroid/content/Context;Ljava/lang/String;FI)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 
@@ -2766,13 +2831,13 @@
 .method public static tryPutSecureInt(Landroid/content/Context;Ljava/lang/String;I)Z
     .registers 5
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;
+    new-instance v0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;
 
     const/4 v1, 0x2
 
-    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;-><init>(Landroid/content/Context;Ljava/lang/String;II)V
+    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;-><init>(Landroid/content/Context;Ljava/lang/String;II)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 
@@ -2782,7 +2847,7 @@
 .method public static tryPutSecureLong(Landroid/content/Context;Ljava/lang/String;J)Z
     .registers 10
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;
+    new-instance v0, Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;
 
     const/4 v5, 0x1
 
@@ -2792,9 +2857,9 @@
 
     move-wide v3, p2
 
-    invoke-direct/range {v0 .. v5}, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;-><init>(Landroid/content/Context;Ljava/lang/String;JI)V
+    invoke-direct/range {v0 .. v5}, Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;-><init>(Landroid/content/Context;Ljava/lang/String;JI)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 
@@ -2804,13 +2869,13 @@
 .method public static tryPutSecureString(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Z
     .registers 5
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;
+    new-instance v0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;
 
-    const/4 v1, 0x1
+    const/4 v1, 0x2
 
-    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;-><init>(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;I)V
+    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;-><init>(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;I)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 
@@ -2820,13 +2885,13 @@
 .method public static tryPutSystemFloat(Landroid/content/Context;Ljava/lang/String;F)Z
     .registers 5
 
-    new-instance v0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;
+    new-instance v0, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;
 
-    const/4 v1, 0x0
+    const/4 v1, 0x1
 
-    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;-><init>(Landroid/content/Context;Ljava/lang/String;FI)V
+    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;-><init>(Landroid/content/Context;Ljava/lang/String;FI)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 
@@ -2836,13 +2901,13 @@
 .method public static tryPutSystemInt(Landroid/content/Context;Ljava/lang/String;I)Z
     .registers 5
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;
+    new-instance v0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;
 
     const/4 v1, 0x1
 
-    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kvbc26AbkObs8oR0z09pI;-><init>(Landroid/content/Context;Ljava/lang/String;II)V
+    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;-><init>(Landroid/content/Context;Ljava/lang/String;II)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 
@@ -2852,7 +2917,7 @@
 .method public static tryPutSystemLong(Landroid/content/Context;Ljava/lang/String;J)Z
     .registers 10
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;
+    new-instance v0, Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;
 
     const/4 v5, 0x0
 
@@ -2862,9 +2927,9 @@
 
     move-wide v3, p2
 
-    invoke-direct/range {v0 .. v5}, Lcom/android/internal/util/kaorios/Kode04A0v6O7sv911Rqd2u2uI;-><init>(Landroid/content/Context;Ljava/lang/String;JI)V
+    invoke-direct/range {v0 .. v5}, Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;-><init>(Landroid/content/Context;Ljava/lang/String;JI)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 
@@ -2874,13 +2939,13 @@
 .method public static tryPutSystemString(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Z
     .registers 5
 
-    new-instance v0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;
+    new-instance v0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;
 
-    const/4 v1, 0x2
+    const/4 v1, 0x0
 
-    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;-><init>(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;I)V
+    invoke-direct {v0, p0, p1, p2, v1}, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;-><init>(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;I)V
 
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;)Z
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/SettingsHelper;->runPut(Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;)Z
 
     move-result p0
 

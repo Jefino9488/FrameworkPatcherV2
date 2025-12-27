@@ -3,8 +3,6 @@
     <privapp-permissions package="com.kousei.kaorios">
     <!-- Have full network access -->
     <permission name="android.permission.INTERNET" />
-    <!-- Have full network access -->
-    <permission name="android.permission.INTERNET" />
     <!-- View network connections -->
     <permission name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- View Wi-Fi connections -->
@@ -77,11 +75,17 @@
     <permission name="android.permission.GET_TOP_ACTIVITY_INFO" />
     <permission name="android.permission.START_ACTIVITIES_FROM_BACKGROUND" />
     <permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" />
+        <!-- Run foreground service -->
+        <permission name="android.permission.FOREGROUND_SERVICE"/>
+        <!-- Run foreground service with the type "dataSync" -->
+        <permission name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
     <!-- Read system logs -->
     <permission name="android.permission.READ_LOGS" />
     <!-- Dump system information -->
     <permission name="android.permission.DUMP" />
     <permission name="android.permission.ACCESS_ALL_EXTERNAL_STORAGE" />
+        <!-- This app can appear on top of other apps -->
+        <permission name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <!-- Reboot device -->
     <permission name="android.permission.REBOOT" />
     <!-- Power management -->

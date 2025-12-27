@@ -18,7 +18,7 @@
 
     new-instance v0, Lcom/android/internal/util/kaorios/Kbr88sAs3Olvp8RlsyI;
 
-    const-wide v1, -0x75c65922ce2L
+    const-wide v1, -0x3f3d075ca1e113a6L    # -9713.276309838682
 
     invoke-static {v1, v2}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -32,7 +32,7 @@
 
     new-instance v1, Lcom/android/internal/util/kaorios/Kbr88sAs3Olvp8RlsyI;
 
-    const-wide v2, -0x76065922ce2L
+    const-wide v2, -0x3f3d0760a1e113a6L    # -9713.245059838682
 
     invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 
@@ -46,7 +46,7 @@
 
     new-instance v2, Lcom/android/internal/util/kaorios/Kbr88sAs3Olvp8RlsyI;
 
-    const-wide v3, -0x76765922ce2L
+    const-wide v3, -0x3f3d0767a1e113a6L    # -9713.190372338682
 
     invoke-static {v3, v4}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 

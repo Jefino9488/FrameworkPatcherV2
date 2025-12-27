@@ -1,87 +1,24 @@
-.class public final synthetic Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;
+.class public abstract synthetic Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;
 .super Ljava/lang/Object;
-
-# interfaces
-.implements Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;
-
-
-# instance fields
-.field public final synthetic KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
-
-.field public final synthetic Kq4snztAiatOsRsxI:Ljava/lang/String;
-
-.field public final synthetic Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
-
-.field public final synthetic Ku5O3sihzbUhwSewE8uI:I
 
 
 # direct methods
-.method public synthetic constructor <init>(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;I)V
-    .registers 5
+.method public static bridge synthetic Kq5pt6AeqxqwOjab0R8ioI(Landroid/content/pm/PackageManager;Landroid/content/pm/PackageManager$PackageInfoFlags;)Ljava/util/List;
+    .registers 2
 
-    iput p4, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Ku5O3sihzbUhwSewE8uI:I
+    invoke-virtual {p0, p1}, Landroid/content/pm/PackageManager;->getInstalledPackages(Landroid/content/pm/PackageManager$PackageInfoFlags;)Ljava/util/List;
 
-    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
+    move-result-object p0
 
-    iput-object p2, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
-
-    iput-object p3, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Kq4snztAiatOsRsxI:Ljava/lang/String;
-
-    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
-
-    return-void
+    return-object p0
 .end method
 
+.method public static bridge synthetic Ku5O3sihzbUhwSewE8uI(J)Landroid/content/pm/PackageManager$PackageInfoFlags;
+    .registers 2
 
-# virtual methods
-.method public final run()Z
-    .registers 3
+    invoke-static {p0, p1}, Landroid/content/pm/PackageManager$PackageInfoFlags;->of(J)Landroid/content/pm/PackageManager$PackageInfoFlags;
 
-    iget v0, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Ku5O3sihzbUhwSewE8uI:I
+    move-result-object p0
 
-    packed-switch v0, :pswitch_data_26
-
-    iget-object v0, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
-
-    iget-object v1, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Kq4snztAiatOsRsxI:Ljava/lang/String;
-
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
-
-    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->KtbuouOlomiUohgSxfezrEyv01I(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Z
-
-    move-result p0
-
-    return p0
-
-    :pswitch_10
-    iget-object v0, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
-
-    iget-object v1, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Kq4snztAiatOsRsxI:Ljava/lang/String;
-
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
-
-    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->K8Ak17imO9w5w4RppI(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Z
-
-    move-result p0
-
-    return p0
-
-    :pswitch_1b
-    iget-object v0, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
-
-    iget-object v1, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Kq4snztAiatOsRsxI:Ljava/lang/String;
-
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/Kb7O1rU1S8nzEe1lxvI;->Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
-
-    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->KmwO02nawgUws9Syxnq2rElI(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Z
-
-    move-result p0
-
-    return p0
-
-    :pswitch_data_26
-    .packed-switch 0x0
-        :pswitch_1b
-        :pswitch_10
-    .end packed-switch
+    return-object p0
 .end method

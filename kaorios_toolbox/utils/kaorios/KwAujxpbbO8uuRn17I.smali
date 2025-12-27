@@ -1,5 +1,5 @@
 .class public final Lcom/android/internal/util/kaorios/KwAujxpbbO8uuRn17I;
-.super Lcom/android/internal/util/kaorios/Khd21cOyqUnSenvEc1I;
+.super Lcom/android/internal/util/kaorios/KnxpAxt2O7pu9sR8I;
 
 
 # instance fields
@@ -18,7 +18,7 @@
 
     const/4 p1, 0x1
 
-    invoke-direct {p0, p1}, Lcom/android/internal/util/kaorios/Khd21cOyqUnSenvEc1I;-><init>(I)V
+    invoke-direct {p0, p1}, Lcom/android/internal/util/kaorios/KnxpAxt2O7pu9sR8I;-><init>(I)V
 
     const/4 p1, 0x0
 
@@ -33,7 +33,7 @@
     :pswitch_f
     const/4 p1, 0x0
 
-    invoke-direct {p0, p1}, Lcom/android/internal/util/kaorios/Khd21cOyqUnSenvEc1I;-><init>(I)V
+    invoke-direct {p0, p1}, Lcom/android/internal/util/kaorios/KnxpAxt2O7pu9sR8I;-><init>(I)V
 
     iput p1, p0, Lcom/android/internal/util/kaorios/KwAujxpbbO8uuRn17I;->KyqOjqyU2SoxvE3gI:I
 

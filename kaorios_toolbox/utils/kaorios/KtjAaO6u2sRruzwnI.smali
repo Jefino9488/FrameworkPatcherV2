@@ -20,7 +20,7 @@
 
     new-instance v0, Ljava/util/StringTokenizer;
 
-    invoke-static {p1}, Lcom/android/internal/util/kaorios/KhA9xO21ncRgzi0I;->KmwO02nawgUws9Syxnq2rElI(Ljava/lang/String;)Ljava/lang/String;
+    invoke-static {p1}, Lcom/android/internal/util/kaorios/Kth0O0gysUn819SjfucdEu1dktjI;->KmwO02nawgUws9Syxnq2rElI(Ljava/lang/String;)Ljava/lang/String;
 
     move-result-object p1
 

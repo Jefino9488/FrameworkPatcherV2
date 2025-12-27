@@ -10,7 +10,7 @@
 .method private static constructor <clinit>()V
     .registers 2
 
-    const-wide v0, -0x3c0765922ce2L
+    const-wide v0, -0x3f3d3dbaa1e113a6L    # -9604.541934838682
 
     invoke-static {v0, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K6kpozOwUhryS61hugE5frxtI(J)Ljava/lang/String;
 

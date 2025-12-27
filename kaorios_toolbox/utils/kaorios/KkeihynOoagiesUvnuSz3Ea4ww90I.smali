@@ -2,13 +2,13 @@
 .super Ljava/lang/Object;
 
 # interfaces
-.implements Lcom/android/internal/util/kaorios/KptO8ke4Umol3vbS4Eg2pe0cI;
+.implements Lcom/android/internal/util/kaorios/KzvomAafdza9Okvd1nRszluI;
 
 
 # instance fields
 .field public final synthetic KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
 
-.field public final synthetic Kq4snztAiatOsRsxI:F
+.field public final synthetic Kq4snztAiatOsRsxI:Ljava/lang/String;
 
 .field public final synthetic Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
 
@@ -16,7 +16,7 @@
 
 
 # direct methods
-.method public synthetic constructor <init>(Landroid/content/Context;Ljava/lang/String;FI)V
+.method public synthetic constructor <init>(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;I)V
     .registers 5
 
     iput p4, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Ku5O3sihzbUhwSewE8uI:I
@@ -25,7 +25,7 @@
 
     iput-object p2, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
 
-    iput p3, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Kq4snztAiatOsRsxI:F
+    iput-object p3, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Kq4snztAiatOsRsxI:Ljava/lang/String;
 
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
@@ -43,11 +43,11 @@
 
     iget-object v0, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
 
-    iget v1, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Kq4snztAiatOsRsxI:F
+    iget-object v1, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Kq4snztAiatOsRsxI:Ljava/lang/String;
 
     iget-object p0, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
 
-    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->Ku5O3sihzbUhwSewE8uI(Landroid/content/Context;Ljava/lang/String;F)Z
+    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->K8Ak17imO9w5w4RppI(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Z
 
     move-result p0
 
@@ -56,11 +56,11 @@
     :pswitch_10
     iget-object v0, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
 
-    iget v1, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Kq4snztAiatOsRsxI:F
+    iget-object v1, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Kq4snztAiatOsRsxI:Ljava/lang/String;
 
     iget-object p0, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
 
-    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->K8c63Ooauv32UndyuScEgI(Landroid/content/Context;Ljava/lang/String;F)Z
+    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->KmwO02nawgUws9Syxnq2rElI(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Z
 
     move-result p0
 
@@ -69,11 +69,11 @@
     :pswitch_1b
     iget-object v0, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/String;
 
-    iget v1, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Kq4snztAiatOsRsxI:F
+    iget-object v1, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Kq4snztAiatOsRsxI:Ljava/lang/String;
 
     iget-object p0, p0, Lcom/android/internal/util/kaorios/KkeihynOoagiesUvnuSz3Ea4ww90I;->Kq5pt6AeqxqwOjab0R8ioI:Landroid/content/Context;
 
-    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->Kq4snztAiatOsRsxI(Landroid/content/Context;Ljava/lang/String;F)Z
+    invoke-static {p0, v0, v1}, Lcom/android/internal/util/kaorios/SettingsHelper;->KtbuouOlomiUohgSxfezrEyv01I(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Z
 
     move-result p0
 

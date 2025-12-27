@@ -3,9 +3,7 @@
 
 
 # instance fields
-.field public final KmwO02nawgUws9Syxnq2rElI:I
-
-.field public final Kq4snztAiatOsRsxI:Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
+.field public final KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
 
 .field public final Kq5pt6AeqxqwOjab0R8ioI:I
 
@@ -13,8 +11,8 @@
 
 
 # direct methods
-.method public constructor <init>(IILcom/android/internal/util/kaorios/Kef2nAgOrRoI;)V
-    .registers 7
+.method public constructor <init>(ILcom/android/internal/util/kaorios/Kef2nAgOrRoI;)V
+    .registers 6
 
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
@@ -28,9 +26,7 @@
 
     iput p1, p0, Lcom/android/internal/util/kaorios/K5vqOb5U89Su1Ew5wqI;->Kq5pt6AeqxqwOjab0R8ioI:I
 
-    iput p2, p0, Lcom/android/internal/util/kaorios/K5vqOb5U89Su1Ew5wqI;->KmwO02nawgUws9Syxnq2rElI:I
-
-    iput-object p3, p0, Lcom/android/internal/util/kaorios/K5vqOb5U89Su1Ew5wqI;->Kq4snztAiatOsRsxI:Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
+    iput-object p2, p0, Lcom/android/internal/util/kaorios/K5vqOb5U89Su1Ew5wqI;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
 
     return-void
 .end method
@@ -72,29 +68,13 @@
 
     invoke-virtual {p1, v0}, Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;->KvyA01pu5yOryrRk3kI(I)Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
 
-    move-result-object v0
-
-    invoke-static {v0}, Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/Object;)Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;
-
-    move-result-object v0
-
-    invoke-virtual {v0}, Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;->K4cv12eOhp5UsS8gpsE2q2z1I()I
-
-    move-result v0
-
-    iput v0, p0, Lcom/android/internal/util/kaorios/K5vqOb5U89Su1Ew5wqI;->KmwO02nawgUws9Syxnq2rElI:I
-
-    const/4 v0, 0x3
-
-    invoke-virtual {p1, v0}, Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;->KvyA01pu5yOryrRk3kI(I)Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
-
     move-result-object p1
 
     invoke-static {p1}, Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;->K91vAo8w086Op21a5bR8uI(Ljava/lang/Object;)Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
 
     move-result-object p1
 
-    iput-object p1, p0, Lcom/android/internal/util/kaorios/K5vqOb5U89Su1Ew5wqI;->Kq4snztAiatOsRsxI:Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
+    iput-object p1, p0, Lcom/android/internal/util/kaorios/K5vqOb5U89Su1Ew5wqI;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
 
     return-void
 .end method
@@ -152,17 +132,7 @@
 
     invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
 
-    new-instance v1, Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;
-
-    iget v2, p0, Lcom/android/internal/util/kaorios/K5vqOb5U89Su1Ew5wqI;->KmwO02nawgUws9Syxnq2rElI:I
-
-    int-to-long v2, v2
-
-    invoke-direct {v1, v2, v3}, Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;-><init>(J)V
-
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
-
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/K5vqOb5U89Su1Ew5wqI;->Kq4snztAiatOsRsxI:Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/K5vqOb5U89Su1Ew5wqI;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
 
     invoke-virtual {v0, p0}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
 

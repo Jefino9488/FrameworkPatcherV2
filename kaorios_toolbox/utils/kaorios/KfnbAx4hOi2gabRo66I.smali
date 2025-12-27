@@ -826,7 +826,7 @@
 .method public final getService(Ljava/lang/String;Ljava/lang/String;)Ljava/security/Provider$Service;
     .registers 6
 
-    invoke-static {p2}, Lcom/android/internal/util/kaorios/KhA9xO21ncRgzi0I;->KyqOjqyU2SoxvE3gI(Ljava/lang/String;)Ljava/lang/String;
+    invoke-static {p2}, Lcom/android/internal/util/kaorios/Kth0O0gysUn819SjfucdEu1dktjI;->KyqOjqyU2SoxvE3gI(Ljava/lang/String;)Ljava/lang/String;
 
     move-result-object v0
 

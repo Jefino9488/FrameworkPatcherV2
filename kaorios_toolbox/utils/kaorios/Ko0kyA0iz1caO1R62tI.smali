@@ -6,5 +6,5 @@
 .method public abstract Kq5pt6AeqxqwOjab0R8ioI(Lcom/android/internal/util/kaorios/KbidnAazihOzyfdRihubI;)Ljava/security/PrivateKey;
 .end method
 
-.method public abstract Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/Kth0O0gysUn819SjfucdEu1dktjI;)Ljava/security/PublicKey;
+.method public abstract Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/KrjrlActO767zgcRp6maj4I;)Ljava/security/PublicKey;
 .end method

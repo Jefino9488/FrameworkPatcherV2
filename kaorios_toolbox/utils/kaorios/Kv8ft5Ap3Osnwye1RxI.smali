@@ -1,223 +1,145 @@
 .class public final Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;
-.super Lcom/android/internal/util/kaorios/Ktln0A7l0i8OmyRwmrju5I;
-
-# interfaces
-.implements Lcom/android/internal/util/kaorios/KlzAtp8dO5R56I;
+.super Lcom/android/internal/util/kaorios/K4jO0jUdoSdqE9pI;
 
 
 # instance fields
-.field public final K7b6cynAykO75yzw1Ri5kI:[B
+.field public final Kq5pt6AeqxqwOjab0R8ioI:[B
 
-.field public final KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/KtnOdl1U1j1jS6EqjtmI;
-
-.field public final Kq4snztAiatOsRsxI:I
-
-.field public final KyqOjqyU2SoxvE3gI:[B
+.field public final Ku5O3sihzbUhwSewE8uI:[B
 
 
 # direct methods
-.method public constructor <init>(Lcom/android/internal/util/kaorios/KrjrlActO767zgcRp6maj4I;)V
-    .registers 7
+.method public constructor <init>(Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;)V
+    .registers 4
 
-    iget-object v0, p1, Lcom/android/internal/util/kaorios/KrjrlActO767zgcRp6maj4I;->Ku5O3sihzbUhwSewE8uI:Ljava/lang/Object;
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    check-cast v0, Lcom/android/internal/util/kaorios/KtnOdl1U1j1jS6EqjtmI;
+    const/4 v0, 0x0
 
-    iget-object v1, v0, Lcom/android/internal/util/kaorios/KtnOdl1U1j1jS6EqjtmI;->KyqOjqyU2SoxvE3gI:Ljava/lang/String;
+    invoke-virtual {p1, v0}, Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;->KvyA01pu5yOryrRk3kI(I)Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
 
-    const/4 v2, 0x0
+    move-result-object v1
 
-    invoke-direct {p0, v2, v1}, Lcom/android/internal/util/kaorios/Ktln0A7l0i8OmyRwmrju5I;-><init>(ZLjava/lang/String;)V
+    invoke-static {v1}, Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/Object;)Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;
 
-    iput-object v0, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/KtnOdl1U1j1jS6EqjtmI;
+    move-result-object v1
 
-    iget v1, v0, Lcom/android/internal/util/kaorios/KtnOdl1U1j1jS6EqjtmI;->K7b6cynAykO75yzw1Ri5kI:I
+    invoke-virtual {v1, v0}, Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;->Kvvx152O1Uo652lSpg5iE1I(I)Z
 
-    iget-object v3, p1, Lcom/android/internal/util/kaorios/KrjrlActO767zgcRp6maj4I;->Kq4snztAiatOsRsxI:Ljava/lang/Object;
+    move-result v0
 
-    check-cast v3, [B
+    if-eqz v0, :cond_35
 
-    if-eqz v3, :cond_4b
+    const/4 v0, 0x1
 
-    array-length p1, v3
+    invoke-virtual {p1, v0}, Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;->KvyA01pu5yOryrRk3kI(I)Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
 
-    add-int v0, v1, v1
+    move-result-object v0
 
-    if-ne p1, v0, :cond_28
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/K7rOwwma1UharpnzSgoggdiEdpu5I;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/Object;)Lcom/android/internal/util/kaorios/K7rOwwma1UharpnzSgoggdiEdpu5I;
 
-    iput v2, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->Kq4snztAiatOsRsxI:I
+    move-result-object v0
 
-    invoke-static {v3, v2, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->Kx0bOnf5zU924StfxbEpI([BII)[B
+    iget-object v0, v0, Lcom/android/internal/util/kaorios/K7rOwwma1UharpnzSgoggdiEdpu5I;->Ku5O3sihzbUhwSewE8uI:[B
+
+    invoke-static {v0}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K8c63Ooauv32UndyuScEgI([B)[B
+
+    move-result-object v0
+
+    iput-object v0, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->Ku5O3sihzbUhwSewE8uI:[B
+
+    const/4 v0, 0x2
+
+    invoke-virtual {p1, v0}, Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;->KvyA01pu5yOryrRk3kI(I)Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;
 
     move-result-object p1
 
-    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->KyqOjqyU2SoxvE3gI:[B
-
-    invoke-static {v3, v1, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->Kx0bOnf5zU924StfxbEpI([BII)[B
+    invoke-static {p1}, Lcom/android/internal/util/kaorios/K7rOwwma1UharpnzSgoggdiEdpu5I;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/Object;)Lcom/android/internal/util/kaorios/K7rOwwma1UharpnzSgoggdiEdpu5I;
 
     move-result-object p1
 
-    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->K7b6cynAykO75yzw1Ri5kI:[B
+    iget-object p1, p1, Lcom/android/internal/util/kaorios/K7rOwwma1UharpnzSgoggdiEdpu5I;->Ku5O3sihzbUhwSewE8uI:[B
+
+    invoke-static {p1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K8c63Ooauv32UndyuScEgI([B)[B
+
+    move-result-object p1
+
+    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->Kq5pt6AeqxqwOjab0R8ioI:[B
 
     return-void
 
-    :cond_28
-    array-length p1, v3
-
-    add-int/lit8 v0, v1, 0x4
-
-    add-int v4, v0, v1
-
-    if-ne p1, v4, :cond_43
-
-    invoke-static {v2, v3}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->KmzodnwO1tUkgkS8cymEofiI(I[B)I
-
-    move-result p1
-
-    iput p1, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->Kq4snztAiatOsRsxI:I
-
-    const/4 p1, 0x4
-
-    invoke-static {v3, p1, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->Kx0bOnf5zU924StfxbEpI([BII)[B
-
-    move-result-object p1
-
-    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->KyqOjqyU2SoxvE3gI:[B
-
-    invoke-static {v3, v0, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->Kx0bOnf5zU924StfxbEpI([BII)[B
-
-    move-result-object p1
-
-    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->K7b6cynAykO75yzw1Ri5kI:[B
-
-    return-void
-
-    :cond_43
+    :cond_35
     new-instance p0, Ljava/lang/IllegalArgumentException;
 
-    const-string p1, "public key has wrong size"
+    const-string p1, "unknown version of sequence"
 
     invoke-direct {p0, p1}, Ljava/lang/IllegalArgumentException;-><init>(Ljava/lang/String;)V
 
     throw p0
+.end method
 
-    :cond_4b
-    iget-object v0, v0, Lcom/android/internal/util/kaorios/KtnOdl1U1j1jS6EqjtmI;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/Ketpn0qOo3UodrS428tgE9I;
+.method public constructor <init>([B[B)V
+    .registers 3
 
-    if-eqz v0, :cond_54
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
-    iget v0, v0, Lcom/android/internal/util/kaorios/Ketpn0qOo3UodrS428tgE9I;->Ku5O3sihzbUhwSewE8uI:I
+    invoke-static {p1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K8c63Ooauv32UndyuScEgI([B)[B
 
-    iput v0, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->Kq4snztAiatOsRsxI:I
+    move-result-object p1
 
-    goto :goto_56
+    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->Ku5O3sihzbUhwSewE8uI:[B
 
-    :cond_54
-    iput v2, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->Kq4snztAiatOsRsxI:I
+    invoke-static {p2}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K8c63Ooauv32UndyuScEgI([B)[B
 
-    :goto_56
-    iget-object v0, p1, Lcom/android/internal/util/kaorios/KrjrlActO767zgcRp6maj4I;->Kq5pt6AeqxqwOjab0R8ioI:Ljava/lang/Object;
+    move-result-object p1
 
-    check-cast v0, [B
-
-    if-eqz v0, :cond_6a
-
-    array-length v2, v0
-
-    if-ne v2, v1, :cond_62
-
-    iput-object v0, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->KyqOjqyU2SoxvE3gI:[B
-
-    goto :goto_6e
-
-    :cond_62
-    new-instance p0, Ljava/lang/IllegalArgumentException;
-
-    const-string p1, "length of root must be equal to length of digest"
-
-    invoke-direct {p0, p1}, Ljava/lang/IllegalArgumentException;-><init>(Ljava/lang/String;)V
-
-    throw p0
-
-    :cond_6a
-    new-array v0, v1, [B
-
-    iput-object v0, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->KyqOjqyU2SoxvE3gI:[B
-
-    :goto_6e
-    iget-object p1, p1, Lcom/android/internal/util/kaorios/KrjrlActO767zgcRp6maj4I;->KmwO02nawgUws9Syxnq2rElI:Ljava/lang/Object;
-
-    check-cast p1, [B
-
-    if-eqz p1, :cond_82
-
-    array-length v0, p1
-
-    if-ne v0, v1, :cond_7a
-
-    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->K7b6cynAykO75yzw1Ri5kI:[B
-
-    return-void
-
-    :cond_7a
-    new-instance p0, Ljava/lang/IllegalArgumentException;
-
-    const-string p1, "length of publicSeed must be equal to length of digest"
-
-    invoke-direct {p0, p1}, Ljava/lang/IllegalArgumentException;-><init>(Ljava/lang/String;)V
-
-    throw p0
-
-    :cond_82
-    new-array p1, v1, [B
-
-    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->K7b6cynAykO75yzw1Ri5kI:[B
+    iput-object p1, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->Kq5pt6AeqxqwOjab0R8ioI:[B
 
     return-void
 .end method
 
 
 # virtual methods
-.method public final getEncoded()[B
+.method public final Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;
     .registers 5
 
-    iget-object v0, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/KtnOdl1U1j1jS6EqjtmI;
+    new-instance v0, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;
 
-    iget v0, v0, Lcom/android/internal/util/kaorios/KtnOdl1U1j1jS6EqjtmI;->K7b6cynAykO75yzw1Ri5kI:I
+    invoke-direct {v0}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;-><init>()V
+
+    new-instance v1, Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;
+
+    const-wide/16 v2, 0x0
+
+    invoke-direct {v1, v2, v3}, Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;-><init>(J)V
+
+    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
+
+    new-instance v1, Lcom/android/internal/util/kaorios/KgbzkOueUbd69Svn892EuazcibI;
+
+    iget-object v2, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->Ku5O3sihzbUhwSewE8uI:[B
+
+    invoke-direct {v1, v2}, Lcom/android/internal/util/kaorios/K7rOwwma1UharpnzSgoggdiEdpu5I;-><init>([B)V
+
+    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
+
+    new-instance v1, Lcom/android/internal/util/kaorios/KgbzkOueUbd69Svn892EuazcibI;
+
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->Kq5pt6AeqxqwOjab0R8ioI:[B
+
+    invoke-direct {v1, p0}, Lcom/android/internal/util/kaorios/K7rOwwma1UharpnzSgoggdiEdpu5I;-><init>([B)V
+
+    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
+
+    new-instance p0, Lcom/android/internal/util/kaorios/K7lh6v7AbOdjRexccI;
 
     const/4 v1, 0x0
 
-    iget v2, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->Kq4snztAiatOsRsxI:I
+    invoke-direct {p0, v0, v1}, Lcom/android/internal/util/kaorios/K7lh6v7AbOdjRexccI;-><init>(Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;I)V
 
-    if-eqz v2, :cond_13
+    const/4 v0, -0x1
 
-    add-int/lit8 v3, v0, 0x4
+    iput v0, p0, Lcom/android/internal/util/kaorios/K7lh6v7AbOdjRexccI;->Kq4snztAiatOsRsxI:I
 
-    add-int/2addr v3, v0
-
-    new-array v3, v3, [B
-
-    invoke-static {v3, v2, v1}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->KhjcAib1Ox60duoR3gzjdfI([BII)V
-
-    const/4 v1, 0x4
-
-    goto :goto_17
-
-    :cond_13
-    add-int v2, v0, v0
-
-    new-array v3, v2, [B
-
-    :goto_17
-    iget-object v2, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->KyqOjqyU2SoxvE3gI:[B
-
-    invoke-static {v1, v3, v2}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K4cv12eOhp5UsS8gpsE2q2z1I(I[B[B)V
-
-    add-int/2addr v1, v0
-
-    iget-object p0, p0, Lcom/android/internal/util/kaorios/Kv8ft5Ap3Osnwye1RxI;->K7b6cynAykO75yzw1Ri5kI:[B
-
-    invoke-static {v1, v3, p0}, Lcom/android/internal/util/kaorios/KqbO4wUovjhxcSmE2poI;->K4cv12eOhp5UsS8gpsE2q2z1I(I[B[B)V
-
-    return-object v3
+    return-object p0
 .end method

@@ -1,140 +1,160 @@
-.class public interface abstract Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;
-.super Ljava/lang/Object;
+.class public final Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;
+.super Lcom/android/internal/util/kaorios/K4jO0jUdoSdqE9pI;
 
 
-# static fields
-.field public static final K7b6cynAykO75yzw1Ri5kI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+# instance fields
+.field public K7b6cynAykO75yzw1Ri5kI:Lcom/android/internal/util/kaorios/Kqf528AcfznaOhghw7wRmI;
 
-.field public static final KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+.field public K8c63Ooauv32UndyuScEgI:Lcom/android/internal/util/kaorios/KrdjqmOijnxvgU1t1mdS5ikEzgI;
 
-.field public static final Kq4snztAiatOsRsxI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+.field public K91vAo8w086Op21a5bR8uI:Lcom/android/internal/util/kaorios/KrjrlActO767zgcRp6maj4I;
 
-.field public static final Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+.field public Kgs66qnAfO491Ra48r7aI:Lcom/android/internal/util/kaorios/K89dmlOnU18Sdlc2gE5uI;
 
-.field public static final Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+.field public KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;
 
-.field public static final KyqOjqyU2SoxvE3gI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+.field public KmzodnwO1tUkgkS8cymEofiI:Lcom/android/internal/util/kaorios/Ke22w6rOjuUySiv5x1EhbI;
+
+.field public Kq4snztAiatOsRsxI:Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
+
+.field public Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;
+
+.field public KtbuouOlomiUohgSxfezrEyv01I:Lcom/android/internal/util/kaorios/K89dmlOnU18Sdlc2gE5uI;
+
+.field public Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;
+
+.field public KyqOjqyU2SoxvE3gI:Lcom/android/internal/util/kaorios/Ke22w6rOjuUySiv5x1EhbI;
 
 
-# direct methods
-.method static constructor <clinit>()V
-    .registers 6
+# virtual methods
+.method public final Kq5pt6AeqxqwOjab0R8ioI()Lcom/android/internal/util/kaorios/K44Ob9U3wSuknt4Ehcn3I;
+    .registers 8
 
-    new-instance v0, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;
 
-    const-string v1, "1.3.36.3"
+    iget-object v1, p0, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/Ky5zkAngrjcOliRjx51l0I;
 
-    invoke-direct {v0, v1}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;-><init>(Ljava/lang/String;)V
+    if-eqz v1, :cond_15
 
-    const-string v1, "2.1"
+    const-string v2, "org.bouncycastle.x509.allow_non-der_tbscert"
 
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
-
-    move-result-object v1
-
-    sput-object v1, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
-
-    const-string v1, "2.2"
-
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
-
-    move-result-object v1
-
-    sput-object v1, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
-
-    const-string v1, "2.3"
-
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
-
-    move-result-object v1
-
-    sput-object v1, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
-
-    const-string v1, "3.1"
-
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
-
-    move-result-object v1
-
-    const-string v2, "2"
-
-    invoke-virtual {v1, v2}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    invoke-static {v2}, Lcom/android/internal/util/kaorios/Ke9o5OsUx9bfSyiklskE8tI;->Ku5O3sihzbUhwSewE8uI(Ljava/lang/String;)Ljava/lang/String;
 
     move-result-object v3
 
-    sput-object v3, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->Kq4snztAiatOsRsxI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    if-eqz v3, :cond_14
 
-    const-string v3, "3"
+    invoke-static {v2}, Lcom/android/internal/util/kaorios/Ke9o5OsUx9bfSyiklskE8tI;->Kq5pt6AeqxqwOjab0R8ioI(Ljava/lang/String;)Z
 
-    invoke-virtual {v1, v3}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    move-result v2
 
-    move-result-object v4
+    if-eqz v2, :cond_15
 
-    sput-object v4, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->KyqOjqyU2SoxvE3gI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    :cond_14
+    return-object v1
 
-    const-string v4, "4"
+    :cond_15
+    new-instance v1, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;
 
-    invoke-virtual {v1, v4}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    const/16 v2, 0xa
 
-    move-result-object v1
+    invoke-direct {v1, v2}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;-><init>(I)V
 
-    sput-object v1, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->K7b6cynAykO75yzw1Ri5kI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    const/4 v2, 0x0
 
-    const-string v1, "3.2"
+    invoke-virtual {v0, v2}, Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;->Kvvx152O1Uo652lSpg5iE1I(I)Z
 
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    move-result v3
 
-    move-result-object v1
+    const/4 v4, 0x1
 
-    const-string v5, "1"
+    if-nez v3, :cond_2d
 
-    invoke-virtual {v1, v5}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    new-instance v3, Lcom/android/internal/util/kaorios/K76jvm9O719rUal56Sre9lEd3I;
 
-    invoke-virtual {v1, v2}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    const/4 v5, 0x1
 
-    const-string v1, "3.2.8"
+    invoke-direct {v3, v4, v2, v0, v5}, Lcom/android/internal/util/kaorios/K76jvm9O719rUal56Sre9lEd3I;-><init>(ZILcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;I)V
 
-    invoke-virtual {v0, v1}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    invoke-virtual {v1, v3}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
 
-    move-result-object v0
+    :cond_2d
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K6p24wyOoj8e2UhSwehEpcI;
 
-    invoke-virtual {v0, v5}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    invoke-virtual {v1, v0}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
 
-    move-result-object v0
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->Kq4snztAiatOsRsxI:Lcom/android/internal/util/kaorios/Kef2nAgOrRoI;
 
-    invoke-virtual {v0, v5}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    invoke-virtual {v1, v0}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
 
-    move-result-object v0
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->KyqOjqyU2SoxvE3gI:Lcom/android/internal/util/kaorios/Ke22w6rOjuUySiv5x1EhbI;
 
-    invoke-virtual {v0, v5}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    invoke-virtual {v1, v0}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
 
-    invoke-virtual {v0, v2}, Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;->Kr021bO9Updrd4Sc925kEfdq29I(Ljava/lang/String;)Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->K7b6cynAykO75yzw1Ri5kI:Lcom/android/internal/util/kaorios/Kqf528AcfznaOhghw7wRmI;
 
-    const-string v1, "5"
+    invoke-virtual {v1, v0}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
 
-    const-string v2, "6"
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->KmzodnwO1tUkgkS8cymEofiI:Lcom/android/internal/util/kaorios/Ke22w6rOjuUySiv5x1EhbI;
 
-    invoke-static {v0, v3, v4, v1, v2}, Lcom/android/internal/util/kaorios/Kpo04bmO26rUo47oegSdg6ckElbvcI;->KyqOjqyU2SoxvE3gI(Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+    invoke-virtual {v1, v0}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
 
-    const-string v1, "9"
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->K91vAo8w086Op21a5bR8uI:Lcom/android/internal/util/kaorios/KrjrlActO767zgcRp6maj4I;
 
-    const-string v2, "10"
+    invoke-virtual {v1, v0}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
 
-    const-string v3, "7"
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->KtbuouOlomiUohgSxfezrEyv01I:Lcom/android/internal/util/kaorios/K89dmlOnU18Sdlc2gE5uI;
 
-    const-string v4, "8"
+    if-eqz v0, :cond_58
 
-    invoke-static {v0, v3, v4, v1, v2}, Lcom/android/internal/util/kaorios/Kpo04bmO26rUo47oegSdg6ckElbvcI;->KyqOjqyU2SoxvE3gI(Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+    new-instance v3, Lcom/android/internal/util/kaorios/K76jvm9O719rUal56Sre9lEd3I;
 
-    const-string v1, "13"
+    const/4 v5, 0x1
 
-    const-string v2, "14"
+    invoke-direct {v3, v2, v4, v0, v5}, Lcom/android/internal/util/kaorios/K76jvm9O719rUal56Sre9lEd3I;-><init>(ZILcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;I)V
 
-    const-string v3, "11"
+    invoke-virtual {v1, v3}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
 
-    const-string v4, "12"
+    :cond_58
+    iget-object v0, p0, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->Kgs66qnAfO491Ra48r7aI:Lcom/android/internal/util/kaorios/K89dmlOnU18Sdlc2gE5uI;
 
-    invoke-static {v0, v3, v4, v1, v2}, Lcom/android/internal/util/kaorios/Kpo04bmO26rUo47oegSdg6ckElbvcI;->KyqOjqyU2SoxvE3gI(Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+    if-eqz v0, :cond_66
 
-    return-void
+    new-instance v3, Lcom/android/internal/util/kaorios/K76jvm9O719rUal56Sre9lEd3I;
+
+    const/4 v5, 0x2
+
+    const/4 v6, 0x1
+
+    invoke-direct {v3, v2, v5, v0, v6}, Lcom/android/internal/util/kaorios/K76jvm9O719rUal56Sre9lEd3I;-><init>(ZILcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;I)V
+
+    invoke-virtual {v1, v3}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
+
+    :cond_66
+    iget-object p0, p0, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->K8c63Ooauv32UndyuScEgI:Lcom/android/internal/util/kaorios/KrdjqmOijnxvgU1t1mdS5ikEzgI;
+
+    if-eqz p0, :cond_74
+
+    new-instance v0, Lcom/android/internal/util/kaorios/K76jvm9O719rUal56Sre9lEd3I;
+
+    const/4 v2, 0x3
+
+    const/4 v3, 0x1
+
+    invoke-direct {v0, v4, v2, p0, v3}, Lcom/android/internal/util/kaorios/K76jvm9O719rUal56Sre9lEd3I;-><init>(ZILcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;I)V
+
+    invoke-virtual {v1, v0}, Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;->Ku5O3sihzbUhwSewE8uI(Lcom/android/internal/util/kaorios/K9u0OsU8S3qwkp6Ej6wI;)V
+
+    :cond_74
+    new-instance p0, Lcom/android/internal/util/kaorios/K7lh6v7AbOdjRexccI;
+
+    const/4 v0, 0x0
+
+    invoke-direct {p0, v1, v0}, Lcom/android/internal/util/kaorios/K7lh6v7AbOdjRexccI;-><init>(Lcom/android/internal/util/kaorios/K1xqeaAhymxOkzxh8Rzwi6wI;I)V
+
+    const/4 v0, -0x1
+
+    iput v0, p0, Lcom/android/internal/util/kaorios/K7lh6v7AbOdjRexccI;->Kq4snztAiatOsRsxI:I
+
+    return-object p0
 .end method

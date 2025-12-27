@@ -76,19 +76,19 @@
 
     invoke-virtual {v0, v7, v5}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    sget-object v5, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    sget-object v5, Lcom/android/internal/util/kaorios/KmAyt51OrRpbo1y6I;->Kq5pt6AeqxqwOjab0R8ioI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
 
     const-string v6, "RIPEMD128"
 
     invoke-virtual {v0, v5, v6}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    sget-object v5, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    sget-object v5, Lcom/android/internal/util/kaorios/KmAyt51OrRpbo1y6I;->Ku5O3sihzbUhwSewE8uI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
 
     const-string v6, "RIPEMD160"
 
     invoke-virtual {v0, v5, v6}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    sget-object v5, Lcom/android/internal/util/kaorios/KoO4rUo25S5fagE1I;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
+    sget-object v5, Lcom/android/internal/util/kaorios/KmAyt51OrRpbo1y6I;->KmwO02nawgUws9Syxnq2rElI:Lcom/android/internal/util/kaorios/K6je5oA67qOebRsw8zxI;
 
     const-string v6, "RIPEMD256"
 
