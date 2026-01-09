@@ -12,6 +12,7 @@ mkdir -p "$BACKUP_DIR"
 # Feature Flags (set by command-line arguments)
 # ============================================
 FEATURE_DISABLE_SIGNATURE_VERIFICATION=0
+FEATURE_KAORIOS_TOOLBOX=0
 
 # Function to decompile JAR file
 decompile_jar() {
@@ -383,6 +384,13 @@ patch_framework() {
         apply_framework_signature_patches "$decompile_dir"
     fi
 
+    if [ $FEATURE_KAORIOS_TOOLBOX -eq 1 ]; then
+        # Source the Kaorios patching functions
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        source "${SCRIPT_DIR}/core/kaorios_patches.sh"
+        apply_kaorios_toolbox_patches "$decompile_dir"
+    fi
+
     # Recompile framework.jar
     recompile_jar "$framework_path"
     d8_optimize_jar "framework_patched.jar"
@@ -601,7 +609,7 @@ EOF
             --disable-signature-verification)
                 FEATURE_DISABLE_SIGNATURE_VERIFICATION=1
                 ;;
-            --enable-kaorios-toolbox)
+            --kaorios-toolbox)
                 FEATURE_KAORIOS_TOOLBOX=1
                 ;;
             *)

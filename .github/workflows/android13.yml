@@ -37,7 +37,7 @@ on:
         required: false
         type: string
       features:
-        description: 'Comma-separated list of features to enable (e.g., "disable_signature_verification")'
+        description: 'Comma-separated list of features to enable (e.g., "disable_signature_verification,kaorios_toolbox")'
         required: false
         type: string
         default: 'disable_signature_verification'
@@ -130,6 +130,10 @@ jobs:
           # If no features selected, default to signature bypass
           if [ -z "$FEATURE_FLAGS" ]; then
             FEATURE_FLAGS="--disable-signature-verification"
+          fi
+
+          if [[ "${{ github.event.inputs.features }}" == *kaorios_toolbox* ]]; then
+            FEATURE_FLAGS="$FEATURE_FLAGS --kaorios-toolbox"
           fi
 
           ./scripts/patcher_a13.sh \
@@ -225,9 +229,11 @@ jobs:
         run: |
           # Build features list
           FEATURES_LIST=()
-          if [[ "${{ github.event.inputs.features }}" == *disable_signature_verification* ]]; then
-            FEATURES_LIST+=("- Signature Verification Bypass")
+          if [[ "${{ github.event.inputs.features }}" == *kaorios_toolbox* ]]; then
+            FEATURES_LIST+=("- Kaorios Toolbox (Play Integrity Fix) 🧪 BETA")
           fi
+
+          if [ ${#FEATURES_LIST[@]} -eq 0 ]; then
 
           if [ ${#FEATURES_LIST[@]} -eq 0 ]; then
             FEATURES="- Signature Verification Bypass (default)"
