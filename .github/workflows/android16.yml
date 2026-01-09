@@ -303,7 +303,7 @@ jobs:
             FEATURES_LIST+=("- Disable Secure Flag")
           fi
           if [[ "${{ github.event.inputs.features }}" == *kaorios_toolbox* ]]; then
-            FEATURES_LIST+=("- Kaorios Toolbox (Play Integrity Fix) BETA")
+            FEATURES_LIST+=("- Kaorios Toolbox (Play Integrity Fix) ")
           fi
 
           if [ ${#FEATURES_LIST[@]} -eq 0 ]; then
