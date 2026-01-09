@@ -13,6 +13,7 @@ mkdir -p "$BACKUP_DIR"
 # ============================================
 FEATURE_DISABLE_SIGNATURE_VERIFICATION=0
 FEATURE_KAORIOS_TOOLBOX=0
+FEATURE_ADD_GBOARD=0
 
 # Function to decompile JAR file
 decompile_jar() {
@@ -514,6 +515,37 @@ apply_miui_services_signature_patches() {
     echo "Signature verification patches applied to miui-services.jar (Android 14)"
 }
 
+# Apply Gboard support patches to miui-services.jar (replace Baidu input with Gboard)
+apply_miui_services_gboard_support() {
+    local decompile_dir="$1"
+    local search_string="com.baidu.input_mi"
+    local replace_string="com.google.android.inputmethod.latin"
+
+    echo "Applying Gboard support patches to miui-services.jar..."
+
+    # Target smali files for Gboard support
+    local gboard_classes=(
+        "com/android/server/am/ActivityManagerServiceImpl\$1.smali"
+        "com/android/server/input/InputManagerServiceStubImpl.smali"
+        "com/android/server/inputmethod/InputMethodManagerServiceImpl.smali"
+        "com/android/server/wm/MiuiSplitInputMethodImpl.smali"
+    )
+
+    for class_file in "${gboard_classes[@]}"; do
+        local file
+        file=$(find "$decompile_dir" -type f -path "*/${class_file}" | head -n 1)
+        if [ -f "$file" ]; then
+            echo "Replacing Baidu input with Gboard in $(basename "$file")..."
+            sed -i "s/${search_string}/${replace_string}/g" "$file"
+            echo "✓ Patched $(basename "$file")"
+        else
+            echo "⚠ File not found: $class_file"
+        fi
+    done
+
+    echo "Gboard support patches applied to miui-services.jar"
+}
+
 # Main miui-services patching function
 patch_miui_services() {
     local miui_services_path="$WORK_DIR/miui-services.jar"
@@ -522,7 +554,8 @@ patch_miui_services() {
     echo "Starting miui-services.jar patch..."
 
     # Check if any miui-services features are enabled
-    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ]; then
+    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] &&
+        [ $FEATURE_ADD_GBOARD -eq 0 ]; then
         echo "No miui-services features selected, skipping miui-services.jar"
         return 0
     fi
@@ -533,6 +566,10 @@ patch_miui_services() {
     # Apply feature-specific patches based on flags
     if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 1 ]; then
         apply_miui_services_signature_patches "$decompile_dir"
+    fi
+
+    if [ $FEATURE_ADD_GBOARD -eq 1 ]; then
+        apply_miui_services_gboard_support "$decompile_dir"
     fi
 
     # Recompile miui-services.jar
@@ -550,6 +587,76 @@ patch_miui_services() {
     echo "Miui-services.jar patching completed."
 }
 
+# ============================================
+# Feature-specific patch functions for miui-framework.jar
+# ============================================
+
+# Apply Gboard support patches to miui-framework.jar (replace Baidu input with Gboard)
+apply_miui_framework_gboard_support() {
+    local decompile_dir="$1"
+    local search_string="com.baidu.input_mi"
+    local replace_string="com.google.android.inputmethod.latin"
+
+    echo "Applying Gboard support patches to miui-framework.jar..."
+
+    # Target smali files for Gboard support in miui-framework
+    local gboard_classes=(
+        "android/inputmethodservice/InputMethodServiceInjector.smali"
+        "android/view/DisplayInfoInjector\$2.smali"
+        "miui/util/HapticFeedbackUtil.smali"
+    )
+
+    for class_file in "${gboard_classes[@]}"; do
+        local file
+        file=$(find "$decompile_dir" -type f -path "*/${class_file}" | head -n 1)
+        if [ -f "$file" ]; then
+            echo "Replacing Baidu input with Gboard in $(basename "$file")..."
+            sed -i "s/${search_string}/${replace_string}/g" "$file"
+            echo "✓ Patched $(basename "$file")"
+        else
+            echo "⚠ File not found: $class_file"
+        fi
+    done
+
+    echo "Gboard support patches applied to miui-framework.jar"
+}
+
+# Main miui-framework patching function
+patch_miui_framework() {
+    local miui_framework_path="$WORK_DIR/miui-framework.jar"
+    local decompile_dir="$WORK_DIR/miui-framework_decompile"
+
+    echo "Starting miui-framework.jar patch..."
+
+    # Check if any miui-framework features are enabled
+    if [ $FEATURE_ADD_GBOARD -eq 0 ]; then
+        echo "No miui-framework features selected, skipping miui-framework.jar"
+        return 0
+    fi
+
+    # Decompile miui-framework.jar
+    decompile_jar "$miui_framework_path"
+
+    # Apply feature-specific patches based on flags
+    if [ $FEATURE_ADD_GBOARD -eq 1 ]; then
+        apply_miui_framework_gboard_support "$decompile_dir"
+    fi
+
+    # Recompile miui-framework.jar
+    recompile_jar "$miui_framework_path"
+    d8_optimize_jar "miui-framework_patched.jar"
+
+    # Clean up
+    rm -rf "$WORK_DIR/miui-framework" "$decompile_dir"
+
+    if [ ! -f "miui-framework_patched.jar" ]; then
+        err "Critical Error: miui-framework_patched.jar was not created."
+        return 1
+    fi
+
+    echo "Miui-framework.jar patching completed."
+}
+
 # Source helper functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/helper.sh"
@@ -565,11 +672,13 @@ JAR OPTIONS (specify which JARs to patch):
   --framework           Patch framework.jar
   --services            Patch services.jar
   --miui-services       Patch miui-services.jar
+  --miui-framework      Patch miui-framework.jar
   (If no JAR option specified, all JARs will be patched)
 
 FEATURE OPTIONS (specify which features to apply):
   --disable-signature-verification    Disable signature verification (default if no feature specified)
   --kaorios-toolbox                   Include Kaorios Toolbox (Play Integrity Fix)
+  --add-gboard                         Add Gboard support (replace Baidu input)
 
 EXAMPLES:
   # Apply signature verification bypass to all JARs (backward compatible)
@@ -593,6 +702,7 @@ EOF
     PATCH_FRAMEWORK=0
     PATCH_SERVICES=0
     PATCH_MIUI_SERVICES=0
+    PATCH_MIUI_FRAMEWORK=0
     FEATURE_KAORIOS_TOOLBOX=0
 
     while [ $# -gt 0 ]; do
@@ -606,11 +716,17 @@ EOF
             --miui-services)
                 PATCH_MIUI_SERVICES=1
                 ;;
+            --miui-framework)
+                PATCH_MIUI_FRAMEWORK=1
+                ;;
             --disable-signature-verification)
                 FEATURE_DISABLE_SIGNATURE_VERIFICATION=1
                 ;;
             --kaorios-toolbox)
                 FEATURE_KAORIOS_TOOLBOX=1
+                ;;
+            --add-gboard)
+                FEATURE_ADD_GBOARD=1
                 ;;
             *)
                 echo "Unknown option: $1"
@@ -621,14 +737,15 @@ EOF
     done
 
     # If no JAR specified, patch all
-    if [ $PATCH_FRAMEWORK -eq 0 ] && [ $PATCH_SERVICES -eq 0 ] && [ $PATCH_MIUI_SERVICES -eq 0 ]; then
+    if [ $PATCH_FRAMEWORK -eq 0 ] && [ $PATCH_SERVICES -eq 0 ] && [ $PATCH_MIUI_SERVICES -eq 0 ] && [ $PATCH_MIUI_FRAMEWORK -eq 0 ]; then
         PATCH_FRAMEWORK=1
         PATCH_SERVICES=1
         PATCH_MIUI_SERVICES=1
+        PATCH_MIUI_FRAMEWORK=1
     fi
 
     # If no feature specified, default to signature verification (backward compatibility)
-    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] && [ $FEATURE_KAORIOS_TOOLBOX -eq 0 ]; then
+    if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] && [ $FEATURE_KAORIOS_TOOLBOX -eq 0 ] && [ $FEATURE_ADD_GBOARD -eq 0 ]; then
         FEATURE_DISABLE_SIGNATURE_VERIFICATION=1
         echo "No feature specified, defaulting to --disable-signature-verification"
     fi
@@ -638,6 +755,7 @@ EOF
     echo "Selected Features:"
     [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 1 ] && echo "  ✓ Disable Signature Verification"
     [ $FEATURE_KAORIOS_TOOLBOX -eq 1 ] && echo "  ✓ Include Kaorios Toolbox"
+    [ $FEATURE_ADD_GBOARD -eq 1 ] && echo "  ✓ Add Gboard Support"
     echo "============================================"
 
     # Initialize environment and check tools
@@ -655,6 +773,10 @@ EOF
 
     if [ $PATCH_MIUI_SERVICES -eq 1 ]; then
         patch_miui_services
+    fi
+
+    if [ $PATCH_MIUI_FRAMEWORK -eq 1 ]; then
+        patch_miui_framework
     fi
 
     # Create module

@@ -29,7 +29,11 @@ on:
         required: false
         type: string
       miui_services_url:
-        description: 'URL to miui-services.jar (required for: signature_verification, cn_notification_fix, disable_secure_flag)'
+        description: 'URL to miui-services.jar (required for: signature_verification, cn_notification_fix, disable_secure_flag, add_gboard)'
+        required: false
+        type: string
+      miui_framework_url:
+        description: 'URL to miui-framework.jar (required for: add_gboard)'
         required: false
         type: string
       user_id:
@@ -87,6 +91,7 @@ jobs:
           NEED_FRAMEWORK=0
           NEED_SERVICES=0
           NEED_MIUI_SERVICES=0
+          NEED_MIUI_FRAMEWORK=0
           
           # Signature verification needs all 3
           if [[ "$FEATURES" == *"disable_signature_verification"* ]]; then
@@ -111,11 +116,18 @@ jobs:
             NEED_MIUI_SERVICES=1
           fi
           
+          # Add Gboard needs miui-services.jar and miui-framework.jar
+          if [[ "$FEATURES" == *"add_gboard"* ]]; then
+            NEED_MIUI_SERVICES=1
+            NEED_MIUI_FRAMEWORK=1
+          fi
+          
           echo "============================================"
           echo "Feature-based JAR requirements:"
           echo "  framework.jar: $([ $NEED_FRAMEWORK -eq 1 ] && echo 'REQUIRED' || echo 'not needed')"
           echo "  services.jar: $([ $NEED_SERVICES -eq 1 ] && echo 'REQUIRED' || echo 'not needed')"
           echo "  miui-services.jar: $([ $NEED_MIUI_SERVICES -eq 1 ] && echo 'REQUIRED' || echo 'not needed')"
+          echo "  miui-framework.jar: $([ $NEED_MIUI_FRAMEWORK -eq 1 ] && echo 'REQUIRED' || echo 'not needed')"
           echo "============================================"
           
           # Download required JARs
@@ -143,8 +155,16 @@ jobs:
             download_file "${{ github.event.inputs.miui_services_url }}" "miui-services.jar"
           fi
           
+          if [ $NEED_MIUI_FRAMEWORK -eq 1 ]; then
+            if [ -z "${{ github.event.inputs.miui_framework_url }}" ]; then
+              echo "❌ miui-framework.jar URL is required but not provided!"
+              exit 1
+            fi
+            download_file "${{ github.event.inputs.miui_framework_url }}" "miui-framework.jar"
+          fi
+          
           echo "Validating downloaded JAR files..."
-          for jar in framework.jar services.jar miui-services.jar; do
+          for jar in framework.jar services.jar miui-services.jar miui-framework.jar; do
             if [ -f "$jar" ]; then
               file_size=$(stat -c%s "$jar")
               echo "Checking $jar (${file_size} bytes)..."
@@ -188,6 +208,9 @@ jobs:
           if [[ "${{ github.event.inputs.features }}" == *kaorios_toolbox* ]]; then
             FEATURE_FLAGS="$FEATURE_FLAGS --kaorios-toolbox"
           fi
+          if [[ "${{ github.event.inputs.features }}" == *add_gboard* ]]; then
+            FEATURE_FLAGS="$FEATURE_FLAGS --add-gboard"
+          fi
           
           # If no features selected, default to signature bypass
           if [ -z "$FEATURE_FLAGS" ]; then
@@ -204,6 +227,9 @@ jobs:
           fi
           if [ -f "miui-services.jar" ]; then
             JAR_FLAGS="$JAR_FLAGS --miui-services"
+          fi
+          if [ -f "miui-framework.jar" ]; then
+            JAR_FLAGS="$JAR_FLAGS --miui-framework"
           fi
           
           echo "Running patcher with JAR flags: $JAR_FLAGS"
@@ -314,6 +340,9 @@ jobs:
           if [[ "${{ github.event.inputs.features }}" == *kaorios_toolbox* ]]; then
             FEATURES_LIST+=("- Kaorios Toolbox (Play Integrity Fix)")
           fi
+          if [[ "${{ github.event.inputs.features }}" == *add_gboard* ]]; then
+            FEATURES_LIST+=("- Add Gboard Support")
+          fi
 
           if [ ${#FEATURES_LIST[@]} -eq 0 ]; then
             FEATURES="- Signature Verification Bypass (default)"
@@ -386,6 +415,7 @@ jobs:
             framework_patched.jar
             services_patched.jar
             miui-services_patched.jar
+            miui-framework_patched.jar
           retention-days: 7
 
       - name: Upload module zip

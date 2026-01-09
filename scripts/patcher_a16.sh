@@ -13,6 +13,7 @@ FEATURE_DISABLE_SIGNATURE_VERIFICATION=0
 FEATURE_CN_NOTIFICATION_FIX=0
 FEATURE_DISABLE_SECURE_FLAG=0
 FEATURE_KAORIOS_TOOLBOX=0
+FEATURE_ADD_GBOARD=0
 
 # ----------------------------------------------
 # Internal helpers (python-powered transformations)
@@ -1022,6 +1023,37 @@ apply_miui_services_disable_secure_flag() {
     log "Disable secure flag patches applied to miui-services.jar (Android 16)"
 }
 
+# Apply Gboard support patches to miui-services.jar (replace Baidu input with Gboard)
+apply_miui_services_gboard_support() {
+    local decompile_dir="$1"
+    local search_string="com.baidu.input_mi"
+    local replace_string="com.google.android.inputmethod.latin"
+
+    log "Applying Gboard support patches to miui-services.jar..."
+
+    # Target smali files for Gboard support
+    local gboard_classes=(
+        "com/android/server/am/ActivityManagerServiceImpl\$1.smali"
+        "com/android/server/input/InputManagerServiceStubImpl.smali"
+        "com/android/server/inputmethod/InputMethodManagerServiceImpl.smali"
+        "com/android/server/wm/MiuiSplitInputMethodImpl.smali"
+    )
+
+    for class_file in "${gboard_classes[@]}"; do
+        local file
+        file=$(find "$decompile_dir" -type f -path "*/${class_file}" | head -n 1)
+        if [ -f "$file" ]; then
+            log "Replacing Baidu input with Gboard in $(basename "$file")..."
+            sed -i "s/${search_string}/${replace_string}/g" "$file"
+            log "✓ Patched $(basename "$file")"
+        else
+            warn "File not found: $class_file"
+        fi
+    done
+
+    log "Gboard support patches applied to miui-services.jar"
+}
+
 # Main miui-services patching function (Android 16)
 patch_miui_services() {
     local miui_services_path="${WORK_DIR}/miui-services.jar"
@@ -1045,7 +1077,8 @@ patch_miui_services() {
     # Check if any miui-services features are enabled
     if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] &&
         [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] &&
-        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ]; then
+        [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ] &&
+        [ $FEATURE_ADD_GBOARD -eq 0 ]; then
         log "No miui-services features selected, skipping miui-services.jar"
         return 0
     fi
@@ -1072,6 +1105,10 @@ patch_miui_services() {
         apply_miui_services_disable_secure_flag "$decompile_dir"
     fi
 
+    if [ $FEATURE_ADD_GBOARD -eq 1 ]; then
+        apply_miui_services_gboard_support "$decompile_dir"
+    fi
+
     # Apply invoke-custom patches (common to all features)
     # modify_invoke_custom_methods "$decompile_dir"
 
@@ -1083,6 +1120,75 @@ patch_miui_services() {
     else
         log "Verification completed on existing miui-services decompile dir (no rebuild)"
     fi
+}
+
+# ============================================
+# Feature-specific patch functions for miui-framework.jar
+# ============================================
+
+# Apply Gboard support patches to miui-framework.jar (replace Baidu input with Gboard)
+apply_miui_framework_gboard_support() {
+    local decompile_dir="$1"
+    local search_string="com.baidu.input_mi"
+    local replace_string="com.google.android.inputmethod.latin"
+
+    log "Applying Gboard support patches to miui-framework.jar..."
+
+    # Target smali files for Gboard support in miui-framework
+    local gboard_classes=(
+        "android/inputmethodservice/InputMethodServiceInjector.smali"
+        "android/view/DisplayInfoInjector\$2.smali"
+        "miui/util/HapticFeedbackUtil.smali"
+    )
+
+    for class_file in "${gboard_classes[@]}"; do
+        local file
+        file=$(find "$decompile_dir" -type f -path "*/${class_file}" | head -n 1)
+        if [ -f "$file" ]; then
+            log "Replacing Baidu input with Gboard in $(basename "$file")..."
+            sed -i "s/${search_string}/${replace_string}/g" "$file"
+            log "✓ Patched $(basename "$file")"
+        else
+            warn "File not found: $class_file"
+        fi
+    done
+
+    log "Gboard support patches applied to miui-framework.jar"
+}
+
+# Main miui-framework patching function (Android 16)
+patch_miui_framework() {
+    local miui_framework_path="${WORK_DIR}/miui-framework.jar"
+
+    if [ ! -f "$miui_framework_path" ]; then
+        warn "miui-framework.jar not found at $miui_framework_path"
+        return 0
+    fi
+
+    # Check if any miui-framework features are enabled
+    if [ $FEATURE_ADD_GBOARD -eq 0 ]; then
+        log "No miui-framework features selected, skipping miui-framework.jar"
+        return 0
+    fi
+
+    log "Starting Android 16 miui-framework.jar patch"
+    local decompile_dir
+    decompile_dir=$(decompile_jar "$miui_framework_path") || return 1
+
+    # Apply feature-specific patches based on flags
+    if [ $FEATURE_ADD_GBOARD -eq 1 ]; then
+        apply_miui_framework_gboard_support "$decompile_dir"
+    fi
+
+    recompile_jar "$miui_framework_path" >/dev/null
+    d8_optimize_jar "miui-framework_patched.jar"
+    rm -rf "$decompile_dir" "$WORK_DIR/miui-framework"
+
+    if [ ! -f "miui-framework_patched.jar" ]; then
+        err "Critical Error: miui-framework_patched.jar was not created."
+        return 1
+    fi
+    log "Completed miui-framework.jar patching"
 }
 
 # Source helper functions
@@ -1102,12 +1208,14 @@ JAR OPTIONS (specify which JARs to patch):
   --framework           Patch framework.jar
   --services            Patch services.jar
   --miui-services       Patch miui-services.jar
+  --miui-framework      Patch miui-framework.jar
   (If no JAR option specified, all JARs will be patched)
 
 FEATURE OPTIONS (specify which features to apply):
   --disable-signature-verification    Disable signature verification (default if no feature specified)
   --cn-notification-fix                Apply CN notification fix
   --disable-secure-flag                Disable secure flag
+  --add-gboard                         Add Gboard support (replace Baidu input)
   (You can specify multiple features, they will all be applied)
 
 EXAMPLES:
@@ -1136,6 +1244,7 @@ EOF
     local patch_framework_flag=0
     local patch_services_flag=0
     local patch_miui_services_flag=0
+    local patch_miui_framework_flag=0
 
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -1147,6 +1256,9 @@ EOF
                 ;;
             --miui-services)
                 patch_miui_services_flag=1
+                ;;
+            --miui-framework)
+                patch_miui_framework_flag=1
                 ;;
             --disable-signature-verification)
                 FEATURE_DISABLE_SIGNATURE_VERIFICATION=1
@@ -1160,6 +1272,9 @@ EOF
             --kaorios-toolbox)
                 FEATURE_KAORIOS_TOOLBOX=1
                 ;;
+            --add-gboard)
+                FEATURE_ADD_GBOARD=1
+                ;;
             *)
                 echo "Unknown option: $1" >&2
                 exit 1
@@ -1169,17 +1284,19 @@ EOF
     done
 
     # If no JAR specified, patch all
-    if [ $patch_framework_flag -eq 0 ] && [ $patch_services_flag -eq 0 ] && [ $patch_miui_services_flag -eq 0 ]; then
+    if [ $patch_framework_flag -eq 0 ] && [ $patch_services_flag -eq 0 ] && [ $patch_miui_services_flag -eq 0 ] && [ $patch_miui_framework_flag -eq 0 ]; then
         patch_framework_flag=1
         patch_services_flag=1
         patch_miui_services_flag=1
+        patch_miui_framework_flag=1
     fi
 
     # If no feature specified, default to signature verification (backward compatibility)
     if [ $FEATURE_DISABLE_SIGNATURE_VERIFICATION -eq 0 ] &&
         [ $FEATURE_CN_NOTIFICATION_FIX -eq 0 ] &&
         [ $FEATURE_DISABLE_SECURE_FLAG -eq 0 ] &&
-        [ $FEATURE_KAORIOS_TOOLBOX -eq 0 ]; then
+        [ $FEATURE_KAORIOS_TOOLBOX -eq 0 ] &&
+        [ $FEATURE_ADD_GBOARD -eq 0 ]; then
         FEATURE_DISABLE_SIGNATURE_VERIFICATION=1
         log "No feature specified, defaulting to --disable-signature-verification"
     fi
@@ -1191,6 +1308,7 @@ EOF
     [ $FEATURE_CN_NOTIFICATION_FIX -eq 1 ] && log "  ✓ CN Notification Fix"
     [ $FEATURE_DISABLE_SECURE_FLAG -eq 1 ] && log "  ✓ Disable Secure Flag"
     [ $FEATURE_KAORIOS_TOOLBOX -eq 1 ] && log "  ✓ Kaorios Toolbox (Play Integrity Fix)"
+    [ $FEATURE_ADD_GBOARD -eq 1 ] && log "  ✓ Add Gboard Support"
     log "============================================"
 
     init_env
@@ -1211,6 +1329,10 @@ EOF
         else
             patch_miui_services
         fi
+    fi
+
+    if [ $patch_miui_framework_flag -eq 1 ]; then
+        patch_miui_framework
     fi
 
     # Create module
