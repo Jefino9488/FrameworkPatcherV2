@@ -5,8 +5,12 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "http://dono-01.danbot.host:9422/:path*"
+      "source": "/api/devices/:path*",
+      "destination": "http://20.193.137.189:8000/devices/:path*"
+    },
+    {
+      "source": "/api/codenames",
+      "destination": "http://20.193.137.189:8000/codenames"
     }
   ],
   "headers": [

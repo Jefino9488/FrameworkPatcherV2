@@ -33,7 +33,7 @@ export async function fetchDeviceSoftware(codename) {
 
 export async function triggerWorkflow(version, inputs) {
     try {
-        const response = await fetch(CONFIG.apiBaseUrl + '/trigger-workflow', {
+        const response = await fetch('/api/trigger-workflow', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({version: version, inputs: inputs})

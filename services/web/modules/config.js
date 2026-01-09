@@ -9,7 +9,7 @@ export const CONFIG = {
         android16: 'android16.yml'
     },
     // API endpoints
-    apiBaseUrl: 'http://20.193.137.189:8000',
+    apiBaseUrl: '/api',
     endpoints: {
         devices: '/devices',
         deviceSoftware: '/devices/{codename}/software'
