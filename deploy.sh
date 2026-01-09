@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Framework Patcher Services - Unified Deployment Script
-# This script deploys both the Bot and FastAPI services in Pterodactyl container
+# Deploys Bot and FastAPI services using systemd and a shared virtual environment.
 
 set -e # Exit on any error
 
 echo "🚀 Framework Patcher Services Deployment"
-echo "=========================================="
+echo "=================================================="
 
 # Colors for output
 RED='\033[0;31m'
@@ -34,304 +34,120 @@ print_error() {
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VENV_DIR="$SCRIPT_DIR/venv"
 SERVICES_DIR="$SCRIPT_DIR/services"
 BOT_DIR="$SERVICES_DIR/bot"
 API_DIR="$SERVICES_DIR/web"
+REQUIREMENTS_FILE="$BOT_DIR/requirements.txt"
 
 print_status "Project root: $SCRIPT_DIR"
-print_status "Services directory: $SERVICES_DIR"
-print_status "Bot directory: $BOT_DIR"
-print_status "API directory: $API_DIR"
 
-# Check if we're in the right directory
-if [ ! -d "$SERVICES_DIR" ]; then
-    print_error "Services directory not found at $SERVICES_DIR"
-    print_error "Please run this script from the project root directory"
+# Check for Python 3.10+
+if command -v python3.10 &>/dev/null; then
+    PYTHON_CMD="python3.10"
+elif command -v python3 &>/dev/null; then
+    PYTHON_CMD="python3"
+else
+    print_error "Python 3.10+ is required but not found."
+    exit 1
+fi
+print_status "Using Python: $($PYTHON_CMD --version)"
+
+# Step 1: Create/Update Virtual Environment
+if [ ! -d "$VENV_DIR" ]; then
+    print_status "Creating virtual environment in $VENV_DIR..."
+    $PYTHON_CMD -m venv "$VENV_DIR"
+else
+    print_status "Virtual environment exists in $VENV_DIR."
+fi
+
+# Step 2: Install Dependencies
+print_status "Installing/Updating dependencies..."
+if [ -f "$REQUIREMENTS_FILE" ]; then
+    "$VENV_DIR/bin/pip" install --upgrade pip
+    "$VENV_DIR/bin/pip" install -r "$REQUIREMENTS_FILE"
+    print_success "Dependencies installed."
+else
+    print_error "requirements.txt not found at $REQUIREMENTS_FILE"
     exit 1
 fi
 
-if [ ! -f "$BOT_DIR/Framework/__main__.py" ]; then
-    print_error "Framework/__main__.py not found in $BOT_DIR"
-    exit 1
+# Step 3: Setup Systemd Services
+print_status "Setting up systemd services..."
+
+# We need sudo for systemd operations
+if [ "$EUID" -ne 0 ]; then
+    print_warning "This script needs sudo privileges to update systemd services."
+    # We will use sudo for specific commands
 fi
 
-if [ ! -f "$API_DIR/server.py" ]; then
-    print_error "server.py not found in $API_DIR"
-    exit 1
-fi
+# Create temporary service files to move them to /etc/systemd/system/
+# FastAPI Service
+FASTAPI_SERVICE_FILE="/tmp/fastapi.service"
+cat > "$FASTAPI_SERVICE_FILE" <<EOF
+[Unit]
+Description=FastAPI Server
+After=network.target
 
-# Check if git is available
-if ! command -v git &>/dev/null; then
-    print_error "Git is not installed or not in PATH"
-    exit 1
-fi
+[Service]
+User=$USER
+WorkingDirectory=$API_DIR
+Environment="PYTHONPATH=$SCRIPT_DIR"
+ExecStart=$VENV_DIR/bin/uvicorn server:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
 
-# Detect if running in a container
-IS_CONTAINER=false
-if [ -f "/.dockerenv" ] || [ -n "$CONTAINER" ] || [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -n "$PTERODACTYL" ]; then
-    IS_CONTAINER=true
-    print_status "Container environment detected (Pterodactyl/Docker)"
-fi
-
-# Detect Python command
-PYTHON_CMD=""
-PIP_CMD=""
-
-# Try different Python versions (prefer newer versions)
-for python_ver in python3.12 python3.11 python3.10 python3 python; do
-    if command -v "$python_ver" &>/dev/null; then
-        PYTHON_CMD="$python_ver"
-        print_status "Found Python: $python_ver"
-        break
-    fi
-done
-
-if [ -z "$PYTHON_CMD" ]; then
-    print_error "Python is not installed or not in PATH"
-    print_error "Tried: python3.12, python3.11, python3.10, python3, python"
-    exit 1
-fi
-
-# Detect pip command
-for pip_ver in pip3.12 pip3.11 pip3.10 pip3 pip; do
-    if command -v "$pip_ver" &>/dev/null; then
-        PIP_CMD="$pip_ver"
-        print_status "Found pip: $pip_ver"
-        break
-    fi
-done
-
-# Fallback: use python -m pip if pip not found
-if [ -z "$PIP_CMD" ]; then
-    print_warning "pip command not found, will use '$PYTHON_CMD -m pip'"
-    PIP_CMD="$PYTHON_CMD -m pip"
-fi
-
-print_status "Using Python: $PYTHON_CMD"
-print_status "Using pip: $PIP_CMD"
-
-# Show Python version
-PYTHON_VERSION=$($PYTHON_CMD --version 2>&1)
-print_success "Python version: $PYTHON_VERSION"
-
-# Show environment summary
-if [ "$IS_CONTAINER" = true ]; then
-    print_success "Environment: Docker/Pterodactyl Container"
-else
-    print_success "Environment: Standard Host"
-fi
-echo ""
-
-# Step 1: Stop existing services
-print_status "Stopping existing services..."
-
-# Stop Bot
-BOT_PIDS=$(pgrep -f "python -m Framework" || true)
-if [ -n "$BOT_PIDS" ]; then
-    print_warning "Found running bot processes: $BOT_PIDS"
-    print_status "Stopping bot processes..."
-    pkill -f "python -m Framework" || true
-    sleep 2
-
-    # Force kill if needed
-    REMAINING_PIDS=$(pgrep -f "python -m Framework" || true)
-    if [ -n "$REMAINING_PIDS" ]; then
-        print_warning "Force killing bot processes..."
-        pkill -9 -f "python -m Framework" || true
-        sleep 1
-    fi
-    print_success "Bot processes stopped"
-else
-    print_status "No running bot processes found"
-fi
-
-# Stop API
-API_PIDS=$(pgrep -f "server.py\|uvicorn" || true)
-if [ -n "$API_PIDS" ]; then
-    print_warning "Found running API processes: $API_PIDS"
-    print_status "Stopping API processes..."
-    pkill -f "server.py\|uvicorn" || true
-    sleep 2
-
-    # Force kill if needed
-    REMAINING_PIDS=$(pgrep -f "server.py\|uvicorn" || true)
-    if [ -n "$REMAINING_PIDS" ]; then
-        print_warning "Force killing API processes..."
-        pkill -9 -f "server.py\|uvicorn" || true
-        sleep 1
-    fi
-    print_success "API processes stopped"
-else
-    print_status "No running API processes found"
-fi
-
-# Step 2: Backup current sessions
-print_status "Backing up current sessions..."
-BACKUP_DIR="/tmp/bot_backup_$(date +%Y%m%d_%H%M%S)"
-mkdir -p "$BACKUP_DIR"
-
-if [ -f "$BOT_DIR/FrameworkPatcherBot.session" ]; then
-    cp "$BOT_DIR/FrameworkPatcherBot.session" "$BACKUP_DIR/"
-    print_success "Bot session backed up to $BACKUP_DIR"
-fi
-
-# Step 3: Update from Git (if needed)
-print_status "Checking for Git updates..."
-if [ -d "$SCRIPT_DIR/.git" ]; then
-    print_status "Fetching latest changes from origin/master..."
-    git fetch origin master
-
-    COMMITS_AHEAD=$(git rev-list --count HEAD..origin/master 2>/dev/null || echo "0")
-    if [ "$COMMITS_AHEAD" -gt 0 ]; then
-        print_status "Found $COMMITS_AHEAD new commits"
-        print_status "Recent commits:"
-        git log --oneline HEAD..origin/master | head -5
-
-        print_status "Updating repository..."
-        git reset --hard origin/master
-        git clean -fd
-        print_success "Repository updated successfully"
-    else
-        print_status "Repository is already up to date"
-    fi
-else
-    print_warning "Not a git repository, skipping update"
-fi
-
-# Step 4: Install/Update dependencies
-print_status "Installing/updating Python dependencies..."
-
-# Install Bot dependencies
-if [ -f "$BOT_DIR/requirements.txt" ]; then
-    print_status "Installing bot requirements..."
-    $PIP_CMD install -r "$BOT_DIR/requirements.txt" --user 2>/dev/null || $PIP_CMD install -r "$BOT_DIR/requirements.txt"
-    print_success "Bot dependencies installed"
-else
-    print_error "Bot requirements.txt not found at: $BOT_DIR/requirements.txt"
-    exit 1
-fi
-
-# Install API dependencies (if separate requirements exist)
-if [ -f "$API_DIR/requirements.txt" ]; then
-    print_status "Installing API requirements..."
-    $PIP_CMD install -r "$API_DIR/requirements.txt" --user 2>/dev/null || $PIP_CMD install -r "$API_DIR/requirements.txt"
-    print_success "API dependencies installed"
-else
-    print_status "No separate API requirements found, skipping"
-fi
-
-# Step 5: Create log directories
-print_status "Creating log directories..."
-mkdir -p "$BOT_DIR/logs"
-mkdir -p "$API_DIR/logs"
-print_success "Log directories created"
-
-# Step 6: Start services
-print_status "Starting services..."
-
-# Start API first
-print_status "Starting FastAPI server..."
-API_STARTUP_SCRIPT="/tmp/start_api.sh"
-cat >"$API_STARTUP_SCRIPT" <<EOF
-#!/bin/bash
-cd "$API_DIR"
-export PYTHONPATH="$SCRIPT_DIR:\$PYTHONPATH"
-nohup $PYTHON_CMD -m uvicorn server:app --host 0.0.0.0 --port 8000 > api.log 2>&1 &
-echo \$! > api.pid
-echo "API started with PID: \$(cat api.pid)"
+[Install]
+WantedBy=multi-user.target
 EOF
 
-chmod +x "$API_STARTUP_SCRIPT"
-bash "$API_STARTUP_SCRIPT"
-sleep 3
+# Bot Service
+BOT_SERVICE_FILE="/tmp/bot.service"
+cat > "$BOT_SERVICE_FILE" <<EOF
+[Unit]
+Description=Framework Bot
+After=network.target
 
-# Check if API started
-if [ -f "$API_DIR/api.pid" ]; then
-    API_PID=$(cat "$API_DIR/api.pid")
-    if ps -p "$API_PID" >/dev/null 2>&1; then
-        print_success "API started successfully with PID: $API_PID"
-    else
-        print_warning "API may have failed to start"
-        if [ -f "$API_DIR/api.log" ]; then
-            print_error "API log output:"
-            tail -20 "$API_DIR/api.log"
-        fi
-    fi
-fi
+[Service]
+User=$USER
+WorkingDirectory=$BOT_DIR
+Environment="PYTHONPATH=$SCRIPT_DIR"
+ExecStart=$VENV_DIR/bin/python3 -m Framework
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
 
-# Start Bot
-print_status "Starting Bot..."
-BOT_STARTUP_SCRIPT="/tmp/start_bot.sh"
-cat >"$BOT_STARTUP_SCRIPT" <<EOF
-#!/bin/bash
-cd "$BOT_DIR"
-export PYTHONPATH="$SCRIPT_DIR:\$PYTHONPATH"
-nohup $PYTHON_CMD -m Framework > bot.log 2>&1 &
-echo \$! > bot.pid
-echo "Bot started with PID: \$(cat bot.pid)"
+[Install]
+WantedBy=multi-user.target
 EOF
 
-chmod +x "$BOT_STARTUP_SCRIPT"
-bash "$BOT_STARTUP_SCRIPT"
-sleep 3
+print_status "Installing service files..."
+sudo mv "$FASTAPI_SERVICE_FILE" /etc/systemd/system/fastapi.service
+sudo mv "$BOT_SERVICE_FILE" /etc/systemd/system/bot.service
 
-# Check if Bot started
-if [ -f "$BOT_DIR/bot.pid" ]; then
-    BOT_PID=$(cat "$BOT_DIR/bot.pid")
-    if ps -p "$BOT_PID" >/dev/null 2>&1; then
-        print_success "Bot started successfully with PID: $BOT_PID"
+print_status "Reloading systemd daemon..."
+sudo systemctl daemon-reload
 
-        # Show recent log output
-        if [ -f "$BOT_DIR/bot.log" ]; then
-            print_status "Recent bot output:"
-            tail -10 "$BOT_DIR/bot.log"
-        fi
-    else
-        print_error "Bot failed to start"
-        if [ -f "$BOT_DIR/bot.log" ]; then
-            print_error "Bot log output:"
-            tail -20 "$BOT_DIR/bot.log"
-        fi
-    fi
-fi
+# Step 4: Enable and Restart Services
+print_status "Enabling and restarting services..."
+sudo systemctl enable fastapi.service bot.service
+sudo systemctl restart fastapi.service bot.service
 
-# Step 7: Show service status
-echo ""
-print_success "🎉 Deployment completed!"
-echo ""
-print_status "Service Status:"
-print_status "==============="
+# Step 5: Check Status
+print_status "Checking service status..."
+sleep 2
 
-if [ -f "$API_DIR/api.pid" ]; then
-    API_PID=$(cat "$API_DIR/api.pid")
-    if ps -p "$API_PID" >/dev/null 2>&1; then
-        print_success "✅ API Server: Running (PID: $API_PID) - http://localhost:8000"
-    else
-        print_error "❌ API Server: Not Running"
-    fi
+if systemctl is-active --quiet fastapi.service; then
+    print_success "FastAPI Service is RUNNING"
 else
-    print_error "❌ API Server: Not Started"
+    print_error "FastAPI Service FAILED to start. Check logs: journalctl -u fastapi.service"
 fi
 
-if [ -f "$BOT_DIR/bot.pid" ]; then
-    BOT_PID=$(cat "$BOT_DIR/bot.pid")
-    if ps -p "$BOT_PID" >/dev/null 2>&1; then
-        print_success "✅ Telegram Bot: Running (PID: $BOT_PID)"
-    else
-        print_error "❌ Telegram Bot: Not Running"
-    fi
+if systemctl is-active --quiet bot.service; then
+    print_success "Bot Service is RUNNING"
 else
-    print_error "❌ Telegram Bot: Not Started"
+    print_error "Bot Service FAILED to start. Check logs: journalctl -u bot.service"
 fi
 
-echo ""
-print_status "Logs location:"
-print_status "  Bot: $BOT_DIR/bot.log"
-print_status "  API: $API_DIR/api.log"
-echo ""
-print_status "Available bot commands: /update, /force_update, /restart, /status"
-
-# Cleanup
-rm -f "$API_STARTUP_SCRIPT" "$BOT_STARTUP_SCRIPT"
-
-print_success "Deployment script completed!"
+print_success "Deployment completed!"

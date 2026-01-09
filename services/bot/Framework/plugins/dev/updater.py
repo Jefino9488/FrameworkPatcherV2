@@ -37,8 +37,10 @@ async def graceful_restart():
     except Exception as e:
         LOGGER.error(f"Error during graceful stop: {e}")
     finally:
-        os.chdir(PROJECT_ROOT)
-        os.execl(sys.executable, sys.executable, "-m", "Framework")
+        if os.path.exists("stop.lock"):
+            os.remove("stop.lock")
+        LOGGER.info("Exiting process for systemd restart...")
+        sys.exit(0)
 
 
 def now_ist():
@@ -122,9 +124,11 @@ async def pull_updates(msg=None):
         _, commit_date, _ = await _run_cmd("git", "log", "-1", "--format=%cd", "--date=local")
         _, commit_timestamp, _ = await _run_cmd("git", "log", "-1", "--format=%at")
         _, commit_msg, _ = await _run_cmd("git", "log", "-1", "--format=%s")
-        LOGGER.info(f"Bot updated. Commit: {commit_hash.strip()}, Date: {commit_date.strip()}, Message: {commit_msg.strip()}")
+        LOGGER.info(
+            f"Bot updated. Commit: {commit_hash.strip()}, Date: {commit_date.strip()}, Message: {commit_msg.strip()}")
         if msg:
-            await msg.edit(f"Pulled updates.\nPull: {commit_msg.strip()}\nCommit: `{commit_hash.strip()[:7]}`\nRestarting...")
+            await msg.edit(
+                f"Pulled updates.\nPull: {commit_msg.strip()}\nCommit: `{commit_hash.strip()[:7]}`\nRestarting...")
         return {
             "commit_hash": commit_hash.strip(),
             "commit_date": commit_date.strip(),
@@ -145,7 +149,8 @@ async def update(_, message: Message):
     if not info or not info.get("updates_available"):
         await msg.edit("No updates available. Already on the latest version.")
         return
-    await msg.edit(f"Updates available! ({info['commits_behind']} new commits)\nLatest: {info['latest_commit_msg']}\nPulling changes...")
+    await msg.edit(
+        f"Updates available! ({info['commits_behind']} new commits)\nLatest: {info['latest_commit_msg']}\nPulling changes...")
     commit_info = await pull_updates(msg)
     if not commit_info:
         return
@@ -153,7 +158,8 @@ async def update(_, message: Message):
     fpath = f"{RESTART_PREFIX}{restart_id}"
     try:
         with open(fpath, "w", encoding="utf-8") as f:
-            f.write(f"{msg.chat.id} {msg.id} {commit_info['commit_hash']} | {commit_info['commit_date']} | {commit_info['commit_timestamp']} | {commit_info['commit_msg']} | {info['commits_behind']} | {info['latest_commit_msg']}")
+            f.write(
+                f"{msg.chat.id} {msg.id} {commit_info['commit_hash']} | {commit_info['commit_date']} | {commit_info['commit_timestamp']} | {commit_info['commit_msg']} | {info['commits_behind']} | {info['latest_commit_msg']}")
     except Exception as e:
         LOGGER.error(f"Failed writing restart file: {e}")
     
@@ -213,7 +219,8 @@ async def restart_notification():
 @owner
 async def restart_bot(_, message: Message):
     buttons = [
-        [InlineKeyboardButton("Restart Only", callback_data="confirm_restart restart"), InlineKeyboardButton("Update & Restart", callback_data="confirm_restart update")],
+        [InlineKeyboardButton("Restart Only", callback_data="confirm_restart restart"),
+         InlineKeyboardButton("Update & Restart", callback_data="confirm_restart update")],
         [InlineKeyboardButton("Cancel", callback_data="confirm_restart cancel")]
     ]
     await message.reply("How would you like to proceed?", reply_markup=InlineKeyboardMarkup(buttons))
@@ -241,7 +248,8 @@ async def handle_restart_confirmation(_, callback_query):
         if not update_info or not update_info.get("updates_available"):
             await msg.edit("No updates available. Restarting without updating...")
         else:
-            await msg.edit(f"Updates available!\n({update_info['commits_behind']} new commits)\nLatest: {update_info['latest_commit_msg']}\nPulling changes...")
+            await msg.edit(
+                f"Updates available!\n({update_info['commits_behind']} new commits)\nLatest: {update_info['latest_commit_msg']}\nPulling changes...")
             commit_info = await pull_updates(msg)
             if not commit_info:
                 return
@@ -249,7 +257,8 @@ async def handle_restart_confirmation(_, callback_query):
             fpath = f"{RESTART_PREFIX}{restart_id}"
             try:
                 with open(fpath, "w", encoding="utf-8") as f:
-                    f.write(f"{msg.chat.id} {msg.id} {commit_info['commit_hash']} | {commit_info['commit_date']} | {commit_info['commit_timestamp']} | {commit_info['commit_msg']} | {update_info['commits_behind']} | {update_info['latest_commit_msg']}")
+                    f.write(
+                        f"{msg.chat.id} {msg.id} {commit_info['commit_hash']} | {commit_info['commit_date']} | {commit_info['commit_timestamp']} | {commit_info['commit_msg']} | {update_info['commits_behind']} | {update_info['latest_commit_msg']}")
             except Exception as e:
                 LOGGER.error(f"Failed writing restart file: {e}")
             
