@@ -97,7 +97,7 @@ patch_application_package_manager_has_system_feature() {
         log "✓ Relocated ApplicationPackageManager and inner classes to $last_smali_dir"
     fi
 
-    # Use Python to implement the simplified V1.0.7 patch
+    # Use Python to implement the patch
     python3 - "$target_file" <<'PYTHON'
 import sys
 import re
@@ -111,20 +111,29 @@ if not target_file.exists():
 lines = target_file.read_text().splitlines()
 modified = False
 
-# V1.0.7 Simplified patch for hasSystemFeature(String, int)Z
+# Patch for hasSystemFeature(String, int)Z (with try-catch)
 # Just add the KaoriFeatureOverrides.getOverride block after .registers
-kaorios_block_v107 = """
+kaorios_block = """
     invoke-static {}, Landroid/app/ActivityThread;->currentPackageName()Ljava/lang/String;
 
     move-result-object v0
 
+    :try_start_kaori_override
     iget-object v1, p0, Landroid/app/ApplicationPackageManager;->mContext:Landroid/app/ContextImpl;
 
     invoke-static {v1, p1, v0}, Lcom/android/internal/util/kaorios/KaoriFeatureOverrides;->getOverride(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Boolean;
 
     move-result-object v0
+    :try_end_kaori_override
+    .catchall {:try_start_kaori_override .. :try_end_kaori_override} :catchall_kaori_override
 
-    if-eqz v0, :cond_kaorios_skip
+    goto :goto_kaori_override
+
+    :catchall_kaori_override
+    const/4 v0, 0x0
+
+    :goto_kaori_override
+    if-eqz v0, :cond_kaori_override
 
     invoke-virtual {v0}, Ljava/lang/Boolean;->booleanValue()Z
 
@@ -132,7 +141,7 @@ kaorios_block_v107 = """
 
     return p0
 
-    :cond_kaorios_skip
+    :cond_kaori_override
 """.splitlines()
 
 # Find hasSystemFeature(String, int) method
@@ -159,10 +168,10 @@ if method_start is not None:
                 break
 
         if not already_patched:
-            # Insert Kaorios V1.0.7 block after .registers line
-            for j, block_line in enumerate(reversed(kaorios_block_v107)):
+            # Insert Kaorios block after .registers line
+            for j, block_line in enumerate(reversed(kaorios_block)):
                 lines.insert(registers_line + 1, block_line)
-            print("✓ Inserted V1.0.7 KaoriFeatureOverrides block")
+            print("✓ Inserted KaoriFeatureOverrides block")
             modified = True
         else:
             print("Already patched with KaoriFeatureOverrides")
@@ -171,7 +180,7 @@ else:
 
 if modified:
     target_file.write_text('\n'.join(lines) + '\n')
-    print("✓ Successfully patched ApplicationPackageManager.smali with V1.0.7 approach")
+    print("✓ Successfully patched ApplicationPackageManager.smali")
 else:
     print("No changes needed or already patched")
 PYTHON
