@@ -1,6 +1,6 @@
 // services/web/modules/ui.js
-import { androidVersionToApiLevel } from './utils.js';
-import { triggerWorkflow } from './api.js';
+import {androidVersionToApiLevel} from './utils.js';
+import {triggerWorkflow} from './api.js';
 
 // Global state for detected Android version (module-scoped)
 let detectedAndroidVersion = null;
@@ -320,19 +320,24 @@ export function updateAvailableFeatures(androidVersion) {
     if (version >= 15) {
         cnNotificationFeature.style.display = 'flex';
         secureFlagFeature.style.display = 'flex';
-        if (kaoriosToolboxFeature) kaoriosToolboxFeature.style.display = 'flex';
     } else {
         // Hide and uncheck features for Android 13-14
         cnNotificationFeature.style.display = 'none';
         secureFlagFeature.style.display = 'none';
-        if (kaoriosToolboxFeature) kaoriosToolboxFeature.style.display = 'none';
 
         // Uncheck the checkboxes
         const cnCheckbox = cnNotificationFeature.querySelector('input[type="checkbox"]');
         const secureCheckbox = secureFlagFeature.querySelector('input[type="checkbox"]');
-        const kaoriosCheckbox = kaoriosToolboxFeature?.querySelector('input[type="checkbox"]');
         if (cnCheckbox) cnCheckbox.checked = false;
         if (secureCheckbox) secureCheckbox.checked = false;
+    }
+
+    // Features available for Android 13+
+    if (version >= 13) {
+        if (kaoriosToolboxFeature) kaoriosToolboxFeature.style.display = 'flex';
+    } else {
+        if (kaoriosToolboxFeature) kaoriosToolboxFeature.style.display = 'none';
+        const kaoriosCheckbox = kaoriosToolboxFeature?.querySelector('input[type="checkbox"]');
         if (kaoriosCheckbox) kaoriosCheckbox.checked = false;
     }
 
