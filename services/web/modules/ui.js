@@ -353,25 +353,32 @@ export function initializeManualMode() {
 
     if (!toggle) return;
 
-    toggle.addEventListener('change', (e) => {
-        const isManual = e.target.checked;
-
+    const updateVisibility = (isManual) => {
         // Toggle visibility
         smartInputs.style.display = isManual ? 'none' : 'contents';
         manualInputs.style.display = isManual ? 'contents' : 'none';
 
         // Reset global state when switching modes to avoid stale data
-        setDetectedInfo(null, null);
-
-        // If switching to manual, trigger update if a value is already selected
-        if (isManual && manualAndroidSelect.value) {
-            const evt = new Event('change');
-            manualAndroidSelect.dispatchEvent(evt);
-        } else if (!isManual) {
+        if (isManual) {
+            setDetectedInfo(null, null);
+            if (manualAndroidSelect && manualAndroidSelect.value) {
+                const evt = new Event('change');
+                manualAndroidSelect.dispatchEvent(evt);
+            }
+        } else {
             // If switching back to smart, clear manual validation errors
-            document.getElementById('detected-android').value = '';
+            const detectedInput = document.getElementById('detected-android');
+            if (detectedInput) detectedInput.value = '';
+            setDetectedInfo(null, null);
         }
+    };
+
+    toggle.addEventListener('change', (e) => {
+        updateVisibility(e.target.checked);
     });
+
+    // Initialize state based on current checkbox value (handles browser reload/cache)
+    updateVisibility(toggle.checked);
 
     // Listen for Manual Android Version changes
     if (manualAndroidSelect) {

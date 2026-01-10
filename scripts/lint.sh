@@ -5,6 +5,9 @@
 
 set -e
 
+# Add Go bin to PATH to ensure shfmt is found if installed via go install
+export PATH=$PATH:$HOME/go/bin
+
 echo "Framework Patcher V2 - Code Quality Check"
 echo "============================================="
 
