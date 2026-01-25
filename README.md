@@ -27,13 +27,13 @@ supporting Android 15 and 16
 
 ## Quick Start
 
-### Telegram Bot (Recommended)
+### [Telegram Bot](https://github.com/FrameworksForge/FrameworkPatcherBot) (Recommended)
 
 1. Message the bot and send `/start_patch`.
 2. Follow the interactive prompts to select version and features.
 3. Upload your JAR files.
 
-### Web Interface
+### [Web Interface](https://github.com/FrameworksForge/FrameworkPatcherWeb)
 
 Visit [framework-patcher-v2.vercel.app](https://framework-patcher-v2.vercel.app) to generate modules via a user-friendly
 UI.
