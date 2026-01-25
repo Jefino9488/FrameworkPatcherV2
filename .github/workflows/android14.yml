@@ -179,12 +179,13 @@ jobs:
       - name: Set safe device codename
         id: set_codename
         run: |
-          if [ -n "${{ github.event.inputs.device_codename }}" ]; then
-            echo "codename=${{ github.event.inputs.device_codename }}" >> $GITHUB_OUTPUT
-          else
-            SAFE_CODENAME=$(echo "${{ github.event.inputs.device_name }}" | sed 's/[^a-zA-Z0-9._-]/_/g')
-            echo "codename=${SAFE_CODENAME}" >> $GITHUB_OUTPUT
+          RAW_CODENAME="${{ github.event.inputs.device_codename }}"
+          if [ -z "$RAW_CODENAME" ]; then
+            RAW_CODENAME="${{ github.event.inputs.device_name }}"
           fi
+          # Sanitize: Remove spaces and other invalid tag characters
+          SAFE_CODENAME=$(echo "$RAW_CODENAME" | sed 's/[^a-zA-Z0-9._-]/_/g')
+          echo "codename=${SAFE_CODENAME}" >> $GITHUB_OUTPUT
 
       - name: Run Android 14 patcher
         run: |
@@ -249,9 +250,9 @@ jobs:
       - name: Set Release Info
         id: release_info
         run: |
-          # Format version name to be git tag friendly (replace spaces and dots with hyphens)
-          SAFE_VERSION=$(echo "${{ github.event.inputs.version_name }}" | sed 's/[. ]/-/g')
-          # Add timestamp to ensure unique tags for same device+version combinations
+          # Format version name to be git tag friendly
+          SAFE_VERSION=$(echo "${{ github.event.inputs.version_name }}" | sed 's/[^a-zA-Z0-9._-]/_/g')
+          # Add timestamp to ensure unique tags
           TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
           RELEASE_TAG="${{ steps.set_codename.outputs.codename }}_${SAFE_VERSION}_${TIMESTAMP}"
           echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
