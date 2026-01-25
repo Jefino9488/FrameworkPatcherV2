@@ -261,7 +261,7 @@ adb logcat | grep PackageManager
 ## Support
 
 For help and discussion:
-- [GitHub Issues](https://github.com/Jefino9488/FrameworkPatcherV2/issues)
+- [GitHub Issues](https://github.com/FrameworksForge/FrameworkPatcher/issues)
 - [XDA Developers Forum](https://forum.xda-developers.com/)
 - [Telegram Group](https://t.me/frameworkpatcher) *(if available)*
 
