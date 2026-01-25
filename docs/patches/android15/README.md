@@ -188,7 +188,7 @@ a15/patching-guide/
 ## Support
 
 For help and discussion:
-- [GitHub Issues](https://github.com/Jefino9488/FrameworkPatcherV2/issues)
+- [GitHub Issues](https://github.com/FrameworksForge/FrameworkPatcher/issues)
 - [XDA Thread](https://forum.xda-developers.com/)
 
 ## License

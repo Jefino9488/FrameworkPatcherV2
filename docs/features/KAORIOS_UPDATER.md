@@ -289,7 +289,7 @@ echo "Running patcher..."
 ## Support
 
 - **Kaorios Issues**: [Kaorios Toolbox Repo](https://github.com/Wuang26/Kaorios-Toolbox/issues)
-- **Updater Issues**: [Framework Patcher V2 Issues](https://github.com/Jefino9488/FrameworkPatcherV2/issues)
+- **Updater Issues**: [Framework Patcher Issues](https://github.com/FrameworksForge/FrameworkPatcher/issues)
 - **Telegram**: @Jefino9488
 -
 ## Changelog

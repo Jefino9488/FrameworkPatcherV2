@@ -325,7 +325,7 @@ No known issues at this time.
 
 For questions, issues, or contributions:
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/Jefino9488/FrameworkPatcherV2/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/FrameworksForge/FrameworkPatcher/issues)
 - **Telegram**: [@Jefino9488](https://t.me/Jefino9488)
 - **Support Group**: [@codes9488](https://t.me/codes9488)
 
@@ -343,4 +343,4 @@ Special recognition for:
 
 ---
 
-[View all releases on GitHub](https://github.com/Jefino9488/FrameworkPatcherV2/releases)
+[View all releases on GitHub](https://github.com/FrameworksForge/FrameworkPatcher/releases)
