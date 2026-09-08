@@ -3796,6 +3796,16 @@
         "features": [
           "disable_signature_verification"
         ]
+      },
+      "OS3.0.303.0.WPJIDXM.C10": {
+        "android_version": "16",
+        "build_time": "2026-09-08T17:39:09Z",
+        "patch_version": "3.0.0",
+        "release_url": "https://github.com/FrameworksForge/FrameworkPatcher/releases/tag/build-tmp-34258157009",
+        "workflow_url": "https://github.com/FrameworksForge/FrameworkPatcher/actions/runs/34258157009",
+        "features": [
+          "disable_signature_verification"
+        ]
       }
     },
     "nezha": {
@@ -10303,6 +10313,6 @@
       }
     }
   },
-  "last_updated": "2026-09-08T17:19:33Z",
+  "last_updated": "2026-09-08T17:40:01Z",
   "engine_version": "3.0.0"
 }
