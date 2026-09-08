@@ -9176,6 +9176,17 @@
           "cn_notification_fix",
           "disable_secure_flag"
         ]
+      },
+      "OS3.0.307.0.WMACNXM": {
+        "android_version": "16",
+        "build_time": "2026-09-08T18:25:07Z",
+        "patch_version": "3.0.0",
+        "release_url": "https://github.com/FrameworksForge/FrameworkPatcher/releases/tag/build-tmp-34262674069",
+        "workflow_url": "https://github.com/FrameworksForge/FrameworkPatcher/actions/runs/34262674069",
+        "features": [
+          "disable_signature_verification",
+          "disable_secure_flag"
+        ]
       }
     },
     "XUANYUAN": {
@@ -10313,6 +10324,6 @@
       }
     }
   },
-  "last_updated": "2026-09-08T17:40:01Z",
+  "last_updated": "2026-09-08T18:25:47Z",
   "engine_version": "3.0.0"
 }
